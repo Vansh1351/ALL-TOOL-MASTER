@@ -20,6 +20,17 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({ origin: '*' })); // Allow React dev server or production hosting
+
+// Normalize request URLs to resolve double-slash issues (e.g. //api/download -> /api/download)
+app.use((req, res, next) => {
+  if (req.url) {
+    const parts = req.url.split('?');
+    parts[0] = parts[0].replace(/\/+/g, '/');
+    req.url = parts.join('?');
+  }
+  next();
+});
+
 app.use(express.json({ limit: '500mb' }));
 app.use(express.urlencoded({ extended: true, limit: '500mb' }));
 
