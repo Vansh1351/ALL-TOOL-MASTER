@@ -157,31 +157,76 @@ ${prompt}
 
 ${contextText ? `Context Content:\n${contextText}\n\n` : ''}${textContent ? `Text Input Context:\n${textContent}\n\n` : ''}Format your output in professional, readable Markdown syntax. Start directly with the content without conversational meta-responses.`;
 
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${key}`,
-            "Content-Type": "application/json",
-            "HTTP-Referer": "http://localhost:5000",
-            "X-Title": "All Tool Master"
-          },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
-            messages: [
-              { role: "user", content: fullPrompt }
-            ]
-          })
-        });
+        const openRouterModels = [
+          "google/gemini-2.5-flash",
+          "google/gemini-1.5-flash",
+          "google/gemini-flash-1.5-8b"
+        ];
+        let orError = null;
+        let responseText = null;
 
-        if (!response.ok) {
-          const errJson = await response.json().catch(() => ({}));
-          throw new Error(errJson.error?.message || `HTTP error ${response.status}`);
+        for (const model of openRouterModels) {
+          let attempts = 3;
+          let delay = 1000;
+          for (let attempt = 1; attempt <= attempts; attempt++) {
+            try {
+              console.log(`Calling OpenRouter model ${model} (attempt ${attempt}/${attempts})...`);
+              const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                  "Authorization": `Bearer ${key}`,
+                  "Content-Type": "application/json",
+                  "HTTP-Referer": "http://localhost:5000",
+                  "X-Title": "All Tool Master"
+                },
+                body: JSON.stringify({
+                  model: model,
+                  messages: [
+                    { role: "user", content: fullPrompt }
+                  ]
+                })
+              });
+
+              if (!response.ok) {
+                const errJson = await response.json().catch(() => ({}));
+                const errMsg = errJson.error?.message || `HTTP error ${response.status}`;
+                throw { status: response.status, message: errMsg };
+              }
+
+              const resJson = await response.json();
+              const text = resJson.choices?.[0]?.message?.content;
+              if (!text) {
+                throw new Error("Invalid response received from OpenRouter API.");
+              }
+              responseText = text;
+              break;
+            } catch (error) {
+              orError = error;
+              const errMsg = error.message || "";
+              const status = error.status || 0;
+              const isTransient = status === 503 || status === 429 ||
+                                  errMsg.includes('503') || errMsg.includes('429') ||
+                                  errMsg.toLowerCase().includes('high demand') ||
+                                  errMsg.toLowerCase().includes('temporarily') ||
+                                  errMsg.toLowerCase().includes('unavailable');
+              
+              if (isTransient && attempt < attempts) {
+                console.warn(`Transient error calling ${model} on OpenRouter: ${errMsg}. Retrying in ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay *= 2;
+              } else {
+                console.error(`Error calling OpenRouter model ${model}:`, errMsg);
+                break; // break the attempt loop to try next model
+              }
+            }
+          }
+          if (responseText) {
+            break;
+          }
         }
 
-        const resJson = await response.json();
-        const text = resJson.choices?.[0]?.message?.content;
-        if (!text) {
-          throw new Error("Invalid response received from OpenRouter API.");
+        if (!responseText) {
+          throw orError || new Error("Failed to generate content with OpenRouter.");
         }
 
         // Cleanup extracted audio file if it was created
@@ -189,7 +234,7 @@ ${contextText ? `Context Content:\n${contextText}\n\n` : ''}${textContent ? `Tex
           try { fs.unlinkSync(processedFilePath); } catch (e) {}
         }
 
-        return text;
+        return responseText;
       } 
       
       // 2. STANDARD GEMINI SDK BLOCK
@@ -217,17 +262,57 @@ ${contextText ? `Context Content:\n${contextText}\n\n` : ''}${textContent ? `Tex
           text: `System Directive: Apply the following instructions to the provided media/text context:\n\n${prompt}\n\nFormat your output in professional, readable Markdown syntax. Start directly with the content without conversational meta-responses.`
         });
 
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: contents
-        });
+        const modelsToTry = ['gemini-2.5-flash', 'gemini-1.5-flash'];
+        let sdkError = null;
+        let responseText = null;
+
+        for (const model of modelsToTry) {
+          let attempts = 3;
+          let delay = 1000;
+          for (let attempt = 1; attempt <= attempts; attempt++) {
+            try {
+              console.log(`Calling SDK model ${model} (attempt ${attempt}/${attempts})...`);
+              const response = await ai.models.generateContent({
+                model: model,
+                contents: contents
+              });
+              responseText = response.text;
+              break;
+            } catch (error) {
+              sdkError = error;
+              const errMsg = error.message || "";
+              const status = error.status || 0;
+              const isTransient = status === 503 || status === 429 ||
+                                  errMsg.includes('503') || errMsg.includes('429') ||
+                                  errMsg.toLowerCase().includes('high demand') ||
+                                  errMsg.toLowerCase().includes('temporarily') ||
+                                  errMsg.toLowerCase().includes('unavailable');
+              
+              if (isTransient && attempt < attempts) {
+                console.warn(`Transient error calling SDK model ${model}: ${errMsg}. Retrying in ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay *= 2;
+              } else {
+                console.error(`Error calling SDK model ${model}:`, errMsg);
+                break; // break the attempt loop to try the next model
+              }
+            }
+          }
+          if (responseText) {
+            break;
+          }
+        }
+
+        if (!responseText) {
+          throw sdkError || new Error("Failed to generate content with SDK.");
+        }
 
         // Cleanup extracted audio file if it was created
         if (processedFilePath !== filePath && fs.existsSync(processedFilePath)) {
           try { fs.unlinkSync(processedFilePath); } catch (e) {}
         }
 
-        return response.text;
+        return responseText;
       }
     } catch (error) {
       console.error(`API Key ${i + 1} failed:`, error.message);
