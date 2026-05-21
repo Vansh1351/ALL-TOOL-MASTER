@@ -167,13 +167,76 @@ export async function downloadMedia(url, format, quality, outputDir) {
   }
 
   return new Promise((resolve, reject) => {
-    const runCommand = (currentArgs, isFallback = false) => {
+    const runCommand = (currentArgs, isFallback = false, triedBrowserCookies = false) => {
       console.log(`Running yt-dlp command: ${binary} ${currentArgs.join(' ')}`);
       execFile(binary, currentArgs, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
         if (error) {
           const errMessage = stderr || error.message;
-          console.error(`yt-dlp execution error (isFallback=${isFallback}):`, errMessage);
+          console.error(`yt-dlp execution error (isFallback=${isFallback}, triedBrowserCookies=${triedBrowserCookies}):`, errMessage);
           
+          const isBotBlock = errMessage.toLowerCase().includes("confirm you're not a bot") || 
+                              errMessage.toLowerCase().includes("sign in to confirm");
+
+          if (isBotBlock && !triedBrowserCookies) {
+            const isLocalEnv = process.platform === 'win32' || process.platform === 'darwin' || process.env.NODE_ENV !== 'production';
+            if (isLocalEnv) {
+              const browsers = process.platform === 'win32' 
+                ? ['chrome', 'edge', 'firefox', 'opera', 'brave'] 
+                : (process.platform === 'darwin' ? ['safari', 'chrome', 'firefox'] : ['firefox', 'chrome']);
+              
+              console.log(`Bot block detected. Attempting to bypass using local browser cookies on platform: ${process.platform}...`);
+              
+              const tryBrowserCookies = (browserList, index) => {
+                if (index >= browserList.length) {
+                  // Tried all browsers, fail with user-friendly error message
+                  const userFriendlyError = "YouTube blocked the download with a bot-verification check (Sign in to confirm you're not a bot). All attempts to extract local browser cookies failed. Please close your browser completely or configure 'YOUTUBE_COOKIES' in your server settings.";
+                  return reject(new Error(userFriendlyError));
+                }
+                
+                const browser = browserList[index];
+                console.log(`Retrying download with cookies from browser: ${browser}...`);
+                
+                // Copy current args but remove any existing --cookies or --cookies-from-browser
+                const fallbackArgs = [];
+                for (let i = 0; i < currentArgs.length; i++) {
+                  if (currentArgs[i] === '--cookies' || currentArgs[i] === '--cookies-from-browser') {
+                    i++; // skip option and value
+                  } else {
+                    fallbackArgs.push(currentArgs[i]);
+                  }
+                }
+                fallbackArgs.push('--cookies-from-browser', browser);
+                
+                console.log(`Running yt-dlp with browser cookies command: ${binary} ${fallbackArgs.join(' ')}`);
+                execFile(binary, fallbackArgs, { maxBuffer: 1024 * 1024 * 10 }, (err, subStdout, subStderr) => {
+                  if (err) {
+                    const nextErrMessage = subStderr || err.message;
+                    console.warn(`Failed with cookies from browser ${browser}: ${nextErrMessage}`);
+                    return tryBrowserCookies(browserList, index + 1);
+                  }
+                  
+                  console.log(`Successfully downloaded using cookies from browser: ${browser}`);
+                  const files = fs.readdirSync(outputDir);
+                  const matches = files.filter(f => f.startsWith(`download_`));
+                  if (matches.length === 0) {
+                    return tryBrowserCookies(browserList, index + 1);
+                  }
+                  const latestFile = matches
+                    .map(f => ({ name: f, time: fs.statSync(path.join(outputDir, f)).mtimeMs }))
+                    .sort((a, b) => b.time - a.time)[0].name;
+                  
+                  return resolve(path.join(outputDir, latestFile));
+                });
+              };
+              
+              return tryBrowserCookies(browsers, 0);
+            } else {
+              // Cloud environment
+              const userFriendlyError = "YouTube blocked the download with a bot-verification check (Sign in to confirm you're not a bot). Since the server is hosted in the cloud (Render), you must provide cookies to authenticate. Please export your YouTube cookies in Netscape format (using a browser extension like 'Get cookies.txt LOCALLY') and set them in your Render dashboard environment variables under the name 'YOUTUBE_COOKIES'. If you already set it, your cookies may have expired and you need to export new ones.";
+              return reject(new Error(userFriendlyError));
+            }
+          }
+
           // Fallback if specific requested format was not found or failed to merge
           if (!isFallback && format !== 'mp3' && (errMessage.includes('Requested format is not available') || errMessage.includes('format is not available'))) {
             console.warn("Requested format not available. Retrying with default best streams...");
@@ -187,9 +250,15 @@ export async function downloadMedia(url, format, quality, outputDir) {
                 fallbackArgs.push(currentArgs[i]);
               }
             }
-            return runCommand(fallbackArgs, true);
+            return runCommand(fallbackArgs, true, triedBrowserCookies);
           }
           
+          // If the bot block was detected and we couldn't bypass it, customize the error message
+          if (isBotBlock) {
+            const userFriendlyError = "YouTube blocked the download with a bot-verification check (Sign in to confirm you're not a bot). If running in the cloud (Render), please set up/renew your 'YOUTUBE_COOKIES' environment variable. If running locally, make sure you close your browser completely before retrying.";
+            return reject(new Error(userFriendlyError));
+          }
+
           return reject(new Error(errMessage));
         }
         
