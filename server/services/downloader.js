@@ -37,6 +37,44 @@ try {
   console.error("Failed to copy ffmpeg/ffprobe binaries to bin folder:", err);
 }
 
+// Helper to configure cookies for yt-dlp to bypass bot challenges
+function setupCookies() {
+  const envCookies = process.env.YOUTUBE_COOKIES;
+  const cookiesPath = path.join(binDir, 'cookies.txt');
+
+  if (!envCookies) {
+    // Check if a local cookies.txt exists in root or bin
+    const rootCookies = path.join(__dirname, '..', 'cookies.txt');
+    if (fs.existsSync(rootCookies)) {
+      return rootCookies;
+    }
+    if (fs.existsSync(cookiesPath)) {
+      return cookiesPath;
+    }
+    return null;
+  }
+
+  // Write cookies from env variable (support plain Netscape text or base64 encoded)
+  try {
+    let cookiesContent = envCookies.trim();
+    if (!cookiesContent.includes('# Netscape') && !cookiesContent.includes('\t') && cookiesContent.length > 20) {
+      try {
+        const decoded = Buffer.from(cookiesContent, 'base64').toString('utf8');
+        if (decoded.includes('# Netscape') || decoded.includes('\t')) {
+          cookiesContent = decoded;
+        }
+      } catch (e) {
+        // Fallback to raw value
+      }
+    }
+    fs.writeFileSync(cookiesPath, cookiesContent, 'utf8');
+    return cookiesPath;
+  } catch (err) {
+    console.error("Failed to write cookies.txt from environment variable:", err);
+    return null;
+  }
+}
+
 // Determine binary name and URL
 let binaryName = 'yt-dlp';
 let downloadUrl = 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp';
@@ -103,6 +141,12 @@ export async function downloadMedia(url, format, quality, outputDir) {
     '--restrict-filenames',
     '--ffmpeg-location', binDir
   ];
+
+  const resolvedCookiesPath = setupCookies();
+  if (resolvedCookiesPath) {
+    console.log(`Using cookies file: ${resolvedCookiesPath}`);
+    args.push('--cookies', resolvedCookiesPath);
+  }
 
   if (format === 'mp3') {
     args.push('-x', '--audio-format', 'mp3', '--audio-quality', '0');

@@ -10,6 +10,8 @@ client/dist/
 .env
 .env.local
 server/.env
+*cookies.txt
+
 
 # Local temporary and downloaded files
 server/uploads/*
