@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Production build output
+client/dist/
+
+# API keys and environment configurations (CRITICAL)
+.env
+.env.local
+server/.env
+
+# Local temporary and downloaded files
+server/uploads/*
+!server/uploads/.gitkeep
+server/bin/*
+!server/bin/.gitkeep
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+*.log
+.gemini/
