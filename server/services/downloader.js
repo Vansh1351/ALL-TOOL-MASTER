@@ -139,7 +139,8 @@ export async function downloadMedia(url, format, quality, outputDir) {
     '--no-playlist',
     '--no-warnings',
     '--restrict-filenames',
-    '--ffmpeg-location', binDir
+    '--ffmpeg-location', binDir,
+    '--js-runtimes', 'node'
   ];
 
   const resolvedCookiesPath = setupCookies();
@@ -166,30 +167,51 @@ export async function downloadMedia(url, format, quality, outputDir) {
   }
 
   return new Promise((resolve, reject) => {
-    console.log(`Running yt-dlp command: ${binary} ${args.join(' ')}`);
-    const child = execFile(binary, args, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
-      if (error) {
-        console.error('yt-dlp execution error:', stderr);
-        return reject(new Error(stderr || error.message));
-      }
-      
-      console.log('yt-dlp finished:', stdout);
-      
-      // Let's find the created file in outputDir
-      // Find files starting with download_ and created recently
-      const files = fs.readdirSync(outputDir);
-      const matches = files.filter(f => f.startsWith(`download_`));
-      
-      if (matches.length === 0) {
-        return reject(new Error('File not found after yt-dlp finished processing.'));
-      }
-      
-      // Find the latest modified file
-      const latestFile = matches
-        .map(f => ({ name: f, time: fs.statSync(path.join(outputDir, f)).mtimeMs }))
-        .sort((a, b) => b.time - a.time)[0].name;
+    const runCommand = (currentArgs, isFallback = false) => {
+      console.log(`Running yt-dlp command: ${binary} ${currentArgs.join(' ')}`);
+      execFile(binary, currentArgs, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
+        if (error) {
+          const errMessage = stderr || error.message;
+          console.error(`yt-dlp execution error (isFallback=${isFallback}):`, errMessage);
+          
+          // Fallback if specific requested format was not found or failed to merge
+          if (!isFallback && format !== 'mp3' && (errMessage.includes('Requested format is not available') || errMessage.includes('format is not available'))) {
+            console.warn("Requested format not available. Retrying with default best streams...");
+            
+            // Remove -f and -S arguments and their values to let it fallback to default best format selection
+            const fallbackArgs = [];
+            for (let i = 0; i < currentArgs.length; i++) {
+              if (currentArgs[i] === '-f' || currentArgs[i] === '-S') {
+                i++; // Skip option and its value
+              } else {
+                fallbackArgs.push(currentArgs[i]);
+              }
+            }
+            return runCommand(fallbackArgs, true);
+          }
+          
+          return reject(new Error(errMessage));
+        }
+        
+        console.log('yt-dlp finished:', stdout);
+        
+        // Find files starting with download_ and created recently
+        const files = fs.readdirSync(outputDir);
+        const matches = files.filter(f => f.startsWith(`download_`));
+        
+        if (matches.length === 0) {
+          return reject(new Error('File not found after yt-dlp finished processing.'));
+        }
+        
+        // Find the latest modified file
+        const latestFile = matches
+          .map(f => ({ name: f, time: fs.statSync(path.join(outputDir, f)).mtimeMs }))
+          .sort((a, b) => b.time - a.time)[0].name;
 
-      resolve(path.join(outputDir, latestFile));
-    });
+        resolve(path.join(outputDir, latestFile));
+      });
+    };
+
+    runCommand(args);
   });
 }
