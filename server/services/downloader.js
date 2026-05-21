@@ -152,15 +152,17 @@ export async function downloadMedia(url, format, quality, outputDir) {
     args.push('-x', '--audio-format', 'mp3', '--audio-quality', '0');
   } else {
     // mp4 video
-    let formatArg = 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best';
+    let formatArg = 'bestvideo+bestaudio/best';
     if (quality === '720p') {
-      formatArg = 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best';
+      formatArg = 'bestvideo[height<=720]+bestaudio/best[height<=720]/best';
     } else if (quality === '480p') {
-      formatArg = 'bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best';
+      formatArg = 'bestvideo[height<=480]+bestaudio/best[height<=480]/best';
     } else if (quality === '360p') {
-      formatArg = 'bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best';
+      formatArg = 'bestvideo[height<=360]+bestaudio/best[height<=360]/best';
     }
     args.push('-f', formatArg);
+    args.push('-S', 'res,vcodec:h264,acodec:m4a');
+    args.push('--recode-video', 'mp4');
   }
 
   return new Promise((resolve, reject) => {
