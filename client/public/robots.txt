@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://alltoolmaster.com/sitemap.xml
+Sitemap: https://all-tool-master.vercel.app/sitemap.xml
