@@ -5,7 +5,8 @@ import {
   FiCheckCircle, FiAlertCircle, FiCopy, FiFile 
 } from 'react-icons/fi';
 
-const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const rawBackendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const BACKEND_URL = rawBackendUrl.replace(/\/$/, '');
 
 export default function ToolModal({ tool, onClose, addToHistory }) {
   if (!tool) return null;
