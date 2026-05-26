@@ -43,6 +43,7 @@ export default function Navbar({ theme, toggleTheme, currentView, setView, openS
           style={{ 
             display: 'flex', 
             alignItems: 'center', 
+            gap: '10px',
             cursor: 'pointer',
             userSelect: 'none'
           }}
@@ -51,11 +52,19 @@ export default function Navbar({ theme, toggleTheme, currentView, setView, openS
             src="/logo.png" 
             alt="All Tool Master Logo" 
             style={{ 
-              height: '46px', 
+              height: '34px', 
+              width: '34px',
               borderRadius: '8px',
-              objectFit: 'contain'
+              objectFit: 'cover'
             }} 
           />
+          <span style={{
+            fontSize: '20px',
+            fontWeight: '800',
+            letterSpacing: '-0.5px'
+          }}>
+            AllTool<span className="text-gradient">Master</span>
+          </span>
         </div>
 
         {/* Desktop Navigation Links */}
