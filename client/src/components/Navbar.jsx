@@ -43,31 +43,19 @@ export default function Navbar({ theme, toggleTheme, currentView, setView, openS
           style={{ 
             display: 'flex', 
             alignItems: 'center', 
-            gap: '10px', 
             cursor: 'pointer',
             userSelect: 'none'
           }}
         >
-          <div style={{
-            background: 'var(--primary-gradient)',
-            borderRadius: '10px',
-            width: '38px',
-            height: '38px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            boxShadow: 'var(--accent-glow)'
-          }}>
-            <FiLayers size={20} />
-          </div>
-          <span style={{
-            fontSize: '20px',
-            fontWeight: '800',
-            letterSpacing: '-0.5px'
-          }}>
-            AllTool<span className="text-gradient">Master</span>
-          </span>
+          <img 
+            src="/logo.png" 
+            alt="All Tool Master Logo" 
+            style={{ 
+              height: '46px', 
+              borderRadius: '8px',
+              objectFit: 'contain'
+            }} 
+          />
         </div>
 
         {/* Desktop Navigation Links */}

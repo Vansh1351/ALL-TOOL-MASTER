@@ -38,20 +38,16 @@ export default function Footer({ setView }) {
           
           {/* Column 1: About */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => handleLinkClick('dashboard')}>
-              <div style={{
-                background: 'var(--primary-gradient)',
-                borderRadius: '8px',
-                width: '32px',
-                height: '32px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff'
-              }}>
-                <FiLayers size={16} />
-              </div>
-              <span style={{ fontSize: '18px', fontWeight: '800' }}>AllTool<span className="text-gradient">Master</span></span>
+            <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => handleLinkClick('dashboard')}>
+              <img 
+                src="/logo.png" 
+                alt="All Tool Master Logo" 
+                style={{ 
+                  height: '38px', 
+                  borderRadius: '6px',
+                  objectFit: 'contain'
+                }} 
+              />
             </div>
             
             <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.6' }}>
