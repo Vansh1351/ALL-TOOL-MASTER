@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import { FiSun, FiMoon, FiSettings, FiMenu, FiX, FiLayers } from 'react-icons/fi';
 
-export default function Navbar({ theme, toggleTheme, currentView, setView, openSettings }) {
+export default function Navbar({ theme, toggleTheme, currentView, setView, navigate, openSettings }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
     { name: 'Tools Dashboard', id: 'dashboard' },
+    { name: 'Blog', id: 'blog-list' },
     { name: 'About Us', id: 'about' },
     { name: 'Contact Us', id: 'contact' },
     { name: 'FAQs', id: 'faqs' }
   ];
 
   const handleNavClick = (viewId) => {
-    setView(viewId);
+    navigate(viewId);
     setMobileMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };

@@ -288,10 +288,14 @@ export default function ToolGrid({ filterText, onSelectTool }) {
             {filteredTools.map((tool) => {
               const IconComp = tool.icon;
               return (
-                <div
+                <a
                   key={tool.id}
+                  href={tool.routes ? tool.routes[0] : '#'}
                   className="glass-panel tool-card"
-                  onClick={() => onSelectTool(tool)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onSelectTool(tool);
+                  }}
                   style={{
                     padding: '24px',
                     borderRadius: '20px',
@@ -301,7 +305,9 @@ export default function ToolGrid({ filterText, onSelectTool }) {
                     justifyContent: 'space-between',
                     minHeight: '220px',
                     position: 'relative',
-                    overflow: 'hidden'
+                    overflow: 'hidden',
+                    textDecoration: 'none',
+                    color: 'inherit'
                   }}
                 >
                   {/* Category Badge & Icon */}
@@ -358,7 +364,7 @@ export default function ToolGrid({ filterText, onSelectTool }) {
                   }} className="card-cta">
                     Open Tool &rarr;
                   </div>
-                </div>
+                </a>
               );
             })}
           </div>

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { FiLayers, FiYoutube, FiLinkedin, FiSend, FiMail, FiPhone } from 'react-icons/fi';
+import { TOOLS_DATA } from './ToolGrid';
 
-export default function Footer({ setView }) {
+export default function Footer({ setView, navigate }) {
   const [email, setEmail] = useState('');
 
   const handleSubscribe = (e) => {
@@ -12,8 +13,14 @@ export default function Footer({ setView }) {
   };
 
   const handleLinkClick = (viewId) => {
-    setView(viewId);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    navigate(viewId);
+  };
+
+  const handleToolClick = (toolId) => {
+    const tool = TOOLS_DATA.find(t => t.id === toolId);
+    if (tool) {
+      navigate('tool-page', tool);
+    }
   };
 
   return (
@@ -65,21 +72,76 @@ export default function Footer({ setView }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <h4 style={{ fontSize: '14px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Utilities</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
-              <span onClick={() => handleLinkClick('dashboard')} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>URL Downloader</span>
-              <span onClick={() => handleLinkClick('dashboard')} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>MP4 to MP3</span>
-              <span onClick={() => handleLinkClick('dashboard')} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>Universal Image Converter</span>
-              <span onClick={() => handleLinkClick('dashboard')} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>AI Meeting Assistant</span>
+              <a 
+                href="/downloader/youtube" 
+                onClick={(e) => { e.preventDefault(); handleToolClick('youtube-downloader'); }} 
+                style={{ color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'none' }}
+              >
+                URL Downloader
+              </a>
+              <a 
+                href="/convert/mp4-to-mp3" 
+                onClick={(e) => { e.preventDefault(); handleToolClick('mp4-to-mp3'); }} 
+                style={{ color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'none' }}
+              >
+                MP4 to MP3
+              </a>
+              <a 
+                href="/convert/heic-to-jpg" 
+                onClick={(e) => { e.preventDefault(); handleToolClick('image-converter'); }} 
+                style={{ color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'none' }}
+              >
+                Universal Image Converter
+              </a>
+              <a 
+                href="/ai-notes/meeting-minutes" 
+                onClick={(e) => { e.preventDefault(); handleToolClick('ai-meeting-minutes'); }} 
+                style={{ color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'none' }}
+              >
+                AI Meeting Assistant
+              </a>
             </div>
           </div>
 
           {/* Column 3: Legal Pages */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <h4 style={{ fontSize: '14px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Legal</h4>
+            <h4 style={{ fontSize: '14px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Resources</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
-              <span onClick={() => handleLinkClick('privacy')} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>Privacy Policy</span>
-              <span onClick={() => handleLinkClick('terms')} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>Terms of Service</span>
-              <span onClick={() => handleLinkClick('disclaimer')} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>Disclaimer</span>
-              <span onClick={() => handleLinkClick('dmca')} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>DMCA Notice</span>
+              <a 
+                href="/blog" 
+                onClick={(e) => { e.preventDefault(); handleLinkClick('blog-list'); }} 
+                style={{ color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'none', fontWeight: '700' }}
+              >
+                Blog Articles
+              </a>
+              <a 
+                href="/privacy" 
+                onClick={(e) => { e.preventDefault(); handleLinkClick('privacy'); }} 
+                style={{ color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'none' }}
+              >
+                Privacy Policy
+              </a>
+              <a 
+                href="/terms" 
+                onClick={(e) => { e.preventDefault(); handleLinkClick('terms'); }} 
+                style={{ color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'none' }}
+              >
+                Terms of Service
+              </a>
+              <a 
+                href="/disclaimer" 
+                onClick={(e) => { e.preventDefault(); handleLinkClick('disclaimer'); }} 
+                style={{ color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'none' }}
+              >
+                Disclaimer
+              </a>
+              <a 
+                href="/dmca" 
+                onClick={(e) => { e.preventDefault(); handleLinkClick('dmca'); }} 
+                style={{ color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'none' }}
+              >
+                DMCA Notice
+              </a>
             </div>
           </div>
 

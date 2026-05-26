@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import ToolGrid, { TOOLS_DATA } from './components/ToolGrid';
-import ToolModal from './components/ToolModal';
 import HistoryPanel from './components/HistoryPanel';
 import FAQAccordion from './components/FAQAccordion';
 import Footer from './components/Footer';
@@ -14,14 +13,19 @@ import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
 import DisclaimerPage from './pages/DisclaimerPage';
 import DmcaPage from './pages/DmcaPage';
+import ToolPage from './pages/ToolPage';
+import BlogListPage from './pages/BlogListPage';
+import BlogPostPage from './pages/BlogPostPage';
+import { BLOG_POSTS } from './blogData';
 
-import { FiShield, FiZap, FiUserCheck, FiCpu, FiStar, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiShield, FiZap, FiUserCheck, FiCpu, FiStar } from 'react-icons/fi';
 
 export default function App() {
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
   const [view, setView] = useState('dashboard');
   const [searchVal, setSearchVal] = useState('');
   const [activeTool, setActiveTool] = useState(null);
+  const [selectedBlogSlug, setSelectedBlogSlug] = useState(null);
   const [history, setHistory] = useState(JSON.parse(localStorage.getItem('ops_history')) || []);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [geminiKey, setGeminiKey] = useState(localStorage.getItem('gemini_api_key') || '');
@@ -33,6 +37,19 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
   }, [theme]);
+
+  // Navigate helper function
+  const navigate = (viewId, tool = null, slug = null) => {
+    setView(viewId);
+    setActiveTool(tool);
+    setSelectedBlogSlug(slug);
+    
+    if (viewId !== 'dashboard') {
+      setSearchVal('');
+    }
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Client-side virtual routing mount / listener
   useEffect(() => {
@@ -46,29 +63,54 @@ export default function App() {
         '/privacy': 'privacy',
         '/terms': 'terms',
         '/disclaimer': 'disclaimer',
-        '/dmca': 'dmca'
+        '/dmca': 'dmca',
+        '/faqs': 'faqs'
       };
       
       if (infoPages[path]) {
         setView(infoPages[path]);
+        setActiveTool(null);
+        setSelectedBlogSlug(null);
+        return;
+      }
+      
+      // Blog pages
+      if (path === '/blog') {
+        setView('blog-list');
+        setActiveTool(null);
+        setSelectedBlogSlug(null);
+        return;
+      }
+      
+      if (path.startsWith('/blog/')) {
+        const slug = path.substring(6);
+        setView('blog-post');
+        setSelectedBlogSlug(slug);
+        setActiveTool(null);
         return;
       }
       
       // Main sections
       if (path === '/downloader') {
         setView('dashboard');
+        setActiveTool(null);
+        setSelectedBlogSlug(null);
         setSearchVal('downloader');
         setTimeout(scrollToTools, 100);
         return;
       }
       if (path === '/converter') {
         setView('dashboard');
+        setActiveTool(null);
+        setSelectedBlogSlug(null);
         setSearchVal('converter');
         setTimeout(scrollToTools, 100);
         return;
       }
       if (path === '/ai-notes') {
         setView('dashboard');
+        setActiveTool(null);
+        setSelectedBlogSlug(null);
         setSearchVal('AI Tool');
         setTimeout(scrollToTools, 100);
         return;
@@ -79,13 +121,16 @@ export default function App() {
         tool.routes && tool.routes.includes(path)
       );
       if (matchedTool) {
-        setView('dashboard');
+        setView('tool-page');
         setActiveTool(matchedTool);
+        setSelectedBlogSlug(null);
         return;
       }
       
       // Fallback/Home
       setView('dashboard');
+      setActiveTool(null);
+      setSelectedBlogSlug(null);
     };
 
     handleRoute();
@@ -95,22 +140,18 @@ export default function App() {
     return () => window.removeEventListener('popstate', handleRoute);
   }, []);
 
-  // Update URL history state and metadata on activeTool change
+  // Consolidated URL state, metadata and analytics sync
   useEffect(() => {
-    if (activeTool) {
-      const firstRoute = activeTool.routes ? activeTool.routes[0] : null;
-      if (firstRoute && window.location.pathname !== firstRoute) {
-        window.history.pushState({}, '', firstRoute);
-      }
+    let path = '/';
+    let title = "All Tool Master | Free Online File Converter, Downloader & AI Notes";
+    let desc = "Access free online file tools. Fast PDF and media converter, universal web video downloader from URL, and smart AI note-taker online. No registration required.";
+    
+    if (view === 'tool-page' && activeTool) {
+      const firstRoute = activeTool.routes ? activeTool.routes[0] : '/';
+      path = firstRoute;
+      title = `${activeTool.title} | Free Online Converter & AI Notes | All Tool Master`;
+      desc = `${activeTool.desc} Safe, fast, and browser-based format utilities by All Tool Master.`;
       
-      // Dynamic Title & Description for the active tool
-      document.title = `${activeTool.title} | Free Online Converter & AI Notes | All Tool Master`;
-      const descMeta = document.querySelector('meta[name="description"]');
-      if (descMeta) {
-        descMeta.setAttribute('content', `${activeTool.desc} Safe, fast, and browser-based format utilities by All Tool Master.`);
-      }
-
-      // Google Analytics: Track tool view event
       if (window.gtag) {
         window.gtag('event', 'view_item', {
           item_id: activeTool.id,
@@ -118,49 +159,34 @@ export default function App() {
           item_category: activeTool.category
         });
       }
-    } else {
-      // If tool is closed and we are on a virtual route, go back to /
-      const infoPaths = ['/about', '/contact', '/privacy', '/terms', '/disclaimer', '/dmca'];
-      if (window.location.pathname !== '/' && !infoPaths.includes(window.location.pathname)) {
-        window.history.pushState({}, '', '/');
+    } else if (view === 'blog-post' && selectedBlogSlug) {
+      path = `/blog/${selectedBlogSlug}`;
+      const post = BLOG_POSTS.find(p => p.slug === selectedBlogSlug);
+      if (post) {
+        title = `${post.title} | All Tool Master Blog`;
+        desc = post.excerpt;
       }
       
-      // Reset main home page SEO tags
-      document.title = "All Tool Master | Free Online File Converter, Downloader & AI Notes";
-      const descMeta = document.querySelector('meta[name="description"]');
-      if (descMeta) {
-        descMeta.setAttribute('content', "Access free online file tools. Fast PDF and media converter, universal web video downloader from URL, and smart AI note-taker online. No registration required.");
-      }
-    }
-  }, [activeTool]);
-
-  // Sync URL history state and metadata on view change
-  useEffect(() => {
-    if (view === 'dashboard') {
-      if (!activeTool && window.location.pathname !== '/') {
-        window.history.pushState({}, '', '/');
-        document.title = "All Tool Master | Free Online File Converter, Downloader & AI Notes";
-        const descMeta = document.querySelector('meta[name="description"]');
-        if (descMeta) {
-          descMeta.setAttribute('content', "Access free online file tools. Fast PDF and media converter, universal web video downloader from URL, and smart AI note-taker online. No registration required.");
-        }
-      }
-
-      // Google Analytics: Track main dashboard page view
       if (window.gtag) {
-        window.gtag('event', 'screen_view', { screen_name: 'home' });
+        window.gtag('event', 'screen_view', { screen_name: `blog-post-${selectedBlogSlug}` });
       }
-    } else {
-      // Navigating to static/informational views
-      setActiveTool(null);
+    } else if (view === 'blog-list') {
+      path = '/blog';
+      title = "All Tool Master Blog | Free Online Guides & Video Converter Tutorials";
+      desc = "Learn how to convert MP4 to MP3, download YouTube videos, convert HEIC to JPG online, and transcribe meeting transcripts with AI tools.";
       
+      if (window.gtag) {
+        window.gtag('event', 'screen_view', { screen_name: 'blog-list' });
+      }
+    } else if (view !== 'dashboard') {
       const pathMap = {
         about: '/about',
         contact: '/contact',
         privacy: '/privacy',
         terms: '/terms',
         disclaimer: '/disclaimer',
-        dmca: '/dmca'
+        dmca: '/dmca',
+        faqs: '/faqs'
       };
       const titleMap = {
         about: "About Us | All Tool Master",
@@ -168,7 +194,8 @@ export default function App() {
         privacy: "Privacy Policy | All Tool Master",
         terms: "Terms & Conditions | All Tool Master",
         disclaimer: "Disclaimer | All Tool Master",
-        dmca: "DMCA Policy | All Tool Master"
+        dmca: "DMCA Policy | All Tool Master",
+        faqs: "Frequently Asked Questions | All Tool Master"
       };
       const descMap = {
         about: "Learn about All Tool Master, our mission to build secure, browser-based file conversion and AI productivity tools.",
@@ -176,26 +203,33 @@ export default function App() {
         privacy: "Read our privacy policy. We respect your security; no files are logged or stored on our servers.",
         terms: "Review the terms and conditions for using All Tool Master utilities.",
         disclaimer: "Legal disclaimers for the All Tool Master toolset and conversions.",
-        dmca: "DMCA copyright policy and takedown instructions for All Tool Master."
+        dmca: "DMCA copyright policy and takedown instructions for All Tool Master.",
+        faqs: "Find answers to frequently asked questions about All Tool Master conversions, safety, and tools."
       };
       
-      if (pathMap[view] && window.location.pathname !== pathMap[view]) {
-        window.history.pushState({}, '', pathMap[view]);
-      }
-      if (titleMap[view]) {
-        document.title = titleMap[view];
-      }
-      const descMeta = document.querySelector('meta[name="description"]');
-      if (descMeta && descMap[view]) {
-        descMeta.setAttribute('content', descMap[view]);
-      }
-
-      // Google Analytics: Track page screen view
+      path = pathMap[view] || '/';
+      title = titleMap[view] || title;
+      desc = descMap[view] || desc;
+      
       if (window.gtag) {
         window.gtag('event', 'screen_view', { screen_name: view });
       }
+    } else {
+      if (window.gtag) {
+        window.gtag('event', 'screen_view', { screen_name: 'home' });
+      }
     }
-  }, [view]);
+    
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, '', path);
+    }
+    
+    document.title = title;
+    const descMeta = document.querySelector('meta[name="description"]');
+    if (descMeta) {
+      descMeta.setAttribute('content', desc);
+    }
+  }, [view, activeTool, selectedBlogSlug]);
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
@@ -266,6 +300,7 @@ export default function App() {
         toggleTheme={toggleTheme} 
         currentView={view} 
         setView={setView} 
+        navigate={navigate}
         openSettings={openSettings} 
       />
 
@@ -284,7 +319,7 @@ export default function App() {
             <div ref={toolsRef}>
               <ToolGrid 
                 filterText={searchVal} 
-                onSelectTool={setActiveTool} 
+                onSelectTool={(tool) => navigate('tool-page', tool)} 
               />
             </div>
 
@@ -391,7 +426,7 @@ export default function App() {
                   </p>
                   
                   <p>
-                    In addition to file conversions, our platform acts as a secure, fast <strong>free youtube downloader</strong>. With support for standard URL inputs, you can paste video links from platforms like YouTube, Vimeo, Facebook, TikTok, and Instagram, exporting them directly as HD MP4 files or extracting clean MP3 files. With our <strong>url to mp4 converter</strong> and <strong>video to mp3 converter</strong>, extracting soundtracks from podcasts or downloading tutorials for offline usage is quick and simple.
+                    In addition to file conversions, our platform acts as a secure, fast <strong>free youtube downloader</strong>. With support for standard URL inputs, you can paste video links from platforms like YouTube, Vimeo, Facebook, TikTok, and Instagram, exporting them directly as HD MP4 files or extracting clean MP3 files. With our <strong>url to mp4 converter</strong> and <strong>video to mp3 converter</strong>, extracting soundtracks from podcasts or parenting tutorials for offline usage is quick and simple.
                   </p>
 
                   <p>
@@ -410,10 +445,21 @@ export default function App() {
         {view === 'disclaimer' && <DisclaimerPage />}
         {view === 'dmca' && <DmcaPage />}
         {view === 'faqs' && <FAQAccordion />}
+        {view === 'blog-list' && <BlogListPage navigate={navigate} />}
+        {view === 'blog-post' && <BlogPostPage slug={selectedBlogSlug} navigate={navigate} />}
+        {view === 'tool-page' && activeTool && (
+          <ToolPage 
+            tool={activeTool} 
+            setView={setView} 
+            setActiveTool={setActiveTool} 
+            addToHistory={addToHistory} 
+            navigate={navigate}
+          />
+        )}
       </main>
 
       {/* Footer */}
-      <Footer setView={setView} />
+      <Footer setView={setView} navigate={navigate} />
 
       {/* Settings Modal (Gemini API Key input) */}
       {settingsOpen && (
@@ -467,15 +513,6 @@ export default function App() {
           </div>
 
         </div>
-      )}
-
-      {/* Tool Modal overlay */}
-      {activeTool && (
-        <ToolModal 
-          tool={activeTool} 
-          onClose={() => setActiveTool(null)} 
-          addToHistory={addToHistory} 
-        />
       )}
 
     </div>
