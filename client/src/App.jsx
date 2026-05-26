@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
-import ToolGrid from './components/ToolGrid';
+import ToolGrid, { TOOLS_DATA } from './components/ToolGrid';
 import ToolModal from './components/ToolModal';
 import HistoryPanel from './components/HistoryPanel';
 import FAQAccordion from './components/FAQAccordion';
@@ -33,6 +33,150 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
   }, [theme]);
+
+  // Client-side virtual routing mount / listener
+  useEffect(() => {
+    const handleRoute = () => {
+      const path = window.location.pathname;
+      
+      // Informational pages
+      const infoPages = {
+        '/about': 'about',
+        '/contact': 'contact',
+        '/privacy': 'privacy',
+        '/terms': 'terms',
+        '/disclaimer': 'disclaimer',
+        '/dmca': 'dmca'
+      };
+      
+      if (infoPages[path]) {
+        setView(infoPages[path]);
+        return;
+      }
+      
+      // Main sections
+      if (path === '/downloader') {
+        setView('dashboard');
+        setSearchVal('downloader');
+        setTimeout(scrollToTools, 100);
+        return;
+      }
+      if (path === '/converter') {
+        setView('dashboard');
+        setSearchVal('converter');
+        setTimeout(scrollToTools, 100);
+        return;
+      }
+      if (path === '/ai-notes') {
+        setView('dashboard');
+        setSearchVal('AI Tool');
+        setTimeout(scrollToTools, 100);
+        return;
+      }
+      
+      // Specific tools
+      const matchedTool = TOOLS_DATA.find(tool => 
+        tool.routes && tool.routes.includes(path)
+      );
+      if (matchedTool) {
+        setView('dashboard');
+        setActiveTool(matchedTool);
+        return;
+      }
+      
+      // Fallback/Home
+      setView('dashboard');
+    };
+
+    handleRoute();
+    
+    // Listen for popstate changes (browser back/forward navigation)
+    window.addEventListener('popstate', handleRoute);
+    return () => window.removeEventListener('popstate', handleRoute);
+  }, []);
+
+  // Update URL history state and metadata on activeTool change
+  useEffect(() => {
+    if (activeTool) {
+      const firstRoute = activeTool.routes ? activeTool.routes[0] : null;
+      if (firstRoute && window.location.pathname !== firstRoute) {
+        window.history.pushState({}, '', firstRoute);
+      }
+      
+      // Dynamic Title & Description for the active tool
+      document.title = `${activeTool.title} | Free Online Converter & AI Notes | All Tool Master`;
+      const descMeta = document.querySelector('meta[name="description"]');
+      if (descMeta) {
+        descMeta.setAttribute('content', `${activeTool.desc} Safe, fast, and browser-based format utilities by All Tool Master.`);
+      }
+    } else {
+      // If tool is closed and we are on a virtual route, go back to /
+      const infoPaths = ['/about', '/contact', '/privacy', '/terms', '/disclaimer', '/dmca'];
+      if (window.location.pathname !== '/' && !infoPaths.includes(window.location.pathname)) {
+        window.history.pushState({}, '', '/');
+      }
+      
+      // Reset main home page SEO tags
+      document.title = "All Tool Master | Free Online File Converter, Downloader & AI Notes";
+      const descMeta = document.querySelector('meta[name="description"]');
+      if (descMeta) {
+        descMeta.setAttribute('content', "Access free online file tools. Fast PDF and media converter, universal web video downloader from URL, and smart AI note-taker online. No registration required.");
+      }
+    }
+  }, [activeTool]);
+
+  // Sync URL history state and metadata on view change
+  useEffect(() => {
+    if (view === 'dashboard') {
+      if (!activeTool && window.location.pathname !== '/') {
+        window.history.pushState({}, '', '/');
+        document.title = "All Tool Master | Free Online File Converter, Downloader & AI Notes";
+        const descMeta = document.querySelector('meta[name="description"]');
+        if (descMeta) {
+          descMeta.setAttribute('content', "Access free online file tools. Fast PDF and media converter, universal web video downloader from URL, and smart AI note-taker online. No registration required.");
+        }
+      }
+    } else {
+      // Navigating to static/informational views
+      setActiveTool(null);
+      
+      const pathMap = {
+        about: '/about',
+        contact: '/contact',
+        privacy: '/privacy',
+        terms: '/terms',
+        disclaimer: '/disclaimer',
+        dmca: '/dmca'
+      };
+      const titleMap = {
+        about: "About Us | All Tool Master",
+        contact: "Contact Us | All Tool Master",
+        privacy: "Privacy Policy | All Tool Master",
+        terms: "Terms & Conditions | All Tool Master",
+        disclaimer: "Disclaimer | All Tool Master",
+        dmca: "DMCA Policy | All Tool Master"
+      };
+      const descMap = {
+        about: "Learn about All Tool Master, our mission to build secure, browser-based file conversion and AI productivity tools.",
+        contact: "Get in touch with the All Tool Master team. Support, feedback, and business inquiries.",
+        privacy: "Read our privacy policy. We respect your security; no files are logged or stored on our servers.",
+        terms: "Review the terms and conditions for using All Tool Master utilities.",
+        disclaimer: "Legal disclaimers for the All Tool Master toolset and conversions.",
+        dmca: "DMCA copyright policy and takedown instructions for All Tool Master."
+      };
+      
+      if (pathMap[view] && window.location.pathname !== pathMap[view]) {
+        window.history.pushState({}, '', pathMap[view]);
+      }
+      if (titleMap[view]) {
+        document.title = titleMap[view];
+      }
+      const descMeta = document.querySelector('meta[name="description"]');
+      if (descMeta && descMap[view]) {
+        descMeta.setAttribute('content', descMap[view]);
+      }
+    }
+  }, [view]);
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');

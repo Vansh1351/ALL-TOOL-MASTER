@@ -65,6 +65,35 @@ export default function Hero({ searchVal, setSearchVal, scrollToTools }) {
               />
             </div>
 
+            {/* Quick Search Tag Cloud */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px', alignItems: 'center' }} className="popular-tags-container">
+              <span style={{ fontSize: '12.5px', color: 'var(--text-muted)', fontWeight: '600' }}>Popular Searches:</span>
+              {[
+                'URL to MP4', 'YouTube to MP3', 'PDF to Word', 'HEIC to JPG', 'AI Note Taker', 'WebP to PNG', 'AI Summarizer'
+              ].map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => {
+                    setSearchVal(tag);
+                    scrollToTools();
+                  }}
+                  className="badge popular-tag"
+                  style={{
+                    cursor: 'pointer',
+                    background: 'var(--bg-grid)',
+                    border: '1px solid var(--border-color)',
+                    color: 'var(--text-main)',
+                    fontSize: '11px',
+                    padding: '4px 10px',
+                    borderRadius: '20px',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+
             {/* CTA Buttons */}
             <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '10px' }}>
               <button className="btn btn-primary" onClick={scrollToTools}>
@@ -181,7 +210,20 @@ export default function Hero({ searchVal, setSearchVal, scrollToTools }) {
       </div>
 
       <style>{`
+        .popular-tag {
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        .popular-tag:hover {
+          background: var(--accent-color) !important;
+          border-color: var(--accent-color) !important;
+          color: #fff !important;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+        }
         @media (max-width: 768px) {
+          .popular-tags-container {
+            justify-content: center;
+          }
           .hero-grid {
             grid-template-columns: 1fr !important;
             gap: 30px !important;

@@ -3,6 +3,22 @@ import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 
 const FAQ_ITEMS = [
   {
+    question: "What is All Tool Master?",
+    answer: "All Tool Master is an all-in-one free digital toolbox. It offers high-speed file conversion, a universal media URL video downloader, and an automated AI note-taking app to streamline daily online productivity tasks without installing any software."
+  },
+  {
+    question: "Is it safe to convert files and download videos here?",
+    answer: "Yes. All Tool Master processes file conversions and video downloads securely through your browser session. Uploaded data is processed strictly for your active utility command and is not stored or shared on external servers."
+  },
+  {
+    question: "How does the online file converter work?",
+    answer: "Simply drop your document, image, audio, or video into the tool, select your target file format (like PDF to Word, WebP to JPG, or MP4 to MP3), and click convert. The file format utility processes the conversion immediately for a quick download."
+  },
+  {
+    question: "Can the AI Note Taker summarize long documents?",
+    answer: "Yes. The free AI note generator tool can ingest long text files, web articles, and lecture transcripts to produce bulleted study notes, short summaries, or automated minutes of meetings in seconds."
+  },
+  {
     question: "Is All Tool Master really free to use?",
     answer: "Yes, All Tool Master is completely free. We do not require any credit cards, registrations, or monthly subscriptions. You can convert files, run AI tools, and paste video links to download media 100% free of charge."
   },
@@ -16,7 +32,7 @@ const FAQ_ITEMS = [
   },
   {
     question: "How does the AI transcription and meeting summary tool work?",
-    answer: "Our AI suite utilizes Google Gemini 2.5 Flash models. It transcribes audio/video uploads and uses generative LLM analysis to draft detailed lecture notes, formal meeting minutes, action items, or summaries instantly."
+    answer: "Our AI suite utilizes Google Gemini models. It transcribes audio/video uploads and uses generative LLM analysis to draft detailed lecture notes, formal meeting minutes, action items, or summaries instantly."
   },
   {
     question: "Can I download videos in HD quality?",
