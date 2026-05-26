@@ -109,6 +109,15 @@ export default function App() {
       if (descMeta) {
         descMeta.setAttribute('content', `${activeTool.desc} Safe, fast, and browser-based format utilities by All Tool Master.`);
       }
+
+      // Google Analytics: Track tool view event
+      if (window.gtag) {
+        window.gtag('event', 'view_item', {
+          item_id: activeTool.id,
+          item_name: activeTool.title,
+          item_category: activeTool.category
+        });
+      }
     } else {
       // If tool is closed and we are on a virtual route, go back to /
       const infoPaths = ['/about', '/contact', '/privacy', '/terms', '/disclaimer', '/dmca'];
@@ -135,6 +144,11 @@ export default function App() {
         if (descMeta) {
           descMeta.setAttribute('content', "Access free online file tools. Fast PDF and media converter, universal web video downloader from URL, and smart AI note-taker online. No registration required.");
         }
+      }
+
+      // Google Analytics: Track main dashboard page view
+      if (window.gtag) {
+        window.gtag('event', 'screen_view', { screen_name: 'home' });
       }
     } else {
       // Navigating to static/informational views
@@ -174,6 +188,11 @@ export default function App() {
       const descMeta = document.querySelector('meta[name="description"]');
       if (descMeta && descMap[view]) {
         descMeta.setAttribute('content', descMap[view]);
+      }
+
+      // Google Analytics: Track page screen view
+      if (window.gtag) {
+        window.gtag('event', 'screen_view', { screen_name: view });
       }
     }
   }, [view]);
