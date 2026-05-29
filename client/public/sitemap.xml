@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Homepage -->
   <url>
-    <loc>https://all-tool-master.vercel.app/</loc>
+    <loc>https://alltoolmaster.me/</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
@@ -10,19 +10,19 @@
   
   <!-- Category Landing Pages -->
   <url>
-    <loc>https://all-tool-master.vercel.app/downloader</loc>
+    <loc>https://alltoolmaster.me/downloader</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/converter</loc>
+    <loc>https://alltoolmaster.me/converter</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/ai-notes</loc>
+    <loc>https://alltoolmaster.me/ai-notes</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -30,43 +30,43 @@
 
   <!-- Downloader Tools Deep Links -->
   <url>
-    <loc>https://all-tool-master.vercel.app/downloader/youtube</loc>
+    <loc>https://alltoolmaster.me/downloader/youtube</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/downloader/vimeo</loc>
+    <loc>https://alltoolmaster.me/downloader/vimeo</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/downloader/shorts</loc>
+    <loc>https://alltoolmaster.me/downloader/shorts</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/downloader/facebook</loc>
+    <loc>https://alltoolmaster.me/downloader/facebook</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/downloader/instagram</loc>
+    <loc>https://alltoolmaster.me/downloader/instagram</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/downloader/tiktok</loc>
+    <loc>https://alltoolmaster.me/downloader/tiktok</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/downloader/twitter</loc>
+    <loc>https://alltoolmaster.me/downloader/twitter</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -74,73 +74,73 @@
 
   <!-- Converter Tools Deep Links -->
   <url>
-    <loc>https://all-tool-master.vercel.app/convert/mp4-to-mp3</loc>
+    <loc>https://alltoolmaster.me/convert/mp4-to-mp3</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/convert/mov-to-mp4</loc>
+    <loc>https://alltoolmaster.me/convert/mov-to-mp4</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/convert/video-to-audio</loc>
+    <loc>https://alltoolmaster.me/convert/video-to-audio</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/convert/heic-to-jpg</loc>
+    <loc>https://alltoolmaster.me/convert/heic-to-jpg</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/convert/webp-to-png</loc>
+    <loc>https://alltoolmaster.me/convert/webp-to-png</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/convert/jpg-to-png</loc>
+    <loc>https://alltoolmaster.me/convert/jpg-to-png</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/convert/png-to-jpg</loc>
+    <loc>https://alltoolmaster.me/convert/png-to-jpg</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/convert/pdf-to-word</loc>
+    <loc>https://alltoolmaster.me/convert/pdf-to-word</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/convert/pdf-to-docx</loc>
+    <loc>https://alltoolmaster.me/convert/pdf-to-docx</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/convert/docx-to-pdf</loc>
+    <loc>https://alltoolmaster.me/convert/docx-to-pdf</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/convert/word-to-pdf</loc>
+    <loc>https://alltoolmaster.me/convert/word-to-pdf</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/convert/excel-to-pdf</loc>
+    <loc>https://alltoolmaster.me/convert/excel-to-pdf</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -148,13 +148,13 @@
 
   <!-- Utility Tools Deep Links -->
   <url>
-    <loc>https://all-tool-master.vercel.app/utility/zip-extractor</loc>
+    <loc>https://alltoolmaster.me/utility/zip-extractor</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/utility/unzip</loc>
+    <loc>https://alltoolmaster.me/utility/unzip</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -162,73 +162,73 @@
 
   <!-- AI Tools Deep Links -->
   <url>
-    <loc>https://all-tool-master.vercel.app/ai-notes/video-summarizer</loc>
+    <loc>https://alltoolmaster.me/ai-notes/video-summarizer</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/ai-notes/video-watcher</loc>
+    <loc>https://alltoolmaster.me/ai-notes/video-watcher</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/ai-notes/transcript</loc>
+    <loc>https://alltoolmaster.me/ai-notes/transcript</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/ai-notes/speech-to-text</loc>
+    <loc>https://alltoolmaster.me/ai-notes/speech-to-text</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/ai-notes/audio-analyzer</loc>
+    <loc>https://alltoolmaster.me/ai-notes/audio-analyzer</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/ai-notes/voice-notes</loc>
+    <loc>https://alltoolmaster.me/ai-notes/voice-notes</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/ai-notes/lecture-notes</loc>
+    <loc>https://alltoolmaster.me/ai-notes/lecture-notes</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/ai-notes/study-guide</loc>
+    <loc>https://alltoolmaster.me/ai-notes/study-guide</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/ai-notes/meeting-minutes</loc>
+    <loc>https://alltoolmaster.me/ai-notes/meeting-minutes</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/ai-notes/meeting-assistant</loc>
+    <loc>https://alltoolmaster.me/ai-notes/meeting-assistant</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/ai-notes/brainrot-translator</loc>
+    <loc>https://alltoolmaster.me/ai-notes/brainrot-translator</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/ai-notes/brainrot</loc>
+    <loc>https://alltoolmaster.me/ai-notes/brainrot</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -236,31 +236,31 @@
 
   <!-- Blog Pages & Articles -->
   <url>
-    <loc>https://all-tool-master.vercel.app/blog</loc>
+    <loc>https://alltoolmaster.me/blog</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/blog/free-url-to-mp4-converter-saved-hours</loc>
+    <loc>https://alltoolmaster.me/blog/free-url-to-mp4-converter-saved-hours</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/blog/i-tested-15-youtube-to-mp4-converters</loc>
+    <loc>https://alltoolmaster.me/blog/i-tested-15-youtube-to-mp4-converters</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/blog/convert-heic-to-jpg-in-seconds</loc>
+    <loc>https://alltoolmaster.me/blog/convert-heic-to-jpg-in-seconds</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/blog/pdf-to-word-converter-preserves-formatting</loc>
+    <loc>https://alltoolmaster.me/blog/pdf-to-word-converter-preserves-formatting</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -268,37 +268,37 @@
 
   <!-- Static Informational Pages -->
   <url>
-    <loc>https://all-tool-master.vercel.app/about</loc>
+    <loc>https://alltoolmaster.me/about</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/contact</loc>
+    <loc>https://alltoolmaster.me/contact</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/privacy</loc>
+    <loc>https://alltoolmaster.me/privacy</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/terms</loc>
+    <loc>https://alltoolmaster.me/terms</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/disclaimer</loc>
+    <loc>https://alltoolmaster.me/disclaimer</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
-    <loc>https://all-tool-master.vercel.app/dmca</loc>
+    <loc>https://alltoolmaster.me/dmca</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.2</priority>
