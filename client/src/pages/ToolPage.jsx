@@ -24,6 +24,90 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
     faqs: []
   };
 
+  const renderMarkdown = (text) => {
+    if (!text) return null;
+    return text.split('\n\n').map((paragraph, idx) => {
+      const trimmed = paragraph.trim();
+      if (!trimmed) return null;
+      
+      if (trimmed.startsWith('### ')) {
+        return (
+          <h3 
+            key={idx} 
+            style={{ 
+              fontSize: '20px', 
+              fontWeight: '800', 
+              marginTop: '32px', 
+              marginBottom: '12px', 
+              color: 'var(--text-main)',
+              letterSpacing: '-0.3px'
+            }}
+          >
+            {trimmed.replace(/^###\s+/, '')}
+          </h3>
+        );
+      }
+      
+      if (trimmed.startsWith('## ')) {
+        return (
+          <h2 
+            key={idx} 
+            style={{ 
+              fontSize: '24px', 
+              fontWeight: '800', 
+              marginTop: '36px', 
+              marginBottom: '16px', 
+              color: 'var(--text-main)',
+              letterSpacing: '-0.5px'
+            }}
+          >
+            {trimmed.replace(/^##\s+/, '')}
+          </h2>
+        );
+      }
+      
+      if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
+        const items = trimmed.split('\n').map((item, itemIdx) => (
+          <li key={itemIdx} style={{ marginBottom: '8px', color: 'var(--text-muted)' }}>
+            {item.replace(/^[\*\-]\s+/, '')}
+          </li>
+        ));
+        return (
+          <ul key={idx} style={{ paddingLeft: '24px', marginBottom: '20px', listStyleType: 'disc' }}>
+            {items}
+          </ul>
+        );
+      }
+      
+      if (/^\d+\.\s+/.test(trimmed)) {
+        const items = trimmed.split('\n').map((item, itemIdx) => (
+          <li key={itemIdx} style={{ marginBottom: '8px', color: 'var(--text-muted)' }}>
+            {item.replace(/^\d+\.\s+/, '')}
+          </li>
+        ));
+        return (
+          <ol key={idx} style={{ paddingLeft: '24px', marginBottom: '20px', listStyleType: 'decimal' }}>
+            {items}
+          </ol>
+        );
+      }
+      
+      const parts = trimmed.split(/(\*\*[^*]+\*\*)/g);
+      const content = parts.map((part, pIdx) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return <strong key={pIdx} style={{ color: 'var(--text-main)', fontWeight: '800' }}>{part.slice(2, -2)}</strong>;
+        }
+        return part;
+      });
+      
+      return (
+        <p key={idx} style={{ marginBottom: '20px', lineHeight: '1.8', color: 'var(--text-muted)', fontSize: '14px' }}>
+          {content}
+        </p>
+      );
+    });
+  };
+
   const [url, setUrl] = useState('');
   const [file, setFile] = useState(null);
   const [textInput, setTextInput] = useState('');
@@ -665,7 +749,7 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
             ))}
           </div>
 
-          {/* HTML dynamic content body */}
+          {/* Markdown dynamic content body */}
           <div 
             style={{
               fontSize: '14px',
@@ -674,8 +758,9 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
               textAlign: 'justify'
             }}
             className="seo-article-content"
-            dangerouslySetInnerHTML={{ __html: seoInfo.article }}
-          />
+          >
+            {renderMarkdown(seoInfo.article)}
+          </div>
         </div>
       </section>
 

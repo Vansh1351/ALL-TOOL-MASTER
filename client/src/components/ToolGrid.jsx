@@ -27,7 +27,13 @@ export const TOOLS_DATA = [
       'full hd video downloader web', 'video thumbnail downloader online', 'free shorts video downloader', 
       'download short video online from url', 'best free website to download videos using link', 
       'safe website to download videos without virus', 'direct url video downloader no ads', 
-      'cloud-based video downloader and converter free'
+      'cloud-based video downloader and converter free', 'youtube video downloader online free', 
+      'youtube shorts downloader mp4', 'youtube to mp3 converter hd', 'download youtube video without app', 
+      'youtube downloader no watermark', 'convert youtube link to mp4', 'youtube audio downloader online', 
+      'free youtube video converter', 'fast youtube mp3 downloader', 'online youtube downloader hd', 
+      'youtube link downloader for mobile', 'save youtube video to gallery', 'best youtube downloader 2026', 
+      'secure youtube downloader online', 'download youtube shorts instantly', 'youtube music downloader', 
+      'youtube downloader free', 'youtube video saver'
     ]
   },
   {
@@ -43,7 +49,19 @@ export const TOOLS_DATA = [
       'tiktok downloader', 'vimeo downloader', 'twitter downloader', 'url to mp4/mp3 converter', 'video downloader', 
       'facebook video url to mp4 converter', 'instagram url to mp4 converter download', 'mobile url to mp4 converter app', 
       'tiktok url to mp4 converter no watermark', 'download reel video online from link', 'save public videos online free', 
-      'download short video online from url'
+      'download short video online from url', 'convert url to mp4 online free', 'best url to mp4 converter without watermark', 
+      'download video from url as mp4', 'paste link and download mp4', 'free online url to mp4 downloader', 
+      'convert website video to mp4 online', 'direct video url to mp4 converter', 'save streaming video as mp4', 
+      'social media url to mp4 converter', 'hd mp4 downloader from link', 'convert video link into mp4', 
+      'online video downloader mp4 free', 'convert web video to mp4 instantly', 'fast url to mp4 converter 2026', 
+      'mobile url to mp4 downloader', 'browser based mp4 converter online', 'convert tiktok url to mp4', 
+      'convert instagram link to mp4', 'facebook video url to mp4', 'twitter video downloader mp4', 
+      'vimeo video to mp4 converter', 'youtube shorts to mp4 online', 'no signup url to mp4 converter', 
+      'unlimited mp4 video downloader', 'high quality mp4 converter online', 'url video downloader', 
+      'mp4 downloader online', 'online video downloader free', 'hd mp4 video downloader', 
+      'save online video as mp4', 'video url converter', 'direct mp4 downloader', 'social media video downloader', 
+      'website video downloader', 'convert website video to mp4', 'url to mp4 converter free', 
+      'best url to mp4 converter', 'convert url to mp4 online', 'download video from url'
     ]
   },
   {
@@ -61,7 +79,17 @@ export const TOOLS_DATA = [
       'convert wav to mp3 converter', 'video to audio converter free', 'convert mkv to mp4 online', 
       'mov to mp4 converter free', 'online audio format encoder', 'compress mp4 video online', 
       'avi to mp4 converter high speed', 'm4a to mp3 tool free', 'extract audio from video online', 
-      'fast way to change video format online'
+      'fast way to change video format online', 'convert url to mp3 online free', 'best free url to mp3 converter', 
+      'paste video link and download mp3', 'online audio extractor from url', 'video url to mp3 converter online', 
+      'convert youtube url to mp3 free', 'instagram reel to mp3 converter', 'tiktok url to mp3 downloader', 
+      'convert social media videos to mp3', 'free online mp3 downloader from link', 'convert video link to audio instantly', 
+      'no watermark mp3 converter online', 'extract audio from video url', 'convert online video to mp3 hd', 
+      'mp3 downloader from direct url', 'online url audio converter free', 'best mp3 converter for mobile', 
+      'fast video to audio converter', 'unlimited url to mp3 converter', 'browser based mp3 converter', 
+      'url to mp3 converter', 'best url to mp3 converter free', 'convert video link to mp3', 
+      'youtube url to mp3', 'video to mp3 converter online', 'mp3 downloader free', 'extract audio from url', 
+      'online mp3 converter', 'audio downloader online', 'convert url to audio', 'youtube mp3 downloader', 
+      'free audio converter', 'mp3 extractor online', 'video audio downloader', 'music downloader mp3'
     ]
   },
   {
@@ -78,7 +106,20 @@ export const TOOLS_DATA = [
       'professional RAW image converter software review', 'webp to png converter online', 'convert jpg to png free', 
       'heic to jpg converter windows', 'online image format changer', 'convert svg to png free', 
       'batch image converter online', 'free gif maker from video', 'compress image without losing quality', 
-      'jpg to webp optimizer free', 'raw image converter online', 'how to convert webp to jpg without software'
+      'jpg to webp optimizer free', 'raw image converter online', 'how to convert webp to jpg without software', 
+      'convert png to jpg online free', 'image to text OCR converter', 'online image format converter', 
+      'convert image to editable text', 'free image to word converter', 'AI image text extractor', 
+      'image to png transparent converter', 'batch image converter online', 'convert image without losing quality', 
+      'image compressor and converter tool', 'fast image conversion online', 'secure image converter free', 
+      'photo format changer online', 'convert webp to png instantly', 'mobile image converter online', 
+      'image to pdf', 'jpg to pdf', 'png to jpg', 'image converter', 'image to text', 'OCR image converter', 
+      'image text extractor', 'photo to pdf', 'online image converter', 'image compressor', 'image resizer', 
+      'png converter', 'jpg converter', 'convert image online', 'image OCR online', 
+      'image to pdf converter without watermark', 'merge multiple jpg into pdf', 'convert photo to pdf on mobile', 
+      'jpg to pdf under 200kb', 'compress and convert jpg to pdf', 'png and jpg to pdf converter', 
+      'best image to pdf converter online', 'fast jpg to pdf converter free', 'high quality photo to pdf converter', 
+      'online image document converter', 'no signup jpg to pdf tool', 'batch image to pdf converter', 
+      'convert screenshots to pdf online', 'mobile friendly image to pdf tool'
     ]
   },
   {
@@ -96,7 +137,16 @@ export const TOOLS_DATA = [
       'convert pdf to word free', 'word to pdf converter online', 'pdf to jpg converter free', 
       'convert excel to pdf online', 'png to pdf high quality', 'merge pdf files free online', 
       'compress pdf file size free', 'txt to pdf online converter', 'free epub to pdf converter', 
-      'online document converter tool', 'epub to mobi converter for kindle formatting'
+      'online document converter tool', 'epub to mobi converter for kindle formatting', 
+      'convert pdf to editable word online', 'free pdf to word converter without signup', 
+      'OCR pdf to word converter free', 'convert scanned pdf to docx', 'best pdf to word converter online', 
+      'editable pdf converter for students', 'pdf to word without losing formatting', 'fast pdf to docx converter', 
+      'secure pdf file converter online', 'online pdf editing and conversion tool', 'convert handwritten pdf to word', 
+      'browser based pdf converter', 'unlimited pdf to word free', 'high quality pdf conversion online', 
+      'AI pdf to word converter', 'pdf to word', 'pdf converter', 'free pdf to word converter', 
+      'editable pdf converter', 'pdf to docx', 'OCR pdf converter', 'pdf editor online', 
+      'word to pdf', 'pdf to jpg', 'pdf compressor', 'merge pdf online', 'online pdf tools', 
+      'pdf text extractor', 'best pdf converter', 'pdf conversion tool'
     ]
   },
   {
@@ -107,7 +157,14 @@ export const TOOLS_DATA = [
     color: '#f59e0b',
     category: 'Utility',
     routes: ['/utility/zip-extractor', '/utility/unzip'],
-    keywords: ['zip extractor', 'zip archiver', 'unzip', 'zip files', 'extract zip', 'compress files', 'zip file converter', 'file archiver']
+    keywords: [
+      'zip extractor', 'zip archiver', 'unzip', 'zip files', 'extract zip', 'compress files', 'zip file converter', 
+      'file archiver', 'zip extractor online free', 'extract zip files without software', 'online zip archive creator', 
+      'compress files into zip online', 'free file archiver tool', 'batch zip extractor online', 'secure zip file opener', 
+      'unzip large files online', 'browser based zip extractor', 'fast zip compressor tool', 'unzip files', 
+      'zip converter', 'file compressor', 'archive extractor', 'zip opener', 'online unzip tool', 
+      'zip file converter', 'extract zip online', 'compress files online'
+    ]
   },
   {
     id: 'ai-video-summarizer',
@@ -117,7 +174,15 @@ export const TOOLS_DATA = [
     color: '#8b5cf6',
     category: 'AI Tool',
     routes: ['/ai-notes/video-summarizer', '/ai-notes/video-watcher'],
-    keywords: ['ai video summarizer', 'video summarizer', 'video watcher', 'ai watcher', 'summarize video', 'ai summarizer', 'youtube summarizer', 'how to summarize long articles quickly with ai']
+    keywords: [
+      'ai video summarizer', 'video summarizer', 'video watcher', 'ai watcher', 'summarize video', 'ai summarizer', 
+      'youtube summarizer', 'how to summarize long articles quickly with ai', 'AI video summarizer free online', 
+      'summarize youtube video with AI', 'convert long video into notes', 'AI lecture video summarizer', 
+      'automatic video notes generator', 'AI tool to summarize classes', 'summarize educational videos online', 
+      'video to study notes AI', 'smart AI video analyzer', 'best AI summarizer for students', 
+      'AI powered video recap tool', 'online video summary generator', 'convert webinar to notes', 
+      'summarize podcast video instantly', 'AI video learning assistant', 'video summary ai', 'video summarizer ai'
+    ]
   },
   {
     id: 'ai-transcript',
@@ -127,7 +192,16 @@ export const TOOLS_DATA = [
     color: '#d946ef',
     category: 'AI Tool',
     routes: ['/ai-notes/transcript', '/ai-notes/speech-to-text'],
-    keywords: ['transcript generator', 'transcribe audio', 'transcribe video', 'verbatim dialogue', 'audio to text', 'video to text', 'speech to text', 'free tools to convert audio to text automatically']
+    keywords: [
+      'transcript generator', 'transcribe audio', 'transcribe video', 'verbatim dialogue', 'audio to text', 
+      'video to text', 'speech to text', 'free tools to convert audio to text automatically', 
+      'AI transcript generator online free', 'convert video to transcript instantly', 'youtube transcript generator AI', 
+      'audio to text converter online', 'free AI transcription tool', 'generate subtitles from video', 
+      'speech to text AI converter', 'convert lecture recording to text', 'fast audio transcription online', 
+      'meeting transcript generator AI', 'podcast transcript generator', 'video subtitle generator online', 
+      'automatic transcription software free', 'AI caption generator for videos', 'convert mp3 to transcript online', 
+      'ai transcript', 'ai transcription tool', 'audio transcript ai'
+    ]
   },
   {
     id: 'ai-audio-analyzer',
@@ -137,7 +211,12 @@ export const TOOLS_DATA = [
     color: '#14b8a6',
     category: 'AI Tool',
     routes: ['/ai-notes/audio-analyzer', '/ai-notes/voice-notes'],
-    keywords: ['audio analyzer', 'audio summarizer', 'voice notes analyzer', 'summarize audio', 'analyze audio', 'voice memo analyzer', 'convert voice notes to text AI']
+    keywords: [
+      'audio analyzer', 'audio summarizer', 'voice notes analyzer', 'summarize audio', 'analyze audio', 
+      'voice memo analyzer', 'convert voice notes to text AI', 'ai audio analyzer', 'audio transcript ai', 
+      'speech to text ai', 'audio analyzer', 'audio summarizer', 'voice notes analyzer', 'summarize audio', 
+      'analyze audio', 'voice memo analyzer', 'convert voice notes to text AI'
+    ]
   },
   {
     id: 'ai-lecture-notes',
@@ -147,7 +226,17 @@ export const TOOLS_DATA = [
     color: '#f43f5e',
     category: 'AI Tool',
     routes: ['/ai-notes/lecture-notes', '/ai-notes/study-guide'],
-    keywords: ['ai lecture note taker', 'lecture notes', 'study notes', 'academic recordings converter', 'notes generator', 'audio to notes', 'best free AI lecture note taker', 'ai study notes helper free', 'automated study guide generator', 'free online toolkit for student productivity']
+    keywords: [
+      'ai lecture note taker', 'lecture notes', 'study notes', 'academic recordings converter', 'notes generator', 
+      'audio to notes', 'best free AI lecture note taker', 'ai study notes helper free', 'automated study guide generator', 
+      'free online toolkit for student productivity', 'AI lecture notes generator', 'convert lecture to study notes', 
+      'AI note taker for students', 'summarize lecture recordings online', 'smart class notes generator', 
+      'AI powered study assistant', 'generate notes from audio lectures', 'lecture transcription and notes AI', 
+      'convert class recording to notes', 'best AI note taking tool', 'online lecture summary generator', 
+      'AI study material creator', 'notes generator from youtube lectures', 'automatic lecture note maker', 
+      'AI academic assistant free', 'ai lecture notes', 'ai note taker', 'ai study tools', 
+      'ai lecture summarizer', 'ai notes generator'
+    ]
   },
   {
     id: 'ai-meeting-minutes',
@@ -157,7 +246,17 @@ export const TOOLS_DATA = [
     color: '#6366f1',
     category: 'AI Tool',
     routes: ['/ai-notes/meeting-minutes', '/ai-notes/meeting-assistant'],
-    keywords: ['ai meeting assistant', 'meeting minutes', 'meeting logs transcriber', 'action items table', 'transcribe meeting', 'meeting summarizer', 'ai meeting assistant and note taking tools', 'ai transcription and summarization tools', 'ai minutes of meeting tool free', 'open source alternative to otter ai notes']
+    keywords: [
+      'ai meeting assistant', 'meeting minutes', 'meeting logs transcriber', 'action items table', 'transcribe meeting', 
+      'meeting summarizer', 'ai meeting assistant and note taking tools', 'ai transcription and summarization tools', 
+      'ai minutes of meeting tool free', 'open source alternative to otter ai notes', 'AI meeting assistant online free', 
+      'automatic meeting minutes generator', 'AI action item generator', 'convert meeting recording to notes', 
+      'smart meeting summarizer AI', 'business meeting transcript generator', 'AI team collaboration assistant', 
+      'online meeting notes generator', 'AI powered productivity tool', 'summarize zoom meetings automatically', 
+      'generate meeting recap instantly', 'convert office recordings to text', 'AI voice meeting analyzer', 
+      'professional meeting note taker', 'free AI business assistant online', 'ai meeting assistant', 
+      'ai note taker', 'meeting minutes', 'meeting summarizer'
+    ]
   },
   {
     id: 'pdf-to-brainrot',
@@ -167,7 +266,10 @@ export const TOOLS_DATA = [
     color: '#84cc16',
     category: 'AI Tool',
     routes: ['/ai-notes/brainrot-translator', '/ai-notes/brainrot'],
-    keywords: ['pdf to gen-z brainrot translator', 'brainrot translator', 'gen-z slang', 'funny pdf translator', 'slang translator', 'pdf to slang', 'brainrot']
+    keywords: [
+      'pdf to gen-z brainrot translator', 'brainrot translator', 'gen-z slang', 'funny pdf translator', 
+      'slang translator', 'pdf to slang', 'brainrot'
+    ]
   }
 ];
 

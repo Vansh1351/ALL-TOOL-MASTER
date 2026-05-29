@@ -17,6 +17,7 @@ import ToolPage from './pages/ToolPage';
 import BlogListPage from './pages/BlogListPage';
 import BlogPostPage from './pages/BlogPostPage';
 import { BLOG_POSTS } from './blogData';
+import { SEO_DATA } from './seoData';
 
 import { FiShield, FiZap, FiUserCheck, FiCpu, FiStar } from 'react-icons/fi';
 
@@ -149,8 +150,9 @@ export default function App() {
     if (view === 'tool-page' && activeTool) {
       const firstRoute = activeTool.routes ? activeTool.routes[0] : '/';
       path = firstRoute;
-      title = `${activeTool.title} | Free Online Converter & AI Notes | All Tool Master`;
-      desc = `${activeTool.desc} Safe, fast, and browser-based format utilities by All Tool Master.`;
+      const seoInfo = SEO_DATA[activeTool.id];
+      title = seoInfo?.title || `${activeTool.title} | Free Online Converter & AI Notes | All Tool Master`;
+      desc = seoInfo?.description || `${activeTool.desc} Safe, fast, and browser-based format utilities by All Tool Master.`;
       
       if (window.gtag) {
         window.gtag('event', 'view_item', {
