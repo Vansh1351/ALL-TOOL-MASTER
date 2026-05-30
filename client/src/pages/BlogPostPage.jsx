@@ -3,8 +3,9 @@ import { BLOG_POSTS } from '../blogData';
 import { TOOLS_DATA } from '../components/ToolGrid';
 import { 
   FiArrowLeft, FiUser, FiCalendar, FiClock, 
-  FiTwitter, FiFacebook, FiLinkedin, FiLink, FiCheck 
+  FiTwitter, FiFacebook, FiLinkedin, FiLink, FiCheck, FiExternalLink 
 } from 'react-icons/fi';
+import { AFFILIATE_LINKS } from '../affiliateLinks';
 
 export default function BlogPostPage({ slug, navigate }) {
   const post = BLOG_POSTS.find(p => p.slug === slug);
@@ -235,6 +236,71 @@ export default function BlogPostPage({ slug, navigate }) {
             </button>
           </div>
         )}
+
+        {/* Affiliate Marketing Banner */}
+        <div 
+          className="glass-panel" 
+          style={{ 
+            marginTop: '30px', 
+            padding: '24px', 
+            borderRadius: '20px', 
+            border: '1px solid var(--border-color)',
+            background: 'linear-gradient(135deg, rgba(103,58,183,0.03) 0%, rgba(222,75,26,0.03) 100%)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px'
+          }}
+        >
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+            <div>
+              <span className="badge" style={{ marginBottom: '6px', display: 'inline-block' }}>Exclusive Web Hosting & Domain Offers</span>
+              <h3 style={{ fontSize: '18px', fontWeight: '800', margin: 0 }}>Launch Your Next Project Today</h3>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <a 
+                href={AFFILIATE_LINKS.hostinger}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-primary"
+                style={{
+                  height: '36px',
+                  fontSize: '12.5px',
+                  background: '#673ab7',
+                  borderColor: '#673ab7',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  textDecoration: 'none'
+                }}
+              >
+                75% Off Hostinger <FiExternalLink size={13} />
+              </a>
+              <a 
+                href={AFFILIATE_LINKS.namecheap}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-secondary"
+                style={{
+                  height: '36px',
+                  fontSize: '12.5px',
+                  borderColor: '#de4b1a',
+                  color: '#de4b1a',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  textDecoration: 'none'
+                }}
+                onMouseEnter={(e) => { e.target.style.background = 'rgba(222, 75, 26, 0.05)' }}
+                onMouseLeave={(e) => { e.target.style.background = 'none' }}
+              >
+                $0.99 Domains <FiExternalLink size={13} />
+              </a>
+            </div>
+          </div>
+          <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', margin: 0, lineHeight: '1.5' }}>
+            We've partnered with <strong>Hostinger</strong> and <strong>Namecheap</strong> to bring you the best deals on premium cloud hosting (with free SSL & domain) and secure domain registrations. Check out these developer resources!
+          </p>
+        </div>
 
       </div>
       

@@ -7,6 +7,7 @@ export default function Navbar({ theme, toggleTheme, currentView, setView, navig
   const navLinks = [
     { name: 'Tools Dashboard', id: 'dashboard' },
     { name: 'Blog', id: 'blog-list' },
+    { name: 'Deals', id: 'deals' },
     { name: 'About Us', id: 'about' },
     { name: 'Contact Us', id: 'contact' },
     { name: 'FAQs', id: 'faqs' }

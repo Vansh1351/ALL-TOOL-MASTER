@@ -103,7 +103,7 @@ export default function Footer({ setView, navigate }) {
             </div>
           </div>
 
-          {/* Column 3: Legal Pages */}
+          {/* Column 3: Resources */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <h4 style={{ fontSize: '14px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Resources</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
@@ -113,6 +113,13 @@ export default function Footer({ setView, navigate }) {
                 style={{ color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'none', fontWeight: '700' }}
               >
                 Blog Articles
+              </a>
+              <a 
+                href="/deals" 
+                onClick={(e) => { e.preventDefault(); handleLinkClick('deals'); }} 
+                style={{ color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'none', fontWeight: '700' }}
+              >
+                Deals & Hosting
               </a>
               <a 
                 href="/privacy" 

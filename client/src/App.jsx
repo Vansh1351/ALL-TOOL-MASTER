@@ -16,10 +16,12 @@ import DmcaPage from './pages/DmcaPage';
 import ToolPage from './pages/ToolPage';
 import BlogListPage from './pages/BlogListPage';
 import BlogPostPage from './pages/BlogPostPage';
+import DealsPage from './pages/DealsPage';
 import { BLOG_POSTS } from './blogData';
 import { SEO_DATA } from './seoData';
+import { AFFILIATE_LINKS } from './affiliateLinks';
 
-import { FiShield, FiZap, FiUserCheck, FiCpu, FiStar } from 'react-icons/fi';
+import { FiShield, FiZap, FiUserCheck, FiCpu, FiStar, FiExternalLink } from 'react-icons/fi';
 
 export default function App() {
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
@@ -70,6 +72,14 @@ export default function App() {
       
       if (infoPages[path]) {
         setView(infoPages[path]);
+        setActiveTool(null);
+        setSelectedBlogSlug(null);
+        return;
+      }
+
+      // Deals page
+      if (path === '/deals') {
+        setView('deals');
         setActiveTool(null);
         setSelectedBlogSlug(null);
         return;
@@ -188,7 +198,8 @@ export default function App() {
         terms: '/terms',
         disclaimer: '/disclaimer',
         dmca: '/dmca',
-        faqs: '/faqs'
+        faqs: '/faqs',
+        deals: '/deals'
       };
       const titleMap = {
         about: "About Us | All Tool Master",
@@ -197,7 +208,8 @@ export default function App() {
         terms: "Terms & Conditions | All Tool Master",
         disclaimer: "Disclaimer | All Tool Master",
         dmca: "DMCA Policy | All Tool Master",
-        faqs: "Frequently Asked Questions | All Tool Master"
+        faqs: "Frequently Asked Questions | All Tool Master",
+        deals: "Hosting Deals & Domains | All Tool Master"
       };
       const descMap = {
         about: "Learn about All Tool Master, our mission to build secure, browser-based file conversion and AI productivity tools.",
@@ -206,7 +218,8 @@ export default function App() {
         terms: "Review the terms and conditions for using All Tool Master utilities.",
         disclaimer: "Legal disclaimers for the All Tool Master toolset and conversions.",
         dmca: "DMCA copyright policy and takedown instructions for All Tool Master.",
-        faqs: "Find answers to frequently asked questions about All Tool Master conversions, safety, and tools."
+        faqs: "Find answers to frequently asked questions about All Tool Master conversions, safety, and tools.",
+        deals: "Claim Hostinger web hosting deals and Namecheap domain registration discounts with our affiliate promo tools."
       };
       
       path = pathMap[view] || '/';
@@ -404,6 +417,65 @@ export default function App() {
               </div>
             </section>
 
+            {/* Hosting & Domain Affiliate Showcase */}
+            <section style={{ padding: '50px 0', borderTop: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.02)' }}>
+              <div className="container">
+                <div style={{ textAlign: 'center', marginBottom: '36px' }}>
+                  <span className="badge">Exclusive Partner Deals</span>
+                  <h2 style={{ fontSize: '28px', fontWeight: '800', marginTop: '8px' }}>Launch Your Own Website & <span className="text-gradient">Save Big</span></h2>
+                  <p style={{ color: 'var(--text-muted)', marginTop: '8px', fontSize: '14.5px' }}>Need web hosting or a domain name for your new files, tools, or projects? Get started with our verified partners.</p>
+                </div>
+
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                  gap: '24px',
+                  maxWidth: '900px',
+                  margin: '0 auto'
+                }}>
+                  {/* Hostinger Promo Card */}
+                  <div className="glass-panel" style={{ padding: '24px', borderRadius: '18px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'rgba(0, 0, 0, 0.05)' }}>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: '800', color: '#673ab7', background: 'rgba(103, 58, 183, 0.1)', padding: '4px 10px', borderRadius: '6px' }}>Hostinger Partner</span>
+                        <span style={{ fontSize: '12px', fontWeight: '800', color: '#10b981' }}>75% OFF + 3 Months Free</span>
+                      </div>
+                      <h3 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '8px' }}>High-Speed Premium Web Hosting</h3>
+                      <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5', marginBottom: '16px' }}>
+                        Ideal for WordPress blogs, portfolios, and coding projects. Includes a free domain name, free SSL certificates, and 24/7 client support.
+                      </p>
+                    </div>
+                    <a href={AFFILIATE_LINKS.hostinger} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ background: '#673ab7', borderColor: '#673ab7', width: '100%', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', textDecoration: 'none' }}>
+                      Claim Hostinger Discount <FiExternalLink size={14} />
+                    </a>
+                  </div>
+
+                  {/* Namecheap Promo Card */}
+                  <div className="glass-panel" style={{ padding: '24px', borderRadius: '18px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'rgba(0, 0, 0, 0.05)' }}>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: '800', color: '#de4b1a', background: 'rgba(222, 75, 26, 0.1)', padding: '4px 10px', borderRadius: '6px' }}>Namecheap Partner</span>
+                        <span style={{ fontSize: '12px', fontWeight: '800', color: '#10b981' }}>Domains from $0.99</span>
+                      </div>
+                      <h3 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '8px' }}>Domain Registration & Security</h3>
+                      <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5', marginBottom: '16px' }}>
+                        Secure your custom domain name with lifetime free privacy protection, premium DNS resolution, and 1-click integrations with Vercel and GitHub.
+                      </p>
+                    </div>
+                    <a href={AFFILIATE_LINKS.namecheap} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ background: '#de4b1a', borderColor: '#de4b1a', width: '100%', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', textDecoration: 'none' }}>
+                      Claim Namecheap Discount <FiExternalLink size={14} />
+                    </a>
+                  </div>
+                </div>
+
+                <div style={{ textAlign: 'center', marginTop: '24px' }}>
+                  <span onClick={() => navigate('deals')} style={{ color: 'var(--accent-color)', cursor: 'pointer', fontSize: '14.5px', fontWeight: '700', textDecoration: 'underline' }}>
+                    View All Promotional Resource Deals
+                  </span>
+                </div>
+              </div>
+            </section>
+
             {/* FAQs */}
             <FAQAccordion />
 
@@ -448,6 +520,7 @@ export default function App() {
         {view === 'dmca' && <DmcaPage />}
         {view === 'faqs' && <FAQAccordion />}
         {view === 'blog-list' && <BlogListPage navigate={navigate} />}
+        {view === 'deals' && <DealsPage />}
         {view === 'blog-post' && <BlogPostPage slug={selectedBlogSlug} navigate={navigate} />}
         {view === 'tool-page' && activeTool && (
           <ToolPage 

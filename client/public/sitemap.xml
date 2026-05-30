@@ -266,6 +266,14 @@
     <priority>0.6</priority>
   </url>
 
+  <!-- Deals Page -->
+  <url>
+    <loc>https://alltoolmaster.me/deals</loc>
+    <lastmod>2026-05-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- Static Informational Pages -->
   <url>
     <loc>https://alltoolmaster.me/about</loc>

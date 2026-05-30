@@ -2,10 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { 
   FiArrowLeft, FiDownload, FiUploadCloud, FiClipboard, 
-  FiCheckCircle, FiAlertCircle, FiCopy, FiFile, FiChevronDown, FiChevronUp 
+  FiCheckCircle, FiAlertCircle, FiCopy, FiFile, FiChevronDown, FiChevronUp, FiExternalLink 
 } from 'react-icons/fi';
 import { SEO_DATA } from '../seoData';
 import { TOOLS_DATA } from '../components/ToolGrid';
+import { AFFILIATE_LINKS } from '../affiliateLinks';
 
 const rawBackendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const BACKEND_URL = rawBackendUrl.replace(/\/+$/, '');
@@ -684,6 +685,89 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
                 <li key={idx}>{step}</li>
               ))}
             </ol>
+          </div>
+
+          {/* Partner Promo: Affiliate Banner */}
+          <div className="glass-panel" style={{ 
+            padding: '20px', 
+            borderRadius: '20px', 
+            border: '1px solid var(--border-color)',
+            background: 'linear-gradient(135deg, rgba(103,58,183,0.05) 0%, rgba(222,75,26,0.05) 100%)',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: '-20px',
+              right: '-20px',
+              width: '60px',
+              height: '60px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #673ab7 0%, #de4b1a 100%)',
+              filter: 'blur(30px)',
+              opacity: 0.2,
+              zIndex: 0
+            }} />
+            
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <span className="badge" style={{ fontSize: '10px', padding: '3px 8px', marginBottom: '8px', display: 'inline-block' }}>Exclusive Partner Offer</span>
+              <h4 style={{ fontSize: '14px', fontWeight: '800', marginBottom: '6px' }}>Need Web Hosting or a Domain?</h4>
+              <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', lineHeight: '1.4', marginBottom: '14px' }}>
+                Launch your website with <strong>Hostinger</strong> (75% off + free domain) or secure cheap names at <strong>Namecheap</strong> ($0.99 domains).
+              </p>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <a 
+                  href={AFFILIATE_LINKS.hostinger}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-primary"
+                  style={{
+                    height: '34px',
+                    fontSize: '12px',
+                    background: '#673ab7',
+                    borderColor: '#673ab7',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '4px',
+                    textDecoration: 'none'
+                  }}
+                >
+                  Get Hosting Deal <FiExternalLink size={12} />
+                </a>
+                <a 
+                  href={AFFILIATE_LINKS.namecheap}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-secondary"
+                  style={{
+                    height: '34px',
+                    fontSize: '12px',
+                    borderColor: '#de4b1a',
+                    color: '#de4b1a',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '4px',
+                    textDecoration: 'none'
+                  }}
+                  onMouseEnter={(e) => { e.target.style.background = 'rgba(222, 75, 26, 0.05)' }}
+                  onMouseLeave={(e) => { e.target.style.background = 'none' }}
+                >
+                  Get Domain Deal <FiExternalLink size={12} />
+                </a>
+              </div>
+              
+              <div style={{ textAlign: 'center', marginTop: '10px' }}>
+                <span 
+                  onClick={() => navigate('deals')}
+                  style={{ fontSize: '11px', color: 'var(--accent-color)', fontWeight: '700', textDecoration: 'underline', cursor: 'pointer' }}
+                >
+                  Learn more about resources
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Internal Linking: Related Tools list */}
