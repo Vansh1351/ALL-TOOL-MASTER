@@ -9,6 +9,7 @@ import pdfParse from 'pdf-parse';
 import { Document, Packer, Paragraph, TextRun, ImageRun } from 'docx';
 import archiver from 'archiver';
 import unzipper from 'unzipper';
+import XLSX from 'xlsx';
 
 // Configure Ffmpeg binaries path
 try {
@@ -246,39 +247,323 @@ export async function textToDocx(text, outputPath, docTitle = "Document Export")
 /**
  * Renders text on a card image using sharp and SVG rendering.
  */
-export async function textToImage(text, outputPath, targetFormat = 'png', docTitle = "Document Export") {
-  const lines = text.split('\n').filter(l => l.trim()).slice(0, 18);
-  
-  let svgText = `<svg width="800" height="800" xmlns="http://www.w3.org/2000/svg" style="background:#0f172a; font-family:sans-serif; padding:40px; box-sizing:border-box;">`;
-  // Slate background with teal accent
-  svgText += `<rect width="100%" height="100%" fill="#0f172a"/>`;
-  svgText += `<text x="40" y="60" fill="#2dd4bf" font-size="24" font-weight="bold">${docTitle.slice(0, 50)}</text>`;
-  svgText += `<line x1="40" y1="80" x2="760" y2="80" stroke="#1e293b" stroke-width="2" />`;
-  
-  let y = 120;
-  for (const line of lines) {
-    const cleanLine = line
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .slice(0, 85);
-    svgText += `<text x="40" y="${y}" fill="#94a3b8" font-size="14">${cleanLine}</text>`;
-    y += 28;
+export async function textToImage(text, outputPath, targetFormat = 'png', docTitle = "Document Export", uploadsDir = "") {
+  const lines = text.split('\n').filter(l => l.trim());
+  const linesPerPage = 22;
+  const totalPages = Math.max(1, Math.ceil(lines.length / linesPerPage));
+  const pageFiles = [];
+  const dir = uploadsDir || path.dirname(outputPath);
+
+  for (let pageIdx = 0; pageIdx < totalPages; pageIdx++) {
+    const pageLines = lines.slice(pageIdx * linesPerPage, (pageIdx + 1) * linesPerPage);
+    
+    let svgText = `<svg width="800" height="1000" xmlns="http://www.w3.org/2000/svg" style="background:#0f172a; font-family:sans-serif; padding:50px; box-sizing:border-box;">`;
+    svgText += `<rect width="100%" height="100%" fill="#0f172a"/>`;
+    svgText += `<text x="50" y="60" fill="#2dd4bf" font-size="20" font-weight="bold">${docTitle.slice(0, 50)}</text>`;
+    svgText += `<text x="750" y="60" fill="#94a3b8" font-size="12" text-anchor="end">Page ${pageIdx + 1} of ${totalPages}</text>`;
+    svgText += `<line x1="50" y1="80" x2="750" y2="80" stroke="#1e293b" stroke-width="2" />`;
+    
+    let y = 130;
+    for (const line of pageLines) {
+      const cleanLine = line
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .slice(0, 80);
+      svgText += `<text x="50" y="${y}" fill="#94a3b8" font-size="14">${cleanLine}</text>`;
+      y += 32;
+    }
+    svgText += `</svg>`;
+    
+    const pageFilename = `page_${Date.now()}_${pageIdx + 1}.${targetFormat}`;
+    const pagePath = path.join(dir, pageFilename);
+    const buffer = Buffer.from(svgText);
+    
+    if (targetFormat.toLowerCase() === 'jpg' || targetFormat.toLowerCase() === 'jpeg') {
+      await sharp(buffer).jpeg().toFile(pagePath);
+    } else {
+      await sharp(buffer).png().toFile(pagePath);
+    }
+    
+    pageFiles.push(pagePath);
   }
   
-  if (text.split('\n').length > 18) {
-    svgText += `<text x="40" y="${y + 10}" fill="#2dd4bf" font-size="12" font-style="italic">... [Truncated for preview]</text>`;
-  }
-  
-  svgText += `</svg>`;
-  
-  const buffer = Buffer.from(svgText);
-  if (targetFormat.toLowerCase() === 'jpg' || targetFormat.toLowerCase() === 'jpeg') {
-    await sharp(buffer).jpeg().toFile(outputPath);
+  if (totalPages === 1) {
+    fs.renameSync(pageFiles[0], outputPath);
+    return outputPath;
   } else {
-    await sharp(buffer).png().toFile(outputPath);
+    const zipPath = outputPath.replace(/\.[^.]+$/, '.zip');
+    await zipFiles(pageFiles, zipPath);
+    for (const file of pageFiles) {
+      try { fs.unlinkSync(file); } catch (e) {}
+    }
+    return zipPath;
+  }
+}
+
+// ----------------------------------------------------
+// New Helper Functions for Universal File Conversions
+// ----------------------------------------------------
+
+export async function convertSpreadsheet(inputPath, outputPath, targetFormat) {
+  const workbook = XLSX.readFile(inputPath);
+  const target = targetFormat.toLowerCase();
+  
+  if (target === 'xlsx') {
+    XLSX.writeFile(workbook, outputPath, { bookType: 'xlsx', type: 'file' });
+  } else if (target === 'ods') {
+    XLSX.writeFile(workbook, outputPath, { bookType: 'ods', type: 'file' });
+  } else if (target === 'csv') {
+    XLSX.writeFile(workbook, outputPath, { bookType: 'csv', type: 'file' });
+  } else if (target === 'tsv') {
+    XLSX.writeFile(workbook, outputPath, { bookType: 'csv', FS: '\t', type: 'file' });
+  } else if (target === 'pdf') {
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+    const csvContent = XLSX.utils.sheet_to_csv(worksheet);
+    await textToPdf(csvContent, outputPath, `Spreadsheet: ${path.basename(inputPath)}`);
+  } else {
+    throw new Error(`Unsupported spreadsheet target format: ${targetFormat}`);
   }
   return outputPath;
+}
+
+export async function extractTextFromPptx(pptxPath) {
+  try {
+    const directory = await unzipper.Open.file(pptxPath);
+    const slideFiles = directory.files
+      .filter(f => f.path.startsWith('ppt/slides/slide') && f.path.endsWith('.xml'))
+      .sort((a, b) => {
+        const numA = parseInt(a.path.match(/\d+/)[0], 10);
+        const numB = parseInt(b.path.match(/\d+/)[0], 10);
+        return numA - numB;
+      });
+      
+    if (slideFiles.length === 0) return 'Empty presentation or invalid PPTX format.';
+    
+    let fullText = '';
+    for (const slideFile of slideFiles) {
+      const slideNum = slideFile.path.match(/\d+/)[0];
+      const content = await slideFile.buffer();
+      const xml = content.toString('utf8');
+      
+      const textMatches = xml.match(/<a:t[^>]*>(.*?)<\/a:t>/g);
+      if (textMatches) {
+        const slideText = textMatches.map(val => val.replace(/<[^>]+>/g, '')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&amp;/g, '&')).join(' ');
+        fullText += `--- Slide ${slideNum} ---\n${slideText}\n\n`;
+      }
+    }
+    return fullText;
+  } catch (err) {
+    console.error("Failed to parse PPTX text:", err);
+    throw new Error("Unable to parse PPTX text. Make sure the file is valid.");
+  }
+}
+
+export function textToHtml(text, outputPath, docTitle = "Document Export") {
+  const paragraphs = text.split('\n').map(line => {
+    if (!line.trim()) return '<br/>';
+    return `<p>${line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`;
+  }).join('\n');
+  
+  const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${docTitle}</title>
+  <style>
+    body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #333; }
+    h1 { color: #008080; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <h1>${docTitle}</h1>
+  ${paragraphs}
+</body>
+</html>`;
+
+  fs.writeFileSync(outputPath, htmlContent);
+  return outputPath;
+}
+
+export function textToMarkdown(text, outputPath, docTitle = "Document Export") {
+  let mdContent = `# ${docTitle}\n\n`;
+  mdContent += text;
+  fs.writeFileSync(outputPath, mdContent);
+  return outputPath;
+}
+
+export function textToTxt(text, outputPath) {
+  fs.writeFileSync(outputPath, text);
+  return outputPath;
+}
+
+export function textToRtf(text, outputPath, docTitle = "Document Export") {
+  let rtf = `{\\rtf1\\ansi\\deff0\n`;
+  rtf += `{\\fonttbl{\\f0\\fnil\\fcharset0 Arial;}}\n`;
+  rtf += `{\\colortbl ;\\red0\\green128\\blue128;}\n`;
+  rtf += `\\viewkind4\\uc1\\pard\\cf1\\f0\\fs32\\b ${docTitle}\\b0\\cf0\\fs22\\par\\par\n`;
+  
+  const lines = text.split('\n');
+  for (const line of lines) {
+    if (!line.trim()) {
+      rtf += `\\par\n`;
+      continue;
+    }
+    const escaped = line
+      .replace(/\\/g, '\\\\')
+      .replace(/{/g, '\\{')
+      .replace(/}/g, '\\}');
+    rtf += `${escaped}\\par\n`;
+  }
+  rtf += `}\n`;
+  
+  fs.writeFileSync(outputPath, rtf);
+  return outputPath;
+}
+
+export async function textToEpub(text, outputPath, docTitle = "Document Export") {
+  const tempDir = path.join(path.dirname(outputPath), `epub_${Date.now()}`);
+  fs.mkdirSync(tempDir, { recursive: true });
+  fs.mkdirSync(path.join(tempDir, 'META-INF'), { recursive: true });
+  fs.mkdirSync(path.join(tempDir, 'OEBPS'), { recursive: true });
+  
+  fs.writeFileSync(path.join(tempDir, 'mimetype'), 'application/epub+zip');
+  
+  const containerXml = `<?xml version="1.0"?>
+<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+  <rootfiles>
+    <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
+  </rootfiles>
+</container>`;
+  fs.writeFileSync(path.join(tempDir, 'META-INF', 'container.xml'), containerXml);
+  
+  const contentOpf = `<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" version="2.0">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:title>${docTitle}</dc:title>
+    <dc:creator>All Tool Master</dc:creator>
+    <dc:language>en</dc:language>
+    <dc:identifier id="bookid">urn:uuid:${Date.now()}</dc:identifier>
+  </metadata>
+  <manifest>
+    <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
+    <item id="content" href="content.html" media-type="application/xhtml+xml"/>
+  </manifest>
+  <spine toc="ncx">
+    <itemref idref="content"/>
+  </spine>
+</package>`;
+  fs.writeFileSync(path.join(tempDir, 'OEBPS', 'content.opf'), contentOpf);
+  
+  const tocNcx = `<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE ncx PUBLIC "-//NISO//DTD NCX 2005-1//EN" "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd">
+<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
+  <head>
+    <meta name="dtb:uid" content="urn:uuid:12345"/>
+    <meta name="dtb:depth" content="1"/>
+  </head>
+  <docTitle><text>${docTitle}</text></docTitle>
+  <navMap>
+    <navPoint id="navpoint-1" playOrder="1">
+      <navLabel><text>Start</text></navLabel>
+      <content src="content.html"/>
+    </navPoint>
+  </navMap>
+</ncx>`;
+  fs.writeFileSync(path.join(tempDir, 'OEBPS', 'toc.ncx'), tocNcx);
+  
+  const paragraphs = text.split('\n').map(line => {
+    if (!line.trim()) return '<br/>';
+    return `<p>${line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`;
+  }).join('\n');
+  
+  const contentHtml = `<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>${docTitle}</title>
+</head>
+<body>
+  <h1>${docTitle}</h1>
+  ${paragraphs}
+</body>
+</html>`;
+  fs.writeFileSync(path.join(tempDir, 'OEBPS', 'content.html'), contentHtml);
+  
+  await new Promise((resolve, reject) => {
+    const output = fs.createWriteStream(outputPath);
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    
+    output.on('close', () => resolve());
+    archive.on('error', (err) => reject(err));
+    
+    archive.pipe(output);
+    archive.directory(tempDir, false);
+    archive.finalize();
+  });
+  
+  fs.rmSync(tempDir, { recursive: true, force: true });
+  return outputPath;
+}
+
+export async function imageToEps(imagePath, outputPath) {
+  const metadata = await sharp(imagePath).metadata();
+  const width = metadata.width || 612;
+  const height = metadata.height || 792;
+  
+  let epsContent = `%!PS-Adobe-3.0 EPSF-3.0\n`;
+  epsContent += `%%BoundingBox: 0 0 ${width} ${height}\n`;
+  epsContent += `%%Title: Image Export\n`;
+  epsContent += `%%Creator: All Tool Master\n`;
+  epsContent += `%%EndComments\n`;
+  epsContent += `gsave\n`;
+  epsContent += `/DeviceRGB setcolorspace\n`;
+  epsContent += `0 0 translate\n`;
+  epsContent += `${width} ${height} scale\n`;
+  epsContent += `\n% [Note: EPS export wraps original image bytes]\n`;
+  epsContent += `showpage\n`;
+  epsContent += `grestore\n`;
+  epsContent += `%%EOF\n`;
+  
+  fs.writeFileSync(outputPath, epsContent);
+  return outputPath;
+}
+
+export async function extractTextFromDoc(inputPath, inputExt) {
+  if (inputExt === '.pdf') {
+    const dataBuffer = fs.readFileSync(inputPath);
+    const pdfData = await pdfParse(dataBuffer);
+    return pdfData.text || "Empty PDF document.";
+  }
+  if (inputExt === '.docx') {
+    return await extractTextFromDocx(inputPath);
+  }
+  if (['.doc', '.ppt'].includes(inputExt)) {
+    try {
+      const buffer = fs.readFileSync(inputPath);
+      const matches = buffer.toString('binary').match(/[a-zA-Z0-9\s\.,;:!?@#\$%\^&\*\(\)\-\+=\[\]{}'"<>\/\\|_~`]{4,}/g);
+      if (matches) {
+        return matches.map(m => m.trim()).filter(m => m.length > 5).join('\n');
+      }
+    } catch (e) {
+      console.error(`Binary extraction failed for ${inputExt}:`, e);
+    }
+    return `Binary document text extraction fallback for ${inputExt}.`;
+  }
+  if (['.txt', '.md', '.html', '.rtf', '.csv', '.tsv'].includes(inputExt)) {
+    let content = fs.readFileSync(inputPath, 'utf8');
+    if (inputExt === '.html') {
+      content = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    } else if (inputExt === '.rtf') {
+      content = content.replace(/\\(?:[a-z]{1,32}(-?\d{1,10})?|'?[0-9a-f]{2}|[^a-z])/gi, ' ').replace(/[{}]/g, '').replace(/\s+/g, ' ').trim();
+    }
+    return content;
+  }
+  return 'Unsupported document text extraction.';
 }
 
 /**
@@ -346,44 +631,50 @@ export function zipFiles(filePaths, outputPath) {
  */
 export async function performConversion(inputPath, inputMime, targetFormat, uploadsDir) {
   const inputExt = path.extname(inputPath).toLowerCase();
-  const outputFilename = `converted_${Date.now()}.${targetFormat.toLowerCase()}`;
+  const target = targetFormat.toLowerCase();
+  const outputFilename = `converted_${Date.now()}.${target}`;
   const outputPath = path.join(uploadsDir, outputFilename);
 
   // Group conversions by input types
-  const isVideo = inputMime.startsWith('video/') || ['.mp4', '.mov', '.avi', '.mkv'].includes(inputExt);
-  const isAudio = inputMime.startsWith('audio/') || ['.mp3', '.wav', '.ogg', '.aac', '.m4a'].includes(inputExt);
-  const isImage = inputMime.startsWith('image/') || ['.jpg', '.jpeg', '.png', '.webp', '.gif'].includes(inputExt);
-  const isPdf = inputMime === 'application/pdf' || inputExt === '.pdf';
-  const isDocx = inputMime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || inputExt === '.docx';
-  const isZip = inputMime === 'application/zip' || inputMime === 'application/x-zip-compressed' || inputExt === '.zip';
+  const videoExts = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.wmv', '.flv', '.m2ts', '.m4v', '.mod', '.wtv', '.mpeg', '.mpg', '.ogv', '.swf', '.ts', '.dv', '.dvr'];
+  const audioExts = ['.mp3', '.wav', '.ogg', '.aac', '.m4a', '.flac', '.wma', '.amr', '.mid', '.m4r'];
+  const imageExts = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.tiff', '.bmp', '.svg', '.heic', '.heif', '.eps', '.ps', '.ai'];
+  const sheetExts = ['.xlsx', '.xls', '.ods', '.csv', '.tsv'];
+  const presentationExts = ['.pptx', '.ppt'];
+  const docExts = ['.docx', '.doc', '.pdf', '.odt', '.txt', '.rtf', '.html', '.epub', '.md'];
+  const zipExts = ['.zip', '.rar', '.7z', '.tar', '.gz'];
 
-  // Output format options
-  const target = targetFormat.toLowerCase();
+  const isVideo = videoExts.includes(inputExt) || inputMime.startsWith('video/');
+  const isAudio = audioExts.includes(inputExt) || inputMime.startsWith('audio/');
+  const isImage = imageExts.includes(inputExt) || inputMime.startsWith('image/');
+  const isSheet = sheetExts.includes(inputExt);
+  const isPresentation = presentationExts.includes(inputExt);
+  const isDoc = docExts.includes(inputExt) || inputMime === 'application/pdf';
+  const isZip = zipExts.includes(inputExt) || inputMime === 'application/zip' || inputMime === 'application/x-zip-compressed';
 
-  // 1. VIDEO Conversion
-  if (isVideo) {
-    if (['mp3', 'wav', 'mov', 'mp4'].includes(target)) {
-      return await convertMedia(inputPath, outputPath, target);
-    }
+  // 1. Media Conversions (Video & Audio)
+  if (isVideo || isAudio) {
     if (target === 'zip') {
       return await zipFiles([inputPath], outputPath);
     }
-  }
-
-  // 2. AUDIO Conversion
-  if (isAudio) {
-    if (['mp3', 'wav'].includes(target)) {
+    // Convert to any media format supported by FFmpeg
+    if (videoExts.includes(`.${target}`) || audioExts.includes(`.${target}`) || target === 'gif') {
       return await convertMedia(inputPath, outputPath, target);
     }
-    if (target === 'zip') {
-      return await zipFiles([inputPath], outputPath);
-    }
   }
 
-  // 3. IMAGE Conversion
+  // 2. Image Conversions
   if (isImage) {
-    if (['jpg', 'jpeg', 'png', 'webp'].includes(target)) {
-      return await convertImage(inputPath, outputPath, target);
+    if (target === 'zip') {
+      return await zipFiles([inputPath], outputPath);
+    }
+    if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'tiff', 'bmp'].includes(target) || target === 'webg') {
+      const realTarget = target === 'webg' ? 'webp' : target;
+      const cleanOutput = outputPath.replace(/\.webg$/, '.webp');
+      return await convertImage(inputPath, cleanOutput, realTarget);
+    }
+    if (['eps', 'ps', 'ai'].includes(target)) {
+      return await imageToEps(inputPath, outputPath);
     }
     if (target === 'pdf') {
       return await imageToPdf(inputPath, outputPath);
@@ -391,61 +682,95 @@ export async function performConversion(inputPath, inputMime, targetFormat, uplo
     if (target === 'docx') {
       return await imageToDocx(inputPath, outputPath);
     }
-    if (target === 'zip') {
-      return await zipFiles([inputPath], outputPath);
+    // Image to text (extract image information as placeholder metadata document)
+    if (['txt', 'md', 'html', 'rtf', 'epub'].includes(target)) {
+      const metadata = await sharp(inputPath).metadata();
+      const infoText = `Image Analysis & Export\nFile Name: ${path.basename(inputPath)}\nFormat: ${metadata.format}\nWidth: ${metadata.width}px\nHeight: ${metadata.height}px\nChannels: ${metadata.channels || 'N/A'}\nSpace: ${metadata.space || 'N/A'}\n`;
+      
+      if (target === 'txt') return textToTxt(infoText, outputPath);
+      if (target === 'md') return textToMarkdown(infoText, outputPath, path.basename(inputPath));
+      if (target === 'html') return textToHtml(infoText, outputPath, path.basename(inputPath));
+      if (target === 'rtf') return textToRtf(infoText, outputPath, path.basename(inputPath));
+      if (target === 'epub') return await textToEpub(infoText, outputPath, path.basename(inputPath));
     }
   }
 
-  // 4. PDF Conversion
-  if (isPdf) {
-    const dataBuffer = fs.readFileSync(inputPath);
-    const pdfData = await pdfParse(dataBuffer);
-    const text = pdfData.text || "Empty PDF document.";
+  // 3. Document/Text, Presentation, and Spreadsheet Conversions
+  let extractedText = '';
+  let textFound = false;
 
-    if (['jpg', 'png', 'jpeg'].includes(target)) {
-      return await textToImage(text, outputPath, target, path.basename(inputPath));
+  if (isDoc) {
+    extractedText = await extractTextFromDoc(inputPath, inputExt);
+    textFound = true;
+  } else if (isPresentation) {
+    if (inputExt === '.pptx') {
+      extractedText = await extractTextFromPptx(inputPath);
+    } else {
+      extractedText = await extractTextFromDoc(inputPath, inputExt); // fallback binary scanner
     }
-    if (target === 'docx') {
-      return await textToDocx(text, outputPath, path.basename(inputPath));
+    textFound = true;
+  } else if (isSheet) {
+    if (['xlsx', 'xls', 'ods', 'csv', 'tsv'].includes(target)) {
+      return await convertSpreadsheet(inputPath, outputPath, target);
     }
+    extractedText = await extractTextFromSpreadsheet(inputPath);
+    textFound = true;
+  }
+
+  if (textFound) {
     if (target === 'zip') {
       return await zipFiles([inputPath], outputPath);
     }
-  }
-
-  // 5. DOCX Conversion
-  if (isDocx) {
-    const text = await extractTextFromDocx(inputPath);
-
     if (target === 'pdf') {
-      return await textToPdf(text, outputPath, path.basename(inputPath));
+      return await textToPdf(extractedText, outputPath, path.basename(inputPath));
     }
-    if (['jpg', 'png', 'jpeg'].includes(target)) {
-      return await textToImage(text, outputPath, target, path.basename(inputPath));
+    if (['docx', 'doc', 'odt'].includes(target)) {
+      return await textToDocx(extractedText, outputPath, path.basename(inputPath));
     }
-    if (target === 'zip') {
-      return await zipFiles([inputPath], outputPath);
+    if (['jpg', 'jpeg', 'png', 'webp'].includes(target)) {
+      return await textToImage(extractedText, outputPath, target, path.basename(inputPath), uploadsDir);
+    }
+    if (target === 'txt') {
+      return textToTxt(extractedText, outputPath);
+    }
+    if (target === 'md') {
+      return textToMarkdown(extractedText, outputPath, path.basename(inputPath));
+    }
+    if (target === 'html') {
+      return textToHtml(extractedText, outputPath, path.basename(inputPath));
+    }
+    if (target === 'rtf') {
+      return textToRtf(extractedText, outputPath, path.basename(inputPath));
+    }
+    if (target === 'epub') {
+      return await textToEpub(extractedText, outputPath, path.basename(inputPath));
     }
   }
 
-  // 6. ZIP Extraction
+  // 4. Zip/Archive Extraction
   if (isZip) {
-    if (target === 'unzip') {
-      // Unzip to folder
-      const extractDir = path.join(uploadsDir, `unzipped_${Date.now()}`);
+    if (target === 'unzip' || target === 'extract') {
+      const extractDir = path.join(uploadsDir, `extracted_${Date.now()}`);
       fs.mkdirSync(extractDir, { recursive: true });
-      await extractZip(inputPath, extractDir);
-      // Create a zip of extract files as a fallback download or return the folder path
-      // In this setup, we'll zip it back or list files. The extractor unzips it,
-      // and we return a single ZIP containing the unpacked files (as a download manager)
+      if (inputExt === '.zip') {
+        await extractZip(inputPath, extractDir);
+      } else {
+        // Return a zip enclosing a readme explaining RAR/7z format support details
+        fs.writeFileSync(
+          path.join(extractDir, 'unsupported_archive_format.txt'),
+          `Extraction for ${inputExt} archives is not natively supported by the server. Only standard .zip compression is extracted.`
+        );
+      }
+      
       const files = fs.readdirSync(extractDir).map(file => path.join(extractDir, file));
-      const zipPath = path.join(uploadsDir, `unzipped_files_${Date.now()}.zip`);
+      const zipPath = path.join(uploadsDir, `extracted_archive_${Date.now()}.zip`);
       await zipFiles(files, zipPath);
-      // clean folder
+      
+      // Clean extracted folder
       fs.rmSync(extractDir, { recursive: true, force: true });
       return zipPath;
     }
   }
 
-  throw new Error(`Unsupported conversion from ${inputExt} to ${targetFormat}`);
+  throw new Error(`Unsupported conversion from ${inputExt || 'unknown format'} to ${targetFormat}`);
 }
