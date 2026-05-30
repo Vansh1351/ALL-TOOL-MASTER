@@ -97,6 +97,10 @@ app.post('/api/convert', upload.single('file'), async (req, res) => {
         console.error("File cleanup error:", e);
       }
 
+      if (global.gc) {
+        try { global.gc(); } catch (e) {}
+      }
+
       if (err) {
         console.error("Error sending converted file:", err);
       }
@@ -106,6 +110,9 @@ app.post('/api/convert', upload.single('file'), async (req, res) => {
     console.error("Conversion failed:", error);
     // Cleanup uploaded file
     try { fs.unlinkSync(inputPath); } catch (e) {}
+    if (global.gc) {
+      try { global.gc(); } catch (e) {}
+    }
     res.status(500).json({ error: `Conversion failed: ${error.message}` });
   }
 });
@@ -139,6 +146,10 @@ app.post('/api/download', async (req, res) => {
         console.error("Download cleanup error:", e);
       }
 
+      if (global.gc) {
+        try { global.gc(); } catch (e) {}
+      }
+
       if (err) {
         console.error("Error sending downloaded file:", err);
       }
@@ -146,6 +157,9 @@ app.post('/api/download', async (req, res) => {
 
   } catch (error) {
     console.error("Download failed:", error);
+    if (global.gc) {
+      try { global.gc(); } catch (e) {}
+    }
     res.status(500).json({ error: `Download failed: ${error.message}` });
   }
 });
@@ -182,12 +196,19 @@ app.post('/api/ai', upload.single('file'), async (req, res) => {
       try { fs.unlinkSync(filePath); } catch (e) {}
     }
 
+    if (global.gc) {
+      try { global.gc(); } catch (e) {}
+    }
+
     res.json({ result: aiResult });
 
   } catch (error) {
     console.error("AI processing error:", error);
     if (filePath && fs.existsSync(filePath)) {
       try { fs.unlinkSync(filePath); } catch (e) {}
+    }
+    if (global.gc) {
+      try { global.gc(); } catch (e) {}
     }
     res.status(500).json({ error: error.message });
   }
