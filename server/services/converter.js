@@ -682,8 +682,25 @@ export async function performConversion(inputPath, inputMime, targetFormat, uplo
     if (target === 'docx') {
       return await imageToDocx(inputPath, outputPath);
     }
-    // Image to text (extract image information as placeholder metadata document)
-    if (['txt', 'md', 'html', 'rtf', 'epub'].includes(target)) {
+    // Convert image to a still 5-second video using FFmpeg
+    if (videoExts.includes(`.${target}`) || target === 'avi') {
+      return new Promise((resolve, reject) => {
+        ffmpeg()
+          .input(inputPath)
+          .inputOptions(['-loop 1'])
+          .outputOptions(['-t 5', '-pix_fmt yuv420p'])
+          .toFormat(target === 'avi' ? 'avi' : target)
+          .on('end', () => resolve(outputPath))
+          .on('error', (err) => {
+            console.error("FFmpeg image-to-video error:", err);
+            reject(err);
+          })
+          .save(outputPath);
+      });
+    }
+
+    // Image to document, presentation outline, or spreadsheet metadata
+    if (['txt', 'md', 'html', 'rtf', 'epub', 'xlsx', 'ods', 'csv', 'tsv', 'ppt', 'pptx', 'odt'].includes(target)) {
       const metadata = await sharp(inputPath).metadata();
       const infoText = `Image Analysis & Export\nFile Name: ${path.basename(inputPath)}\nFormat: ${metadata.format}\nWidth: ${metadata.width}px\nHeight: ${metadata.height}px\nChannels: ${metadata.channels || 'N/A'}\nSpace: ${metadata.space || 'N/A'}\n`;
       
@@ -692,6 +709,30 @@ export async function performConversion(inputPath, inputMime, targetFormat, uplo
       if (target === 'html') return textToHtml(infoText, outputPath, path.basename(inputPath));
       if (target === 'rtf') return textToRtf(infoText, outputPath, path.basename(inputPath));
       if (target === 'epub') return await textToEpub(infoText, outputPath, path.basename(inputPath));
+      
+      if (['xlsx', 'ods', 'csv', 'tsv'].includes(target)) {
+        const wb = XLSX.utils.book_new();
+        const data = [
+          ["Metadata Field", "Value"],
+          ["File Name", path.basename(inputPath)],
+          ["Format", metadata.format],
+          ["Width (px)", metadata.width],
+          ["Height (px)", metadata.height],
+          ["Channels", metadata.channels || "N/A"],
+          ["Space", metadata.space || "N/A"]
+        ];
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        XLSX.utils.book_append_sheet(wb, ws, "Image Info");
+        if (target === 'xlsx') XLSX.writeFile(wb, outputPath, { bookType: 'xlsx', type: 'file' });
+        else if (target === 'ods') XLSX.writeFile(wb, outputPath, { bookType: 'ods', type: 'file' });
+        else if (target === 'csv') XLSX.writeFile(wb, outputPath, { bookType: 'csv', type: 'file' });
+        else if (target === 'tsv') XLSX.writeFile(wb, outputPath, { bookType: 'csv', FS: '\t', type: 'file' });
+        return outputPath;
+      }
+      
+      if (['ppt', 'pptx', 'odt', 'docx'].includes(target)) {
+        return await textToDocx(infoText, outputPath, path.basename(inputPath));
+      }
     }
   }
 

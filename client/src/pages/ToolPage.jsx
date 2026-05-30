@@ -214,11 +214,13 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
         { value: 'png', label: 'PNG Image' },
         { value: 'jpg', label: 'JPG Image' },
         { value: 'webp', label: 'WEBP Image' },
+        { value: 'webg', label: 'WEBG Image' },
         { value: 'eps', label: 'EPS Vector' },
         { value: 'ps', label: 'PS PostScript' },
         { value: 'ai', label: 'AI Illustrator' },
         { value: 'pdf', label: 'PDF Document' },
         { value: 'docx', label: 'DOCX Word' },
+        { value: 'odt', label: 'ODT Document' },
         { value: 'gif', label: 'GIF Image' },
         { value: 'tiff', label: 'TIFF Image' },
         { value: 'bmp', label: 'BMP Image' },
@@ -227,6 +229,12 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
         { value: 'html', label: 'HTML Webpage' },
         { value: 'epub', label: 'EPUB Publication' },
         { value: 'md', label: 'Markdown (.md)' },
+        { value: 'xlsx', label: 'XLSX Excel' },
+        { value: 'ods', label: 'ODS OpenDocument Sheet' },
+        { value: 'csv', label: 'CSV Values' },
+        { value: 'tsv', label: 'TSV Values' },
+        { value: 'ppt', label: 'PPT Presentation' },
+        { value: 'avi', label: 'AVI Video' },
         { value: 'zip', label: 'ZIP Archive' }
       ];
     }
@@ -522,19 +530,27 @@ VITE_API_URL=https://your-backend-server.com`;
           <option value="png">PNG Image</option>
           <option value="jpg">JPG Image</option>
           <option value="webp">WEBP Image</option>
+          <option value="webg">WEBG Image</option>
+          <option value="gif">GIF Image</option>
+          <option value="tiff">TIFF Image</option>
+          <option value="bmp">BMP Image</option>
           <option value="eps">EPS Vector</option>
           <option value="ps">PS PostScript</option>
           <option value="ai">AI Illustrator</option>
           <option value="pdf">PDF Document</option>
           <option value="docx">DOCX Word</option>
-          <option value="gif">GIF Image</option>
-          <option value="tiff">TIFF Image</option>
-          <option value="bmp">BMP Image</option>
+          <option value="odt">ODT Document</option>
           <option value="txt">TXT Plain Text</option>
           <option value="rtf">RTF Rich Text</option>
           <option value="html">HTML Webpage</option>
           <option value="epub">EPUB Publication</option>
           <option value="md">Markdown (.md)</option>
+          <option value="xlsx">XLSX Excel</option>
+          <option value="ods">ODS OpenDocument Sheet</option>
+          <option value="csv">CSV Values</option>
+          <option value="tsv">TSV Values</option>
+          <option value="ppt">PPT Presentation</option>
+          <option value="avi">AVI Video</option>
           <option value="zip">ZIP Archive</option>
         </select>
       );
