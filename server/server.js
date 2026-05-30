@@ -19,7 +19,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors({ origin: '*' })); // Allow React dev server or production hosting
+app.use(cors({ origin: '*', exposedHeaders: ['Content-Disposition'] })); // Allow React dev server or production hosting
 
 // Normalize request URLs to resolve double-slash issues (e.g. //api/download -> /api/download)
 app.use((req, res, next) => {

@@ -345,7 +345,7 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
         const contentDisposition = response.headers['content-disposition'];
         let filename = `downloaded_file.${targetFormat}`;
         if (contentDisposition) {
-          const match = contentDisposition.match(/filename="?([^"]+)"?/);
+          const match = contentDisposition.match(/filename=["']?([^"';]+)["']?/);
           if (match) filename = match[1];
         }
 
@@ -385,7 +385,7 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
         const contentDisposition = response.headers['content-disposition'];
         let filename = `converted_file.${targetFormat}`;
         if (contentDisposition) {
-          const match = contentDisposition.match(/filename="?([^"]+)"?/);
+          const match = contentDisposition.match(/filename=["']?([^"';]+)["']?/);
           if (match) filename = match[1];
         }
 
