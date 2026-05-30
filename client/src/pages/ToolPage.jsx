@@ -172,8 +172,8 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
     if (!selectedFile) return [];
     const ext = selectedFile.name ? selectedFile.name.substring(selectedFile.name.lastIndexOf('.')).toLowerCase() : '';
     
-    const videoExts = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.wmv', '.flv', '.m2ts', '.m4v', '.mod', '.wtv', '.mpeg', '.mpg', '.ogv', '.swf', '.ts', '.dv', '.dvr'];
-    const audioExts = ['.mp3', '.wav', '.ogg', '.aac', '.m4a', '.flac', '.wma', '.amr', '.mid', '.m4r'];
+    const videoExts = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.wmv', '.flv', '.m2ts', '.m4v', '.mod', '.wtv', '.mpeg', '.mpg', '.ogv', '.swf', '.ts', '.dv', '.dvr', '.m4k'];
+    const audioExts = ['.mp3', '.wav', '.ogg', '.aac', '.m4a', '.flac', '.wma', '.amr', '.mid', '.m4r', '.oog'];
     const imageExts = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.tiff', '.bmp', '.svg', '.heic', '.heif', '.eps', '.ps', '.ai'];
     const sheetExts = ['.xlsx', '.xls', '.ods', '.csv', '.tsv'];
     const presentationExts = ['.pptx', '.ppt'];
@@ -194,6 +194,7 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
         { value: 'ts', label: 'TS Transport Stream' },
         { value: 'm2ts', label: 'M2TS Blu-ray' },
         { value: 'm4v', label: 'M4V Video' },
+        { value: 'm4k', label: 'M4K Video' },
         { value: 'gif', label: 'GIF Animated' },
         { value: 'ogv', label: 'OGV Ogg Video' },
         { value: 'swf', label: 'SWF Flash' },
@@ -204,6 +205,7 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
         { value: 'mp3', label: 'MP3 Audio' },
         { value: 'wav', label: 'WAV Audio' },
         { value: 'ogg', label: 'OGG Audio' },
+        { value: 'oog', label: 'OOG Audio' },
         { value: 'zip', label: 'ZIP Archive' }
       ];
     }
@@ -498,6 +500,7 @@ VITE_API_URL=https://your-backend-server.com`;
           <option value="ts">TS Transport Stream</option>
           <option value="m2ts">M2TS Blu-ray</option>
           <option value="m4v">M4V Video</option>
+          <option value="m4k">M4K Video</option>
           <option value="gif">GIF Animated</option>
           <option value="ogv">OGV Ogg Video</option>
           <option value="swf">SWF Flash</option>
@@ -508,6 +511,7 @@ VITE_API_URL=https://your-backend-server.com`;
           <option value="mp3">MP3 Audio</option>
           <option value="wav">WAV Audio</option>
           <option value="ogg">OGG Audio</option>
+          <option value="oog">OOG Audio</option>
           <option value="zip">ZIP Archive</option>
         </select>
       );
