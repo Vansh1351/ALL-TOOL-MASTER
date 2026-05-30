@@ -65,18 +65,160 @@ export default function ToolModal({ tool, onClose, addToHistory }) {
     }
   };
 
+  const getCompatibleFormats = (selectedFile) => {
+    if (!selectedFile) return [];
+    const ext = selectedFile.name ? selectedFile.name.substring(selectedFile.name.lastIndexOf('.')).toLowerCase() : '';
+    
+    const videoExts = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.wmv', '.flv', '.m2ts', '.m4v', '.mod', '.wtv', '.mpeg', '.mpg', '.ogv', '.swf', '.ts', '.dv', '.dvr', '.m4k'];
+    const audioExts = ['.mp3', '.wav', '.ogg', '.aac', '.m4a', '.flac', '.wma', '.amr', '.mid', '.m4r', '.oog'];
+    const imageExts = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.tiff', '.bmp', '.svg', '.heic', '.heif', '.eps', '.ps', '.ai'];
+    const sheetExts = ['.xlsx', '.xls', '.ods', '.csv', '.tsv'];
+    const presentationExts = ['.pptx', '.ppt'];
+    const docExts = ['.docx', '.doc', '.pdf', '.odt', '.txt', '.rtf', '.html', '.epub', '.md'];
+    const zipExts = ['.zip', '.rar', '.7z', '.tar', '.gz'];
+
+    if (videoExts.includes(ext) || audioExts.includes(ext)) {
+      return [
+        { value: 'mp4', label: 'MP4 Video' },
+        { value: 'mov', label: 'MOV QuickTime' },
+        { value: 'avi', label: 'AVI Video' },
+        { value: 'webm', label: 'WEBM Web Video' },
+        { value: 'wmv', label: 'WMV Windows Media' },
+        { value: 'mkv', label: 'MKV Matroska' },
+        { value: 'flv', label: 'FLV Flash' },
+        { value: 'mpeg', label: 'MPEG Video' },
+        { value: 'mpg', label: 'MPG Video' },
+        { value: 'ts', label: 'TS Transport Stream' },
+        { value: 'm2ts', label: 'M2TS Blu-ray' },
+        { value: 'm4v', label: 'M4V Video' },
+        { value: 'm4k', label: 'M4K Video' },
+        { value: 'gif', label: 'GIF Animated' },
+        { value: 'ogv', label: 'OGV Ogg Video' },
+        { value: 'swf', label: 'SWF Flash' },
+        { value: 'dv', label: 'DV Video' },
+        { value: 'dvr', label: 'DVR Video' },
+        { value: 'wtv', label: 'WTV Video' },
+        { value: 'mod', label: 'MOD Video' },
+        { value: 'mp3', label: 'MP3 Audio' },
+        { value: 'wav', label: 'WAV Audio' },
+        { value: 'ogg', label: 'OGG Audio' },
+        { value: 'oog', label: 'OOG Audio' },
+        { value: 'zip', label: 'ZIP Archive' }
+      ];
+    }
+    if (imageExts.includes(ext)) {
+      return [
+        { value: 'png', label: 'PNG Image' },
+        { value: 'jpg', label: 'JPG Image' },
+        { value: 'webp', label: 'WEBP Image' },
+        { value: 'webg', label: 'WEBG Image' },
+        { value: 'eps', label: 'EPS Vector' },
+        { value: 'ps', label: 'PS PostScript' },
+        { value: 'ai', label: 'AI Illustrator' },
+        { value: 'pdf', label: 'PDF Document' },
+        { value: 'docx', label: 'DOCX Word' },
+        { value: 'odt', label: 'ODT Document' },
+        { value: 'gif', label: 'GIF Image' },
+        { value: 'tiff', label: 'TIFF Image' },
+        { value: 'bmp', label: 'BMP Image' },
+        { value: 'txt', label: 'TXT Plain Text' },
+        { value: 'rtf', label: 'RTF Rich Text' },
+        { value: 'html', label: 'HTML Webpage' },
+        { value: 'epub', label: 'EPUB Publication' },
+        { value: 'md', label: 'Markdown (.md)' },
+        { value: 'xlsx', label: 'XLSX Excel' },
+        { value: 'ods', label: 'ODS OpenDocument Sheet' },
+        { value: 'csv', label: 'CSV Values' },
+        { value: 'tsv', label: 'TSV Values' },
+        { value: 'ppt', label: 'PPT Presentation' },
+        { value: 'avi', label: 'AVI Video' },
+        { value: 'zip', label: 'ZIP Archive' }
+      ];
+    }
+    if (sheetExts.includes(ext)) {
+      return [
+        { value: 'xlsx', label: 'XLSX Excel' },
+        { value: 'csv', label: 'CSV Values' },
+        { value: 'tsv', label: 'TSV Values' },
+        { value: 'ods', label: 'ODS OpenDocument' },
+        { value: 'pdf', label: 'PDF Document' },
+        { value: 'docx', label: 'DOCX Word' },
+        { value: 'jpg', label: 'JPG Image' },
+        { value: 'png', label: 'PNG Image' },
+        { value: 'txt', label: 'TXT Text' },
+        { value: 'html', label: 'HTML Webpage' },
+        { value: 'rtf', label: 'RTF Rich Text' },
+        { value: 'epub', label: 'EPUB E-book' },
+        { value: 'md', label: 'Markdown (.md)' },
+        { value: 'zip', label: 'ZIP Archive' }
+      ];
+    }
+    if (presentationExts.includes(ext)) {
+      return [
+        { value: 'pdf', label: 'PDF Document' },
+        { value: 'docx', label: 'DOCX Word' },
+        { value: 'txt', label: 'TXT Text' },
+        { value: 'jpg', label: 'JPG Image' },
+        { value: 'png', label: 'PNG Image' },
+        { value: 'html', label: 'HTML Webpage' },
+        { value: 'md', label: 'Markdown (.md)' },
+        { value: 'rtf', label: 'RTF Rich Text' },
+        { value: 'epub', label: 'EPUB E-book' },
+        { value: 'zip', label: 'ZIP Archive' }
+      ];
+    }
+    if (docExts.includes(ext)) {
+      return [
+        { value: 'docx', label: 'DOCX Word' },
+        { value: 'pdf', label: 'PDF Document' },
+        { value: 'odt', label: 'ODT Document' },
+        { value: 'txt', label: 'TXT Plain Text' },
+        { value: 'rtf', label: 'RTF Rich Text' },
+        { value: 'html', label: 'HTML Webpage' },
+        { value: 'epub', label: 'EPUB E-book' },
+        { value: 'md', label: 'Markdown (.md)' },
+        { value: 'jpg', label: 'JPG Image' },
+        { value: 'png', label: 'PNG Image' },
+        { value: 'webp', label: 'WEBP Image' },
+        { value: 'zip', label: 'ZIP Archive' }
+      ];
+    }
+    if (zipExts.includes(ext)) {
+      return [
+        { value: 'unzip', label: 'Extract All Files' }
+      ];
+    }
+    return [
+      { value: 'zip', label: 'ZIP Archive' }
+    ];
+  };
+
+  const autoSetDefaultTarget = (selectedFile) => {
+    const formats = getCompatibleFormats(selectedFile);
+    if (formats.length > 0) {
+      const exists = formats.some(f => f.value === targetFormat);
+      if (!exists) {
+        setTargetFormat(formats[0].value);
+      }
+    }
+  };
+
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFile(e.dataTransfer.files[0]);
+      const selectedFile = e.dataTransfer.files[0];
+      setFile(selectedFile);
+      autoSetDefaultTarget(selectedFile);
     }
   };
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
+      autoSetDefaultTarget(selectedFile);
     }
   };
 
@@ -232,51 +374,109 @@ export default function ToolModal({ tool, onClose, addToHistory }) {
   };
 
   const getFormatSelector = () => {
+    if (file) {
+      const formats = getCompatibleFormats(file);
+      return (
+        <select className="select-field" value={targetFormat} onChange={(e) => setTargetFormat(e.target.value)}>
+          {formats.map(f => (
+            <option key={f.value} value={f.value}>{f.label}</option>
+          ))}
+        </select>
+      );
+    }
+
     if (tool.id === 'mp4-to-mp3') {
       return (
         <select className="select-field" value={targetFormat} onChange={(e) => setTargetFormat(e.target.value)}>
-          <option value="mp4">MP4 (Video)</option>
-          <option value="mov">MOV (QuickTime Video)</option>
-          <option value="mp3">MP3 (Audio Extract)</option>
-          <option value="wav">WAV (Lossless Audio)</option>
-          <option value="zip">ZIP (Compressed Archive)</option>
+          <option value="mp4">MP4 Video</option>
+          <option value="mov">MOV QuickTime</option>
+          <option value="avi">AVI Video</option>
+          <option value="webm">WEBM Web Video</option>
+          <option value="wmv">WMV Windows Media</option>
+          <option value="mkv">MKV Matroska</option>
+          <option value="flv">FLV Flash</option>
+          <option value="mpeg">MPEG Video</option>
+          <option value="mpg">MPG Video</option>
+          <option value="ts">TS Transport Stream</option>
+          <option value="m2ts">M2TS Blu-ray</option>
+          <option value="m4v">M4V Video</option>
+          <option value="m4k">M4K Video</option>
+          <option value="gif">GIF Animated</option>
+          <option value="ogv">OGV Ogg Video</option>
+          <option value="swf">SWF Flash</option>
+          <option value="dv">DV Video</option>
+          <option value="dvr">DVR Video</option>
+          <option value="wtv">WTV Video</option>
+          <option value="mod">MOD Video</option>
+          <option value="mp3">MP3 Audio</option>
+          <option value="wav">WAV Audio</option>
+          <option value="ogg">OGG Audio</option>
+          <option value="oog">OOG Audio</option>
+          <option value="zip">ZIP Archive</option>
         </select>
       );
     }
     if (tool.id === 'image-converter') {
       return (
         <select className="select-field" value={targetFormat} onChange={(e) => setTargetFormat(e.target.value)}>
-          <option value="png">PNG (Portable Network Graphics)</option>
-          <option value="jpg">JPG (JPEG Image)</option>
-          <option value="webp">WEBP (Modern Web Image)</option>
-          <option value="pdf">PDF (Document Format)</option>
-          <option value="docx">DOCX (Word Document)</option>
-          <option value="zip">ZIP (Compressed Archive)</option>
+          <option value="png">PNG Image</option>
+          <option value="jpg">JPG Image</option>
+          <option value="webp">WEBP Image</option>
+          <option value="webg">WEBG Image</option>
+          <option value="gif">GIF Image</option>
+          <option value="tiff">TIFF Image</option>
+          <option value="bmp">BMP Image</option>
+          <option value="eps">EPS Vector</option>
+          <option value="ps">PS PostScript</option>
+          <option value="ai">AI Illustrator</option>
+          <option value="pdf">PDF Document</option>
+          <option value="docx">DOCX Word</option>
+          <option value="odt">ODT Document</option>
+          <option value="txt">TXT Plain Text</option>
+          <option value="rtf">RTF Rich Text</option>
+          <option value="html">HTML Webpage</option>
+          <option value="epub">EPUB Publication</option>
+          <option value="md">Markdown (.md)</option>
+          <option value="xlsx">XLSX Excel</option>
+          <option value="ods">ODS OpenDocument Sheet</option>
+          <option value="csv">CSV Values</option>
+          <option value="tsv">TSV Values</option>
+          <option value="ppt">PPT Presentation</option>
+          <option value="avi">AVI Video</option>
+          <option value="zip">ZIP Archive</option>
         </select>
       );
     }
     if (tool.id === 'pdf-converter') {
       return (
         <select className="select-field" value={targetFormat} onChange={(e) => setTargetFormat(e.target.value)}>
-          <option value="docx">DOCX (Word Document)</option>
-          <option value="jpg">JPG (Image Card)</option>
-          <option value="png">PNG (Image Card)</option>
-          <option value="zip">ZIP (Compressed Archive)</option>
+          <option value="docx">DOCX Word</option>
+          <option value="pdf">PDF Document</option>
+          <option value="odt">ODT Document</option>
+          <option value="txt">TXT Plain Text</option>
+          <option value="rtf">RTF Rich Text</option>
+          <option value="html">HTML Webpage</option>
+          <option value="epub">EPUB E-book</option>
+          <option value="md">Markdown (.md)</option>
+          <option value="jpg">JPG Image</option>
+          <option value="png">PNG Image</option>
+          <option value="webp">WEBP Image</option>
+          <option value="zip">ZIP Archive</option>
         </select>
       );
     }
     if (tool.id === 'zip-extractor') {
       return (
         <select className="select-field" value={targetFormat} onChange={(e) => setTargetFormat(e.target.value)}>
-          <option value="unzip">Extract All Files (Return ZIP)</option>
+          <option value="unzip">Extract All Files</option>
         </select>
       );
     }
     if (tool.category === 'Downloader') {
       return (
         <select className="select-field" value={targetFormat} onChange={(e) => setTargetFormat(e.target.value)}>
-          <option value="mp4">MP4 (Video)</option>
-          <option value="mp3">MP3 (Audio Extract)</option>
+          <option value="mp4">MP4 Video</option>
+          <option value="mp3">MP3 Audio</option>
         </select>
       );
     }
@@ -401,6 +601,7 @@ export default function ToolModal({ tool, onClose, addToHistory }) {
                   onDragLeave={handleDrag}
                   onDrop={handleDrop}
                   onClick={() => fileInputRef.current.click()}
+                  style={{ border: '2px dashed var(--border-color)', padding: '24px 10px', borderRadius: '16px', textAlign: 'center', cursor: 'pointer' }}
                 >
                   <input
                     type="file"
@@ -420,20 +621,19 @@ export default function ToolModal({ tool, onClose, addToHistory }) {
                     <div>
                       <span style={{ fontSize: '14px', fontWeight: '700' }}>Drag & drop file here, or click to browse</span>
                       <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                        Supports MP4, MOV, JPG, PNG, PDF, DOCX, ZIP (Max 500MB)
+                        Supports popular formats (Video, Audio, Image, Document, Archive) up to 500MB
                       </p>
                     </div>
                   )}
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px' }}>
                   <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)' }}>Target Conversion Format</label>
                   {getFormatSelector()}
                 </div>
               </>
             )}
 
-            {/* 3. AI Suite Layout */}
             {tool.category === 'AI Tool' && (
               <>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

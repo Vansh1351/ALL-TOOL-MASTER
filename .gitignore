@@ -5,6 +5,7 @@ server/node_modules/
 
 # Production build output
 client/dist/
+dist/
 
 # API keys and environment configurations (CRITICAL)
 .env

@@ -6,6 +6,7 @@
     "install-all": "npm.cmd install && cd server && npm.cmd install && cd ../client && npm.cmd install",
     "server": "cd server && npm.cmd start",
     "client": "cd client && npm.cmd run dev",
+    "build": "cd client && npm install && npm run build && cd .. && node -e \"const fs = require('fs'); fs.cpSync('client/dist', 'dist', {recursive: true});\"",
     "dev": "concurrently \"npm.cmd run server\" \"npm.cmd run client\""
   },
   "devDependencies": {
