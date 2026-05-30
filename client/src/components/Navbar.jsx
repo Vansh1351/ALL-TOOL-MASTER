@@ -91,7 +91,7 @@ export default function Navbar({ theme, toggleTheme, currentView, setView, navig
         </div>
 
         {/* Actions (Settings, Theme, Mobile Toggle) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div className="navbar-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {/* Settings button */}
           <button 
             className="btn-icon" 
@@ -165,6 +165,11 @@ export default function Navbar({ theme, toggleTheme, currentView, setView, navig
           }
           .mobile-toggle {
             display: flex !important;
+            align-items: center;
+            justify-content: center;
+          }
+          .navbar-actions {
+            gap: 8px !important;
           }
         }
       `}</style>
