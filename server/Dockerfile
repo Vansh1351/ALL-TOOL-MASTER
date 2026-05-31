@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install yt-dlp with TLS impersonation dependencies (curl-cffi) via pip
-RUN pip3 install --no-cache-dir -U "yt-dlp[default,curl-cffi]"
+RUN pip3 install --no-cache-dir --break-system-packages -U "yt-dlp[default,curl-cffi]"
 
 
 # Create app directory
