@@ -8,6 +8,9 @@ import {
 const rawBackendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const BACKEND_URL = rawBackendUrl.replace(/\/+$/, '');
 
+const rawBackupUrl = import.meta.env.VITE_BACKUP_API_URL || '';
+const BACKUP_URL = rawBackupUrl ? rawBackupUrl.replace(/\/+$/, '') : '';
+
 export default function ToolModal({ tool, onClose, addToHistory }) {
   if (!tool) return null;
 
@@ -235,13 +238,35 @@ export default function ToolModal({ tool, onClose, addToHistory }) {
     // Fetch API Key from localStorage if available
     const apiKey = localStorage.getItem('gemini_api_key') || '';
 
+    const makeRequestWithFallback = async (method, path, data, config = {}) => {
+      try {
+        console.log(`Sending request to primary backend: ${BACKEND_URL}${path}`);
+        if (method === 'post') {
+          return await axios.post(`${BACKEND_URL}${path}`, data, config);
+        } else {
+          return await axios.get(`${BACKEND_URL}${path}`, config);
+        }
+      } catch (err) {
+        if (BACKUP_URL && BACKUP_URL !== BACKEND_URL) {
+          console.warn(`Primary backend request failed. Retrying with backup backend: ${BACKUP_URL}${path}`);
+          setProgress(prev => Math.max(10, prev - 10)); // Reset progress slightly
+          if (method === 'post') {
+            return await axios.post(`${BACKUP_URL}${path}`, data, config);
+          } else {
+            return await axios.get(`${BACKUP_URL}${path}`, config);
+          }
+        }
+        throw err;
+      }
+    };
+
     try {
       // 1. DOWNLOADER TOOLS
       if (tool.category === 'Downloader') {
         if (!url) throw new Error('Please enter a valid URL.');
         setProgress(40);
         
-        const response = await axios.post(`${BACKEND_URL}/api/download`, {
+        const response = await makeRequestWithFallback('post', '/api/download', {
           url,
           format: targetFormat,
           quality
@@ -281,7 +306,7 @@ export default function ToolModal({ tool, onClose, addToHistory }) {
         formData.append('file', file);
         formData.append('targetFormat', targetFormat);
 
-        const response = await axios.post(`${BACKEND_URL}/api/convert`, formData, {
+        const response = await makeRequestWithFallback('post', '/api/convert', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
           responseType: 'blob',
           onUploadProgress: (progressEvent) => {
@@ -329,7 +354,7 @@ export default function ToolModal({ tool, onClose, addToHistory }) {
           formData.append('apiKey', apiKey);
         }
 
-        const response = await axios.post(`${BACKEND_URL}/api/ai`, formData, {
+        const response = await makeRequestWithFallback('post', '/api/ai', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
           onUploadProgress: (progressEvent) => {
             const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
