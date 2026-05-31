@@ -113,7 +113,7 @@ app.post('/api/convert', upload.single('file'), async (req, res) => {
     if (global.gc) {
       try { global.gc(); } catch (e) {}
     }
-    res.status(500).json({ error: `Conversion failed: ${error.message}` });
+    res.status(400).json({ error: `Conversion failed: ${error.message}` });
   }
 });
 
@@ -160,7 +160,7 @@ app.post('/api/download', async (req, res) => {
     if (global.gc) {
       try { global.gc(); } catch (e) {}
     }
-    res.status(500).json({ error: `Download failed: ${error.message}` });
+    res.status(400).json({ error: `Download failed: ${error.message}` });
   }
 });
 
@@ -210,7 +210,7 @@ app.post('/api/ai', upload.single('file'), async (req, res) => {
     if (global.gc) {
       try { global.gc(); } catch (e) {}
     }
-    res.status(500).json({ error: error.message });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -234,7 +234,7 @@ app.use((err, req, res, next) => {
   }
   if (err) {
     console.error('Unhandled server error:', err);
-    return res.status(500).json({ error: err.message || 'Internal server error' });
+    return res.status(400).json({ error: err.message || 'Internal server error' });
   }
   next();
 });
