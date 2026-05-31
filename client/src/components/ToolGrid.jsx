@@ -267,8 +267,58 @@ export const TOOLS_DATA = [
     category: 'AI Tool',
     routes: ['/ai-notes/brainrot-translator', '/ai-notes/brainrot'],
     keywords: [
-      'pdf to gen-z brainrot translator', 'brainrot translator', 'gen-z slang', 'funny pdf translator', 
+      'pdf to gen-z brainrot translator', 'brainrot translator', 'gen-z slang', 'funny pdf translator',
       'slang translator', 'pdf to slang', 'brainrot'
+    ]
+  },
+  {
+    id: 'file-compressor',
+    title: 'File Compressor',
+    desc: 'Compress multiple files, folders, images, videos, or archives into a single ZIP with custom compression levels.',
+    icon: FiFolderPlus,
+    color: '#f97316',
+    category: 'Utility',
+    routes: ['/utility/file-compressor', '/utility/compress'],
+    keywords: [
+      'file compressor', 'compress files', 'zip compressor', 'reduce file size', 'compress images',
+      'compress video', 'compress audio', 'compress folder', 'compress multiple files', 'bulk file compressor',
+      'online file compressor free', 'compress files into zip', 'file size reducer', 'lossless compression',
+      'compress pdf', 'compress png', 'compress jpg', 'compress mp4', 'compress mp3', 'compress zip',
+      'online zip creator', 'multi file compressor', 'batch file compressor', 'file archiver',
+      'compress documents online', 'free file compression tool', 'reduce zip file size'
+    ]
+  },
+  {
+    id: 'resume-builder',
+    title: 'Resume Builder',
+    desc: 'Build a professional ATS-friendly resume with live preview. Fill your details and download as PDF instantly.',
+    icon: FiFileText,
+    color: '#0ea5e9',
+    category: 'Utility',
+    routes: ['/utility/resume-builder', '/utility/cv-builder'],
+    keywords: [
+      'resume builder', 'cv builder', 'professional resume', 'ats resume', 'free resume maker',
+      'online resume creator', 'resume template', 'resume download pdf', 'resume generator free',
+      'build resume online', 'create cv online free', 'job resume builder', 'resume maker no signup',
+      'professional cv creator', 'resume with live preview', 'resume pdf download', 'free resume templates',
+      'build professional resume online', 'ats friendly resume builder', 'resume maker 2026'
+    ]
+  },
+  {
+    id: 'ai-script-writer',
+    title: 'AI Script Writer',
+    desc: 'Generate full professional scripts — movies, YouTube, podcasts, ads — from a title, genre, and premise.',
+    icon: FiMic,
+    color: '#a855f7',
+    category: 'AI Tool',
+    routes: ['/ai-notes/script-writer', '/ai-notes/screenplay-writer'],
+    keywords: [
+      'ai script writer', 'script writer', 'screenplay writer', 'script generator', 'ai screenplay generator',
+      'movie script generator ai', 'youtube script writer', 'podcast script generator', 'ad script writer',
+      'short film script generator', 'ai story writer', 'script writing tool free', 'generate full script ai',
+      'professional script writer online', 'ai creative writing tool', 'script from title ai',
+      'generate script from description', 'full script generator', 'ai screenplay writer free',
+      'ai video script writer', 'content script generator ai', 'blog to script converter', 'script ai tool'
     ]
   }
 ];

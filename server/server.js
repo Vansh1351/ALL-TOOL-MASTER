@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 import { performConversion } from './services/converter.js';
 import { downloadMedia, ensureYtdlp } from './services/downloader.js';
 import { processAiTool } from './services/aiService.js';
+import archiver from 'archiver';
 
 dotenv.config();
 
@@ -232,6 +233,64 @@ if (fs.existsSync(clientBuildPath)) {
     res.sendFile(path.join(clientBuildPath, 'index.html'));
   });
 }
+
+/**
+ * File Compressor API
+ * Accepts: multipart with one or more 'files' fields + optional 'compressionLevel' (1-9)
+ * Returns: a ZIP archive as a blob download
+ */
+app.post('/api/compress', upload.array('files', 50), async (req, res) => {
+  const files = req.files;
+  if (!files || files.length === 0) {
+    return res.status(400).json({ error: 'No files uploaded. Please select at least one file to compress.' });
+  }
+
+  const level = Math.min(9, Math.max(1, parseInt(req.body.compressionLevel || '5', 10)));
+  const zipFilename = `compressed_${Date.now()}.zip`;
+  const zipPath = path.join(uploadsDir, zipFilename);
+
+  try {
+    await new Promise((resolve, reject) => {
+      const output = fs.createWriteStream(zipPath);
+      const archive = archiver('zip', { zlib: { level } });
+
+      output.on('close', resolve);
+      archive.on('error', reject);
+
+      archive.pipe(output);
+
+      for (const file of files) {
+        archive.file(file.path, { name: file.originalname });
+      }
+
+      archive.finalize();
+    });
+
+    // Send the ZIP
+    res.setHeader('Content-Disposition', `attachment; filename="${zipFilename}"`);
+    res.setHeader('Content-Type', 'application/zip');
+    const stream = fs.createReadStream(zipPath);
+    stream.pipe(res);
+    stream.on('end', () => {
+      // Cleanup uploaded files and zip
+      for (const f of files) {
+        try { fs.unlinkSync(f.path); } catch {}
+      }
+      try { fs.unlinkSync(zipPath); } catch {}
+    });
+    stream.on('error', (err) => {
+      console.error('Stream error while sending ZIP:', err);
+      for (const f of files) { try { fs.unlinkSync(f.path); } catch {} }
+      try { fs.unlinkSync(zipPath); } catch {}
+    });
+  } catch (err) {
+    console.error('Compression error:', err);
+    for (const f of files) { try { fs.unlinkSync(f.path); } catch {} }
+    try { if (fs.existsSync(zipPath)) fs.unlinkSync(zipPath); } catch {}
+    return res.status(500).json({ error: `Compression failed: ${err.message}` });
+  }
+});
+
 
 // Global error handler - catches multer and other errors, returns clean JSON
 app.use((err, req, res, next) => {

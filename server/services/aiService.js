@@ -105,6 +105,25 @@ export async function processAiTool({ tool, filePath, mimeType, textContent, api
     case 'pdf-to-brainrot':
       prompt = "Act as a Gen-Z translator. Summarize this entire content using highly exaggerated Gen-Z 'brainrot' slang (e.g., skibidi, rizzler, gyatt, fanum tax, looksmaxxing, kai cenat, baby grimace, mewing, mogging, cooked, sigma, alpha, grinding in Ohio, etc.). Make it hilarious but still explain the actual content and logic accurately.";
       break;
+    case 'ai-script-writer':
+    case 'script-writer':
+      prompt = `You are an award-winning professional script writer and screenwriter with 20+ years of experience writing for Hollywood, YouTube, podcasts, and advertising.
+
+Your task: Write a COMPLETE, FULL-LENGTH, PROFESSIONAL SCRIPT based on the user's brief below.
+
+FORMATTING RULES (STRICTLY FOLLOW):
+- Use standard screenplay format (FADE IN:, INT./EXT., CHARACTER NAME centered, action lines, dialogue, FADE OUT.)
+- For YouTube/podcast/ad scripts: Use clear SCENE HEADERS, HOST/NARRATOR cues, B-ROLL suggestions in brackets
+- Open with an ENHANCED, COMPELLING TITLE and LOGLINE
+- Divide into clear ACTS or SEGMENTS (Act 1: Setup, Act 2: Confrontation, Act 3: Resolution OR Opening Hook / Main Content / CTA)
+- Include all dialogue, stage directions, scene transitions, and action lines
+- End with a powerful, satisfying conclusion appropriate to the genre and tone
+- If the user requests SHORT: write ~600-900 words of script content
+- If the user requests MEDIUM: write ~1500-2500 words of script content  
+- If the user requests LONG: write ~3500-5000 words of script content
+
+BEGIN with "ENHANCED TITLE:" then write the full script immediately. Do not add meta-commentary about what you are going to write. Just write the script.`;
+      break;
     default:
       prompt = `Provide a comprehensive summary and analysis of the attached content. Highlight all main topics and present them clearly in markdown.`;
   }

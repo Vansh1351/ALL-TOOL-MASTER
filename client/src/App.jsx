@@ -16,6 +16,9 @@ import DmcaPage from './pages/DmcaPage';
 import ToolPage from './pages/ToolPage';
 import BlogListPage from './pages/BlogListPage';
 import BlogPostPage from './pages/BlogPostPage';
+import FileCompressor from './pages/FileCompressor';
+import ResumeBuilder from './pages/ResumeBuilder';
+import ScriptWriter from './pages/ScriptWriter';
 import DealsPage from './pages/DealsPage';
 import { BLOG_POSTS } from './blogData';
 import { SEO_DATA } from './seoData';
@@ -523,13 +526,21 @@ export default function App() {
         {view === 'deals' && <DealsPage />}
         {view === 'blog-post' && <BlogPostPage slug={selectedBlogSlug} navigate={navigate} />}
         {view === 'tool-page' && activeTool && (
-          <ToolPage 
-            tool={activeTool} 
-            setView={setView} 
-            setActiveTool={setActiveTool} 
-            addToHistory={addToHistory} 
-            navigate={navigate}
-          />
+          activeTool.id === 'file-compressor' ? (
+            <FileCompressor tool={activeTool} setView={setView} setActiveTool={setActiveTool} addToHistory={addToHistory} navigate={navigate} />
+          ) : activeTool.id === 'resume-builder' ? (
+            <ResumeBuilder tool={activeTool} setView={setView} setActiveTool={setActiveTool} navigate={navigate} />
+          ) : activeTool.id === 'ai-script-writer' ? (
+            <ScriptWriter tool={activeTool} setView={setView} setActiveTool={setActiveTool} navigate={navigate} />
+          ) : (
+            <ToolPage 
+              tool={activeTool} 
+              setView={setView} 
+              setActiveTool={setActiveTool} 
+              addToHistory={addToHistory} 
+              navigate={navigate}
+            />
+          )
         )}
       </main>
 
