@@ -140,7 +140,8 @@ export async function downloadMedia(url, format, quality, outputDir) {
     '--no-warnings',
     '--restrict-filenames',
     '--ffmpeg-location', binDir,
-    '--js-runtimes', 'node'
+    '--js-runtimes', 'node',
+    '--extractor-args', 'youtube:player_client=android,ios'
   ];
 
   const resolvedCookiesPath = setupCookies();
