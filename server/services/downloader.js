@@ -233,7 +233,8 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
               return tryBrowserCookies(browsers, 0);
             } else {
               // Cloud environment
-              const userFriendlyError = "YouTube blocked the download with a bot-verification check (Sign in to confirm you're not a bot). Since the server is hosted in the cloud (Render), you must provide cookies to authenticate. Please export your YouTube cookies in Netscape format (using a browser extension like 'Get cookies.txt LOCALLY') and set them in your Render dashboard environment variables under the name 'YOUTUBE_COOKIES'. If you already set it, your cookies may have expired and you need to export new ones.";
+              const platform = process.env.SPACE_ID ? 'Hugging Face' : (process.env.RENDER ? 'Render' : 'cloud hosting platform');
+              const userFriendlyError = `YouTube blocked the download with a bot-verification check (Sign in to confirm you're not a bot). Since the server is hosted in the cloud (${platform}), you must provide cookies to authenticate. Please export your YouTube cookies in Netscape format (using a browser extension like 'Get cookies.txt LOCALLY') and set them in your ${platform} dashboard environment variables under the name 'YOUTUBE_COOKIES'. If you already set it, your cookies may have expired and you need to export new ones.`;
               return reject(new Error(userFriendlyError));
             }
           }
@@ -256,7 +257,8 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
           
           // If the bot block was detected and we couldn't bypass it, customize the error message
           if (isBotBlock) {
-            const userFriendlyError = "YouTube blocked the download with a bot-verification check (Sign in to confirm you're not a bot). If running in the cloud (Render), please set up/renew your 'YOUTUBE_COOKIES' environment variable. If running locally, make sure you close your browser completely before retrying.";
+            const platform = process.env.SPACE_ID ? 'Hugging Face' : (process.env.RENDER ? 'Render' : 'cloud hosting platform');
+            const userFriendlyError = `YouTube blocked the download with a bot-verification check (Sign in to confirm you're not a bot). If running in the cloud (${platform}), please set up/renew your 'YOUTUBE_COOKIES' environment variable. If running locally, make sure you close your browser completely before retrying.`;
             return reject(new Error(userFriendlyError));
           }
 
