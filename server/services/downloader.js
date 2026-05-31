@@ -127,7 +127,7 @@ export async function ensureYtdlp() {
  * @param {string} quality - quality selection (e.g. 'best', '1080p', '720p', etc.)
  * @param {string} outputDir - Directory to save files
  */
-export async function downloadMedia(url, format, quality, outputDir) {
+async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
   const binary = await ensureYtdlp();
   
   // Create output path format
@@ -284,4 +284,106 @@ export async function downloadMedia(url, format, quality, outputDir) {
 
     runCommand(args);
   });
+}
+
+async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
+  // List of public cobalt instances to cycle through
+  const instances = [
+    'https://api.cobalt.tools',
+    'https://co.wuk.sh',
+    'https://cobalt.api.ryzetech.live',
+    'https://cobalt.kudo.lol',
+    'https://cobalt-api.lule.rocks'
+  ];
+
+  let lastError = null;
+
+  for (const instance of instances) {
+    try {
+      console.log(`Attempting Cobalt download using instance: ${instance}...`);
+      const body = {
+        url: videoUrl,
+        vQuality: quality === 'best' ? '1080' : quality.replace('p', ''),
+        isAudioOnly: format === 'mp3',
+        filenameStyle: 'classic'
+      };
+
+      const res = await fetch(`${instance}/api/json`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP error ${res.status}: ${res.statusText}`);
+      }
+
+      const json = await res.json();
+      if (json.status === 'error') {
+        throw new Error(json.error?.code || 'Unknown cobalt error');
+      }
+
+      const mediaUrl = json.url;
+      if (!mediaUrl) {
+        throw new Error('No download URL returned from cobalt');
+      }
+
+      console.log(`Cobalt returned download URL: ${mediaUrl}`);
+
+      // Fetch the file from Cobalt URL and save it to outputDir
+      const fileRes = await fetch(mediaUrl);
+      if (!fileRes.ok) {
+        throw new Error(`Failed to fetch media file: ${fileRes.statusText}`);
+      }
+
+      // Try to extract extension from content-disposition
+      const cd = fileRes.headers.get('content-disposition');
+      let ext = format === 'mp3' ? '.mp3' : '.mp4';
+      if (cd) {
+        const match = cd.match(/filename=["']?([^"';]+)["']?/);
+        if (match) {
+          const fname = match[1];
+          const lastDot = fname.lastIndexOf('.');
+          if (lastDot !== -1) {
+            ext = fname.substring(lastDot);
+          }
+        }
+      }
+
+      // Save locally to outputDir
+      const finalPath = path.join(outputDir, `download_${Date.now()}_video${ext}`);
+      
+      const buffer = await fileRes.arrayBuffer();
+      fs.writeFileSync(finalPath, Buffer.from(buffer));
+
+      console.log(`Successfully saved Cobalt download to ${finalPath}`);
+      return finalPath;
+    } catch (err) {
+      console.warn(`Cobalt instance ${instance} failed:`, err.message);
+      lastError = err;
+    }
+  }
+
+  throw new Error(`All Cobalt fallback instances failed. Last error: ${lastError ? lastError.message : 'Unknown'}`);
+}
+
+export async function downloadMedia(url, format, quality, outputDir) {
+  try {
+    // Try yt-dlp first
+    const filePath = await downloadMediaWithYtdlp(url, format, quality, outputDir);
+    return filePath;
+  } catch (ytdlpError) {
+    console.warn(`yt-dlp download failed (${ytdlpError.message}). Trying Cobalt API fallback...`);
+    try {
+      const filePath = await downloadWithCobalt(url, format, quality, outputDir);
+      return filePath;
+    } catch (cobaltError) {
+      console.error(`Cobalt download fallback also failed: ${cobaltError.message}`);
+      // Throw the original yt-dlp error so they see the detailed yt-dlp issue if both fail
+      throw ytdlpError;
+    }
+  }
 }
