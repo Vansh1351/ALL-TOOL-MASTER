@@ -93,6 +93,18 @@ const binaryPath = path.join(binDir, binaryName);
  * Automatically downloads yt-dlp binary if it doesn't exist.
  */
 export async function ensureYtdlp() {
+  // Check if system has a global yt-dlp in PATH
+  const hasGlobalYtdlp = await new Promise(resolve => {
+    execFile('yt-dlp', ['--version'], (err) => {
+      resolve(!err);
+    });
+  });
+
+  if (hasGlobalYtdlp) {
+    console.log("Global yt-dlp found in system PATH. Skipping download and using system installation.");
+    return 'yt-dlp';
+  }
+
   if (fs.existsSync(binaryPath)) {
     return binaryPath;
   }
@@ -147,10 +159,23 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
     '--no-warnings',
     '--restrict-filenames',
     '--no-check-certificate',
-    '--impersonate', 'chrome',
     '--js-runtimes', 'node',
     '--extractor-args', 'youtube:player_client=android,ios'
   ];
+
+  // Check if the binary supports browser impersonation (--list-impersonate-targets)
+  const supportsImpersonate = await new Promise(resolve => {
+    execFile(binary, ['--list-impersonate-targets'], (err) => {
+      resolve(!err);
+    });
+  });
+
+  if (supportsImpersonate) {
+    console.log(`yt-dlp binary "${binary}" supports TLS impersonation. Enabling Chrome impersonation.`);
+    args.push('--impersonate', 'chrome');
+  } else {
+    console.log(`yt-dlp binary "${binary}" does not support TLS impersonation. Bypassing impersonate argument.`);
+  }
 
   if (!hasGlobalFfmpeg) {
     console.log("Global ffmpeg not found in PATH. Using bundled/bin directory ffmpeg location.");
