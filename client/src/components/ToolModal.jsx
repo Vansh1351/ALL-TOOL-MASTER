@@ -390,7 +390,9 @@ export default function ToolModal({ tool, onClose, addToHistory }) {
             const parsed = JSON.parse(text);
             errMsg = parsed.error || errMsg;
           } catch(e) {
-            errMsg = text || errMsg;
+            // Strip HTML tags if the blob returned raw HTML
+            const stripped = text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+            errMsg = stripped.length > 300 ? stripped.substring(0, 300) + '...' : stripped || errMsg;
           }
         } else {
           errMsg = err.response.data.error || errMsg;
@@ -830,7 +832,19 @@ export default function ToolModal({ tool, onClose, addToHistory }) {
           <div style={{ textAlign: 'center', padding: '30px 0' }}>
             <FiAlertCircle size={56} style={{ color: '#ef4444', marginBottom: '16px' }} />
             <h4 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '8px' }}>Operation Failed</h4>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '24px', whiteSpace: 'pre-wrap' }}>
+            <p style={{ 
+              fontSize: '13px', 
+              color: 'var(--text-muted)', 
+              marginBottom: '24px', 
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              maxHeight: '160px',
+              overflowY: 'auto',
+              padding: '12px',
+              background: 'rgba(239,68,68,0.07)',
+              borderRadius: '8px',
+              border: '1px solid rgba(239,68,68,0.15)'
+            }}>
               {errorMessage}
             </p>
             

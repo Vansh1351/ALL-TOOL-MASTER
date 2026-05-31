@@ -59,6 +59,15 @@ const upload = multer({
 // Warmup ytdlp binary on start
 ensureYtdlp().catch(err => console.error("yt-dlp auto-download failed:", err));
 
+// Health-check routes (prevents "Cannot GET /" on Hugging Face / Render)
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', service: 'All Tool Master API', version: '1.0.0' });
+});
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
+
 /**
  * Universal File Converter API
  */

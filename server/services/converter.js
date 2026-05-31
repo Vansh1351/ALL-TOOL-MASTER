@@ -12,9 +12,19 @@ import unzipper from 'unzipper';
 import XLSX from 'xlsx';
 
 // Configure Ffmpeg binaries path
+// On Linux (Hugging Face / cloud), system ffmpeg is installed via apt and preferred.
+// On Windows/macOS, fall back to npm-bundled ffmpeg installer.
 try {
-  ffmpeg.setFfmpegPath(ffmpegInstaller.path);
-  ffmpeg.setFfprobePath(ffprobeInstaller.path);
+  if (process.platform === 'linux') {
+    // Prefer system-installed ffmpeg/ffprobe from apt
+    ffmpeg.setFfmpegPath('/usr/bin/ffmpeg');
+    ffmpeg.setFfprobePath('/usr/bin/ffprobe');
+    console.log('Using system ffmpeg at /usr/bin/ffmpeg');
+  } else {
+    ffmpeg.setFfmpegPath(ffmpegInstaller.path);
+    ffmpeg.setFfprobePath(ffprobeInstaller.path);
+    console.log('Using npm-bundled ffmpeg:', ffmpegInstaller.path);
+  }
 } catch (e) {
   console.error("Failed to set ffmpeg paths:", e);
 }
@@ -626,9 +636,24 @@ export function zipFiles(filePaths, outputPath) {
   });
 }
 
-/**
- * Main orchestrator for conversions.
- */
+export function extractTextFromSpreadsheet(inputPath) {
+  try {
+    const workbook = XLSX.readFile(inputPath);
+    let text = '';
+    for (const sheetName of workbook.SheetNames) {
+      const worksheet = workbook.Sheets[sheetName];
+      text += `--- Sheet: ${sheetName} ---\n`;
+      text += XLSX.utils.sheet_to_csv(worksheet);
+      text += '\n\n';
+    }
+    return text.trim() || 'Empty spreadsheet.';
+  } catch (err) {
+    console.error('Failed to extract text from spreadsheet:', err);
+    throw new Error('Unable to parse spreadsheet text. Make sure the file is valid.');
+  }
+}
+
+
 export async function performConversion(inputPath, inputMime, targetFormat, uploadsDir) {
   const inputExt = path.extname(inputPath).toLowerCase();
   const target = targetFormat.toLowerCase();

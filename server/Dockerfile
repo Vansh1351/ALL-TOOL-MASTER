@@ -8,8 +8,9 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install yt-dlp with TLS impersonation dependencies (curl-cffi) via pip
-RUN pip3 install --no-cache-dir --break-system-packages -U "yt-dlp[default,curl-cffi]"
+# Install yt-dlp – use pipx-style override to bypass PEP 668 "externally managed environment"
+RUN pip3 install --no-cache-dir --break-system-packages -U pip && \
+    pip3 install --no-cache-dir --break-system-packages -U "yt-dlp[default,curl-cffi]"
 
 
 # Create app directory

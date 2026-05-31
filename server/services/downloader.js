@@ -159,7 +159,6 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
     '--no-warnings',
     '--restrict-filenames',
     '--no-check-certificate',
-    '--js-runtimes', 'node',
     '--extractor-args', 'youtube:player_client=android,ios'
   ];
 
