@@ -250,10 +250,15 @@ export default function ToolModal({ tool, onClose, addToHistory }) {
         if (BACKUP_URL && BACKUP_URL !== BACKEND_URL) {
           console.warn(`Primary backend request failed. Retrying with backup backend: ${BACKUP_URL}${path}`);
           setProgress(prev => Math.max(10, prev - 10)); // Reset progress slightly
-          if (method === 'post') {
-            return await axios.post(`${BACKUP_URL}${path}`, data, config);
-          } else {
-            return await axios.get(`${BACKUP_URL}${path}`, config);
+          try {
+            if (method === 'post') {
+              return await axios.post(`${BACKUP_URL}${path}`, data, config);
+            } else {
+              return await axios.get(`${BACKUP_URL}${path}`, config);
+            }
+          } catch (backupErr) {
+            console.error("Backup backend request also failed:", backupErr);
+            throw err;
           }
         }
         throw err;
