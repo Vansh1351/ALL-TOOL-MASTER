@@ -133,16 +133,29 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
   // Create output path format
   const outputPattern = path.join(outputDir, `download_${Date.now()}_%(title)s.%(ext)s`);
   
+  // Check if ffmpeg is globally available in system PATH
+  const hasGlobalFfmpeg = await new Promise(resolve => {
+    execFile('ffmpeg', ['-version'], (err) => {
+      resolve(!err);
+    });
+  });
+
   const args = [
     url,
     '-o', outputPattern,
     '--no-playlist',
     '--no-warnings',
     '--restrict-filenames',
-    '--ffmpeg-location', binDir,
     '--js-runtimes', 'node',
     '--extractor-args', 'youtube:player_client=android,ios'
   ];
+
+  if (!hasGlobalFfmpeg) {
+    console.log("Global ffmpeg not found in PATH. Using bundled/bin directory ffmpeg location.");
+    args.push('--ffmpeg-location', binDir);
+  } else {
+    console.log("Global ffmpeg found in PATH. Using system-installed ffmpeg.");
+  }
 
   const resolvedCookiesPath = setupCookies();
   if (resolvedCookiesPath) {
