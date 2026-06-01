@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import axios from 'axios';
-import { FiUploadCloud, FiX, FiDownload, FiCheckCircle, FiAlertCircle, FiZap, FiArrowLeft, FiPackage } from 'react-icons/fi';
+import { FiUploadCloud, FiX, FiDownload, FiCheckCircle, FiAlertCircle, FiZap, FiArrowLeft, FiPackage, FiFile } from 'react-icons/fi';
 
 const rawBackendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const BACKEND_URL = rawBackendUrl.replace(/\/+$/, '');
@@ -8,9 +8,9 @@ const rawBackupUrl = import.meta.env.VITE_BACKUP_API_URL || '';
 const BACKUP_URL = rawBackupUrl ? rawBackupUrl.replace(/\/+$/, '') : '';
 
 const COMPRESSION_LEVELS = [
-  { value: 1, label: 'Fast', desc: 'Minimal compression, fastest speed', color: '#10b981' },
-  { value: 5, label: 'Balanced', desc: 'Good compression, reasonable speed', color: '#f59e0b' },
-  { value: 9, label: 'Maximum', desc: 'Best compression, slower processing', color: '#ef4444' },
+  { value: 1, label: 'Fast', desc: 'Light compression · 10–20% size reduction', color: '#10b981' },
+  { value: 5, label: 'Balanced', desc: 'Good compression · 20–50% size reduction', color: '#f59e0b' },
+  { value: 9, label: 'Maximum', desc: 'Maximum compression · 50–80% size reduction', color: '#ef4444' },
 ];
 
 function formatBytes(bytes) {
@@ -30,6 +30,7 @@ export default function FileCompressor({ tool, setView, setActiveTool, addToHist
   const [errorMessage, setErrorMessage] = useState('');
   const [downloadBlobUrl, setDownloadBlobUrl] = useState('');
   const [downloadFilename, setDownloadFilename] = useState('');
+  const [isMultiFile, setIsMultiFile] = useState(false);
   const [compressedSize, setCompressedSize] = useState(0);
   const fileInputRef = useRef(null);
 
@@ -111,11 +112,13 @@ export default function FileCompressor({ tool, setView, setActiveTool, addToHist
       const blob = response.data;
       setCompressedSize(blob.size);
       const cd = response.headers['content-disposition'];
-      let filename = 'compressed_files.zip';
+      let filename = files.length === 1 ? files[0].name : 'compressed_files.zip';
       if (cd) {
-        const m = cd.match(/filename="?([^"]+)"?/);
-        if (m) filename = m[1];
+        const m = cd.match(/filename[^;=\n]*=(["']?)([^"'\n;]+)\1/);
+        if (m && m[2]) filename = decodeURIComponent(m[2]);
       }
+      const multi = files.length > 1;
+      setIsMultiFile(multi);
       const blobUrl = window.URL.createObjectURL(blob);
       setDownloadBlobUrl(blobUrl);
       setDownloadFilename(filename);
@@ -151,6 +154,7 @@ export default function FileCompressor({ tool, setView, setActiveTool, addToHist
     setErrorMessage('');
     setDownloadBlobUrl('');
     setDownloadFilename('');
+    setIsMultiFile(false);
     setCompressedSize(0);
   };
 
@@ -306,11 +310,13 @@ export default function FileCompressor({ tool, setView, setActiveTool, addToHist
                   <FiZap size={14} /> Saved ~{savings}% space
                 </div>
               )}
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '8px' }}>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '4px' }}>
                 Original: {formatBytes(totalSize)} → Compressed: {formatBytes(compressedSize)}
               </p>
               <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '28px' }}>
-                Your ZIP is ready: <strong>{downloadFilename}</strong>
+                {isMultiFile
+                  ? <>Files packed in: <strong>{downloadFilename}</strong></>
+                  : <>Ready: <strong>{downloadFilename}</strong> · same format, smaller size</>}
               </p>
               <a
                 href={downloadBlobUrl}
@@ -318,7 +324,8 @@ export default function FileCompressor({ tool, setView, setActiveTool, addToHist
                 className="btn btn-primary"
                 style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none', padding: '14px 28px', fontSize: '15px', fontWeight: '800' }}
               >
-                <FiDownload /> Download ZIP
+                <FiDownload />
+                {isMultiFile ? `Download ZIP (${files.length} files)` : `Download ${downloadFilename}`}
               </a>
               <button className="btn btn-secondary" onClick={reset} style={{ display: 'block', width: '100%', marginTop: '16px' }}>
                 Compress More Files
@@ -422,7 +429,7 @@ export default function FileCompressor({ tool, setView, setActiveTool, addToHist
           {/* Info Box */}
           <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(249,115,22,0.07)', border: '1px solid rgba(249,115,22,0.2)' }}>
             <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6', margin: 0 }}>
-              💡 <strong>Tip:</strong> All file types are supported. The compressor bundles your files into a standard ZIP archive downloadable on any device.
+              💡 <strong>How it works:</strong> Videos and audio are re-encoded with quality control (FFmpeg). Images are optimized with lossless-to-lossy compression (Sharp). Files are returned in their <em>original format</em> with the same name — no ZIP wrapping for single files.
             </p>
           </div>
         </div>

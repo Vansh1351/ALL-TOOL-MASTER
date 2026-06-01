@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 import { performConversion } from './services/converter.js';
 import { downloadMedia, ensureYtdlp } from './services/downloader.js';
 import { processAiTool } from './services/aiService.js';
+import { compressFile } from './services/compressor.js';
 import archiver from 'archiver';
 
 dotenv.config();
@@ -235,59 +236,122 @@ if (fs.existsSync(clientBuildPath)) {
 }
 
 /**
- * File Compressor API
- * Accepts: multipart with one or more 'files' fields + optional 'compressionLevel' (1-9)
- * Returns: a ZIP archive as a blob download
+ * Real File Compressor API
+ *
+ * Accepts:  multipart/form-data with:
+ *   - one or more 'files' fields
+ *   - 'compressionLevel': 1 (fast) | 5 (balanced) | 9 (maximum)
+ *
+ * Returns:
+ *   - Single file  → same format, same name (e.g. video.mp4 → compressed video.mp4)
+ *   - Multi  files → ZIP containing each file in its original format & name
  */
-app.post('/api/compress', upload.array('files', 50), async (req, res) => {
+app.post('/api/compress', upload.array('files', 20), async (req, res) => {
   const files = req.files;
   if (!files || files.length === 0) {
     return res.status(400).json({ error: 'No files uploaded. Please select at least one file to compress.' });
   }
 
   const level = Math.min(9, Math.max(1, parseInt(req.body.compressionLevel || '5', 10)));
-  const zipFilename = `compressed_${Date.now()}.zip`;
-  const zipPath = path.join(uploadsDir, zipFilename);
 
-  try {
-    await new Promise((resolve, reject) => {
-      const output = fs.createWriteStream(zipPath);
-      const archive = archiver('zip', { zlib: { level } });
+  // ── 1. Compress each uploaded file ──────────────────────────────────────────
+  const compressedFiles = []; // { outputPath, originalName }
 
-      output.on('close', resolve);
-      archive.on('error', reject);
+  for (const file of files) {
+    const originalName = file.originalname;
+    const outputPath   = path.join(uploadsDir, `cmp_${Date.now()}_${originalName}`);
 
-      archive.pipe(output);
+    try {
+      await compressFile(file.path, outputPath, level, originalName);
+      compressedFiles.push({ outputPath, originalName });
+    } catch (err) {
+      console.error(`Compression failed for ${originalName}:`, err.message);
+      // Fallback: send original file unchanged rather than failing
+      try {
+        fs.copyFileSync(file.path, outputPath);
+        compressedFiles.push({ outputPath, originalName });
+      } catch {}
+    }
 
-      for (const file of files) {
-        archive.file(file.path, { name: file.originalname });
-      }
+    // Clean up uploaded temp file
+    try { fs.unlinkSync(file.path); } catch {}
+  }
 
-      archive.finalize();
-    });
+  if (compressedFiles.length === 0) {
+    return res.status(500).json({ error: 'All files failed to compress. Please try again.' });
+  }
 
-    // Send the ZIP
-    res.setHeader('Content-Disposition', `attachment; filename="${zipFilename}"`);
-    res.setHeader('Content-Type', 'application/zip');
-    const stream = fs.createReadStream(zipPath);
+  // ── 2. Send result ──────────────────────────────────────────────────────────
+  const cleanup = (paths) => {
+    for (const p of paths) { try { fs.unlinkSync(p); } catch {} }
+  };
+
+  if (compressedFiles.length === 1) {
+    // ── Single file: return in original format ─────────────────────────────
+    const { outputPath, originalName } = compressedFiles[0];
+
+    // Guess MIME type from extension
+    const ext = path.extname(originalName).toLowerCase();
+    const MIME_MAP = {
+      '.mp4': 'video/mp4', '.mov': 'video/quicktime', '.avi': 'video/x-msvideo',
+      '.mkv': 'video/x-matroska', '.webm': 'video/webm', '.flv': 'video/x-flv',
+      '.wmv': 'video/x-ms-wmv', '.mpeg': 'video/mpeg', '.mpg': 'video/mpeg',
+      '.m4v': 'video/mp4', '.3gp': 'video/3gpp', '.ogv': 'video/ogg',
+      '.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.aac': 'audio/aac',
+      '.flac': 'audio/flac', '.ogg': 'audio/ogg', '.m4a': 'audio/mp4',
+      '.wma': 'audio/x-ms-wma',
+      '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png',
+      '.webp': 'image/webp', '.gif': 'image/gif', '.tiff': 'image/tiff',
+      '.tif': 'image/tiff', '.bmp': 'image/bmp', '.heic': 'image/heic',
+      '.pdf': 'application/pdf',
+    };
+    const mimeType = MIME_MAP[ext] || 'application/octet-stream';
+
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(originalName)}"`);
+    res.setHeader('Content-Type', mimeType);
+
+    if (!fs.existsSync(outputPath)) {
+      return res.status(500).json({ error: 'Compressed file not found after processing.' });
+    }
+
+    const stream = fs.createReadStream(outputPath);
+    stream.on('end',   () => cleanup([outputPath]));
+    stream.on('error', () => cleanup([outputPath]));
     stream.pipe(res);
-    stream.on('end', () => {
-      // Cleanup uploaded files and zip
-      for (const f of files) {
-        try { fs.unlinkSync(f.path); } catch {}
-      }
-      try { fs.unlinkSync(zipPath); } catch {}
-    });
-    stream.on('error', (err) => {
-      console.error('Stream error while sending ZIP:', err);
-      for (const f of files) { try { fs.unlinkSync(f.path); } catch {} }
-      try { fs.unlinkSync(zipPath); } catch {}
-    });
-  } catch (err) {
-    console.error('Compression error:', err);
-    for (const f of files) { try { fs.unlinkSync(f.path); } catch {} }
-    try { if (fs.existsSync(zipPath)) fs.unlinkSync(zipPath); } catch {}
-    return res.status(500).json({ error: `Compression failed: ${err.message}` });
+
+  } else {
+    // ── Multiple files: pack them all into one ZIP (each in original format) ─
+    const zipPath = path.join(uploadsDir, `compressed_${Date.now()}.zip`);
+
+    try {
+      await new Promise((resolve, reject) => {
+        const output  = fs.createWriteStream(zipPath);
+        const archive = archiver('zip', { zlib: { level: 5 } });
+        output.on('close', resolve);
+        archive.on('error', reject);
+        archive.pipe(output);
+        for (const { outputPath: fp, originalName } of compressedFiles) {
+          if (fs.existsSync(fp)) archive.file(fp, { name: originalName });
+        }
+        archive.finalize();
+      });
+
+      cleanup(compressedFiles.map(f => f.outputPath));
+
+      res.setHeader('Content-Disposition', 'attachment; filename="compressed_files.zip"');
+      res.setHeader('Content-Type', 'application/zip');
+
+      const stream = fs.createReadStream(zipPath);
+      stream.on('end',   () => cleanup([zipPath]));
+      stream.on('error', () => cleanup([zipPath]));
+      stream.pipe(res);
+
+    } catch (zipErr) {
+      console.error('ZIP packing error:', zipErr.message);
+      cleanup(compressedFiles.map(f => f.outputPath));
+      try { if (fs.existsSync(zipPath)) fs.unlinkSync(zipPath); } catch {}
+      return res.status(500).json({ error: `Failed to package compressed files: ${zipErr.message}` });
+    }
   }
 });
 
