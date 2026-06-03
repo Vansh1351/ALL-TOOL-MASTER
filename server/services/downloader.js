@@ -4,6 +4,7 @@ import { execFile } from 'child_process';
 import { fileURLToPath } from 'url';
 import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
 import ffprobeInstaller from '@ffprobe-installer/ffprobe';
+import { Readable } from 'stream';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -240,8 +241,6 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
   }
 
   return new Promise((resolve, reject) => {
-    const attempts = [];
-
     // Base command structure
     const baseArgs = [...args];
 
@@ -277,106 +276,89 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
       return argList;
     };
 
+    // Define a list of attempts
+    const attemptsList = [];
+    
+    // Add all configurations
+    const addAttempt = (name, attemptArgs, priorityOnServer = false) => {
+      attemptsList.push({ name, args: attemptArgs, priorityOnServer });
+    };
+
     // 1. Default player client, with cookies
-    attempts.push({
-      name: "Default player client (with cookies)",
-      args: addCookies([...baseArgs])
-    });
+    addAttempt("Default player client (with cookies)", addCookies([...baseArgs]), false);
 
     // 2. Default player client, without cookies
-    attempts.push({
-      name: "Default player client (without cookies)",
-      args: [...baseArgs]
-    });
+    addAttempt("Default player client (without cookies)", [...baseArgs], false);
 
     // 3. Fallback format (no -f/-S restrictions), with cookies
-    attempts.push({
-      name: "Fallback format selection (with cookies)",
-      args: addCookies(filterArgs([...baseArgs], ['-f', '-S']))
-    });
+    addAttempt("Fallback format selection (with cookies)", addCookies(filterArgs([...baseArgs], ['-f', '-S'])), false);
 
     // 4. Fallback format (no -f/-S restrictions), without cookies
-    attempts.push({
-      name: "Fallback format selection (without cookies)",
-      args: filterArgs([...baseArgs], ['-f', '-S'])
-    });
+    addAttempt("Fallback format selection (without cookies)", filterArgs([...baseArgs], ['-f', '-S']), false);
 
     // 5. TV client fallback, without cookies
-    attempts.push({
-      name: "TV player client fallback (without cookies)",
-      args: [
-        ...filterArgs([...baseArgs], ['-f', '-S']),
-        '--extractor-args', 'youtube:player_client=tv_simply,default,-tv'
-      ]
-    });
+    addAttempt("TV player client fallback (without cookies)", [
+      ...filterArgs([...baseArgs], ['-f', '-S']),
+      '--extractor-args', 'youtube:player_client=tv_simply,default,-tv'
+    ], true);
 
     // 6. Web Embedded client fallback, without cookies
-    attempts.push({
-      name: "Web Embedded player client fallback (without cookies)",
-      args: [
-        ...filterArgs([...baseArgs], ['-f', '-S']),
-        '--extractor-args', 'youtube:player_client=web_embedded,web_safari,default'
-      ]
-    });
+    addAttempt("Web Embedded player client fallback (without cookies)", [
+      ...filterArgs([...baseArgs], ['-f', '-S']),
+      '--extractor-args', 'youtube:player_client=web_embedded,web_safari,default'
+    ], false);
 
     // 7. Android/iOS client fallback, with cookies
-    attempts.push({
-      name: "Android/iOS player client fallback (with cookies)",
-      args: addCookies([
-        ...filterArgs([...baseArgs], ['-f', '-S']),
-        '--extractor-args', 'youtube:player_client=android,ios'
-      ])
-    });
+    addAttempt("Android/iOS player client fallback (with cookies)", addCookies([
+      ...filterArgs([...baseArgs], ['-f', '-S']),
+      '--extractor-args', 'youtube:player_client=android,ios'
+    ]), false);
 
     // 8. Android/iOS client fallback, without cookies
-    attempts.push({
-      name: "Android/iOS player client fallback (without cookies)",
-      args: [
-        ...filterArgs([...baseArgs], ['-f', '-S']),
-        '--extractor-args', 'youtube:player_client=android,ios'
-      ]
-    });
+    addAttempt("Android/iOS player client fallback (without cookies)", [
+      ...filterArgs([...baseArgs], ['-f', '-S']),
+      '--extractor-args', 'youtube:player_client=android,ios'
+    ], true);
 
     // 9. Android/iOS client legacy format fallback, with cookies
-    attempts.push({
-      name: "Android/iOS legacy format fallback (with cookies)",
-      args: addCookies([
-        ...filterArgs([...baseArgs], ['-f', '-S']),
-        '-f', format === 'mp3' ? 'ba/b' : 'best',
-        '--extractor-args', 'youtube:player_client=android,ios'
-      ])
-    });
+    addAttempt("Android/iOS legacy format fallback (with cookies)", addCookies([
+      ...filterArgs([...baseArgs], ['-f', '-S']),
+      '-f', format === 'mp3' ? 'ba/b' : 'best',
+      '--extractor-args', 'youtube:player_client=android,ios'
+    ]), false);
 
     // 10. Android/iOS client legacy format fallback, without cookies (high success rate on datacenters)
-    attempts.push({
-      name: "Android/iOS legacy format fallback (without cookies)",
-      args: [
-        ...filterArgs([...baseArgs], ['-f', '-S']),
-        '-f', format === 'mp3' ? 'ba/b' : 'best',
-        '--extractor-args', 'youtube:player_client=android,ios'
-      ]
-    });
+    addAttempt("Android/iOS legacy format fallback (without cookies)", [
+      ...filterArgs([...baseArgs], ['-f', '-S']),
+      '-f', format === 'mp3' ? 'ba/b' : 'best',
+      '--extractor-args', 'youtube:player_client=android,ios'
+    ], true);
 
     // 11. TV player client legacy format fallback, without cookies
-    attempts.push({
-      name: "TV legacy format fallback (without cookies)",
-      args: [
-        ...filterArgs([...baseArgs], ['-f', '-S']),
-        '-f', format === 'mp3' ? 'ba/b' : 'best',
-        '--extractor-args', 'youtube:player_client=tv_simply,default,-tv'
-      ]
-    });
+    addAttempt("TV legacy format fallback (without cookies)", [
+      ...filterArgs([...baseArgs], ['-f', '-S']),
+      '-f', format === 'mp3' ? 'ba/b' : 'best',
+      '--extractor-args', 'youtube:player_client=tv_simply,default,-tv'
+    ], true);
 
     // 12. Web Embedded player client legacy format fallback, without cookies
-    attempts.push({
-      name: "Web Embedded legacy format fallback (without cookies)",
-      args: [
-        ...filterArgs([...baseArgs], ['-f', '-S']),
-        '-f', format === 'mp3' ? 'ba/b' : 'best',
-        '--extractor-args', 'youtube:player_client=web_embedded,web_safari,default'
-      ]
-    });
+    addAttempt("Web Embedded legacy format fallback (without cookies)", [
+      ...filterArgs([...baseArgs], ['-f', '-S']),
+      '-f', format === 'mp3' ? 'ba/b' : 'best',
+      '--extractor-args', 'youtube:player_client=web_embedded,web_safari,default'
+    ], false);
 
+    // Now sort/reorder them based on isLocalDesktopRuntime()
+    const attempts = [];
+    if (!isLocalDesktopRuntime()) {
+      console.log("Datacenter/production runtime detected. Prioritizing TV and Android/iOS fallback configs to prevent bot blocks...");
+      // First, put all attempts marked as priorityOnServer
+      attempts.push(...attemptsList.filter(a => a.priorityOnServer));
+      // Then, the remaining ones
+      attempts.push(...attemptsList.filter(a => !a.priorityOnServer));
+    } else {
+      attempts.push(...attemptsList);
+    }
 
     // Filter duplicates to optimize runs (e.g. if resolvedCookiesPath is null, with/without cookies are identical)
     const uniqueAttempts = [];
@@ -478,117 +460,124 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
 }
 
 async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
-  // Curated list of public cobalt instances (v10 API preferred)
-  const instances = [
-    'https://api.cobalt.tools',
-    'https://cobalt.canine.tools',
-    'https://cobalt.snoo.click',
-    'https://cobalt-api.kwiatekmiki.com',
-    'https://cobalt.nahcrof.com',
-    'https://co.wuk.sh'
+  const activeInstances = [
+    'https://dog.kittycat.boo',
+    'https://fox.kittycat.boo',
+    'https://cobaltapi.kittycat.boo'
   ];
 
-  let lastError = null;
-  const COBALT_TIMEOUT_MS = 20000; // 20 second timeout per request
+  const COBALT_TIMEOUT_MS = 10000; // 10 second timeout per request for the metadata phase
+  
+  // 1. Resolve media URL using the fastest working instance in parallel
+  const promises = activeInstances.map(async (instance) => {
+    const endpoint = `${instance.replace(/\/+$/, '')}/`;
+    const body = {
+      url: videoUrl,
+      videoQuality: quality === 'best' ? '1080' : quality.replace('p', ''),
+      downloadMode: format === 'mp3' ? 'audio' : 'auto',
+      audioFormat: format === 'mp3' ? 'mp3' : undefined,
+      filenameStyle: 'classic'
+    };
 
-  for (const instance of instances) {
-    // Try v10 endpoint (root '/') first, then legacy endpoint ('/api/json')
-    const endpointsToTry = [
-      {
-        url: `${instance.replace(/\/+$/, '')}/`,
-        body: {
-          url: videoUrl,
-          videoQuality: quality === 'best' ? '1080' : quality.replace('p', ''),
-          downloadMode: format === 'mp3' ? 'audio' : 'auto',
-          audioFormat: format === 'mp3' ? 'mp3' : undefined,
-          filenameStyle: 'classic'
-        }
-      },
-      {
-        url: `${instance.replace(/\/+$/, '')}/api/json`,
-        body: {
-          url: videoUrl,
-          vQuality: quality === 'best' ? '1080' : quality.replace('p', ''),
-          isAudioOnly: format === 'mp3',
-          filenameStyle: 'classic'
-        }
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), COBALT_TIMEOUT_MS);
+
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+
+      if (!res.ok) {
+        throw new Error(`HTTP error ${res.status} from ${instance}`);
       }
-    ];
 
-    for (const endpoint of endpointsToTry) {
-      try {
-        console.log(`Attempting Cobalt request to: ${endpoint.url}`);
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), COBALT_TIMEOUT_MS);
-
-        const res = await fetch(endpoint.url, {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(endpoint.body),
-          signal: controller.signal
-        });
-        clearTimeout(timeout);
-
-        if (!res.ok) {
-          throw new Error(`HTTP error ${res.status}: ${res.statusText}`);
-        }
-
-        const json = await res.json();
-        if (json.status === 'error') {
-          throw new Error(json.error?.code || json.error || 'Unknown cobalt error');
-        }
-
-        const mediaUrl = json.url;
-        if (!mediaUrl) {
-          throw new Error('No direct download URL returned from cobalt');
-        }
-
-        console.log(`Cobalt returned download URL: ${mediaUrl}`);
-
-        // Fetch the file from Cobalt URL and save it to outputDir
-        const dlController = new AbortController();
-        const dlTimeout = setTimeout(() => dlController.abort(), 120000); // 2 min for large files
-        const fileRes = await fetch(mediaUrl, { signal: dlController.signal });
-        clearTimeout(dlTimeout);
-
-        if (!fileRes.ok) {
-          throw new Error(`Failed to fetch media file: ${fileRes.statusText}`);
-        }
-
-        // Try to extract extension from content-disposition
-        const cd = fileRes.headers.get('content-disposition');
-        let ext = format === 'mp3' ? '.mp3' : '.mp4';
-        if (cd) {
-          const match = cd.match(/filename=["']?([^"';]+)["']?/);
-          if (match) {
-            const fname = match[1];
-            const lastDot = fname.lastIndexOf('.');
-            if (lastDot !== -1) {
-              ext = fname.substring(lastDot);
-            }
-          }
-        }
-
-        // Save locally to outputDir
-        const finalPath = path.join(outputDir, `download_${Date.now()}_video${ext}`);
-        
-        const buffer = await fileRes.arrayBuffer();
-        fs.writeFileSync(finalPath, Buffer.from(buffer));
-
-        console.log(`Successfully saved Cobalt download to ${finalPath}`);
-        return finalPath;
-      } catch (err) {
-        const errMsg = err.name === 'AbortError' ? 'Request timed out' : err.message;
-        console.warn(`Cobalt endpoint ${endpoint.url} failed:`, errMsg);
-        lastError = err;
+      const json = await res.json();
+      if (json.status === 'error') {
+        throw new Error(json.error?.code || json.error || `Error from ${instance}`);
       }
+
+      const mediaUrl = json.url;
+      if (!mediaUrl) {
+        throw new Error(`No direct URL from ${instance}`);
+      }
+
+      return { mediaUrl, instance };
+    } catch (err) {
+      clearTimeout(timeout);
+      throw err;
     }
+  });
+
+  let mediaUrl;
+  let chosenInstance;
+  try {
+    const result = await Promise.any(promises);
+    mediaUrl = result.mediaUrl;
+    chosenInstance = result.instance;
+    console.log(`Cobalt resolved media URL via ${chosenInstance}: ${mediaUrl}`);
+  } catch (err) {
+    throw new Error(`All parallel Cobalt instances failed. Errors: ${err.errors?.map(e => e.message).join(', ') || err.message}`);
   }
 
-  throw new Error(`All Cobalt fallback instances failed. Last error: ${lastError ? lastError.message : 'Unknown'}`);
+  // 2. Fetch the file from the returned media URL and stream it to outputDir
+  try {
+    const dlController = new AbortController();
+    const dlTimeout = setTimeout(() => dlController.abort(), 120000); // 2 min timeout for downloading
+
+    const fileRes = await fetch(mediaUrl, { signal: dlController.signal });
+    clearTimeout(dlTimeout);
+
+    if (!fileRes.ok) {
+      throw new Error(`Failed to fetch media file: ${fileRes.statusText}`);
+    }
+
+    // Try to extract extension from content-disposition
+    const cd = fileRes.headers.get('content-disposition');
+    let ext = format === 'mp3' ? '.mp3' : '.mp4';
+    if (cd) {
+      const match = cd.match(/filename=["']?([^"';]+)["']?/);
+      if (match) {
+        const fname = match[1];
+        const lastDot = fname.lastIndexOf('.');
+        if (lastDot !== -1) {
+          ext = fname.substring(lastDot);
+        }
+      }
+    }
+
+    const finalPath = path.join(outputDir, `download_${Date.now()}_video${ext}`);
+    const fileStream = fs.createWriteStream(finalPath);
+    
+    await new Promise((resolve, reject) => {
+      const readable = Readable.fromWeb(fileRes.body);
+      readable.pipe(fileStream);
+      readable.on('error', (err) => {
+        fileStream.close();
+        try { fs.unlinkSync(finalPath); } catch {}
+        reject(err);
+      });
+      fileStream.on('finish', () => {
+        resolve();
+      });
+      fileStream.on('error', (err) => {
+        try { fs.unlinkSync(finalPath); } catch {}
+        reject(err);
+      });
+    });
+
+    console.log(`Successfully saved Cobalt download from ${chosenInstance} to ${finalPath}`);
+    return finalPath;
+  } catch (err) {
+    console.error(`Cobalt download step failed:`, err.message);
+    throw err;
+  }
 }
 
 export async function downloadMedia(url, format, quality, outputDir) {
