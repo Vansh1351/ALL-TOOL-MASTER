@@ -73,40 +73,42 @@ All Tool Master prioritizing speed and security. Our backend isolates the fetch 
     ]
   },
   'mp4-to-mp3': {
-    title: 'URL to MP3 Converter Free - Best Free URL to MP3 | All Tool Master',
-    description: 'Convert URL to MP3 online free. Paste video link and download MP3 or WAV in high quality. Best mobile-friendly audio extractor from video URL.',
-    h1: 'Universal URL to MP3 Converter Free',
-    introduction: 'Formatting incompatibilities are a major roadblock for editors, teachers, and creators. If your device cannot open a specific video type, or you need to extract the raw audio stream from a footage clip, our browser-based media converter is the perfect solution. Supporting upload processing for MOV and MP4 files, this tool allows you to convert files bidirectionally, export tracks to lossless WAV or compressed MP3, or package files into lightweight ZIP archives.',
+    title: 'Universal MP4 to MP3 Converter Free - Video to Audio | All Tool Master',
+    description: 'Convert MP4, MOV, AVI, MKV and any video file to MP3 or WAV online free. Upload your file or paste a video URL and download high-quality audio instantly.',
+    h1: 'Universal MP4 to MP3 Converter Free',
+    introduction: 'Whether you want to extract audio from a video, convert MP4 to MP3, or transform MOV files to MP4, our browser-based media converter handles it all. Upload any video or audio file — MP4, MOV, AVI, MKV, WebM — and choose your output format: MP3 for compressed audio, WAV for lossless quality, or MP4/MOV for video format conversion. No software installation needed; everything runs securely in the cloud.',
     howTo: [
-      'Click the upload dropzone to select a video file (MOV, MP4) from your local device, or drag and drop the file directly.',
-      'Or paste a streaming video link if you want to extract audio directly from a URL link.',
-      'Choose your target conversion format (MP3, WAV, MOV, MP4) from the dropdown selector.',
-      'Click the "Process" button to start the local file format conversion.',
-      'Once complete, click the download button to grab your newly formatted media file.'
+      'Click the upload dropzone to select any video or audio file (MP4, MOV, AVI, MKV, WAV, etc.) from your device, or drag and drop it directly.',
+      'Or paste a streaming video URL (YouTube, Instagram, TikTok, etc.) to extract audio directly from a link.',
+      'Choose your target output format (MP3, WAV, MOV, MP4) from the dropdown selector.',
+      'Click the "Process" button to start the conversion.',
+      'Once complete, click the download button to save your converted file.'
     ],
     features: [
-      { title: 'Best Free URL to MP3 Converter', desc: 'Paste video links from social media platforms to extract clean, high-bitrate MP3 audio.' },
-      { title: 'Online Audio Extractor From URL', desc: 'Extract soundtracks to WAV for professional audio editing or MP3 for space-saving compression.' },
-      { title: 'Format Interoperability', desc: 'Translate files between MOV and MP4 formats to guarantee playback compatibility.' },
-      { title: 'No Watermark MP3 Converter Online', desc: 'Files process in secure temporary RAM memory and are deleted immediately once sent back to you.' }
+      { title: 'MP4 to MP3 Converter Free', desc: 'Upload any MP4 video and extract the audio track as a high-bitrate MP3 file instantly.' },
+      { title: 'Universal Video to Audio Converter', desc: 'Supports MP4, MOV, AVI, MKV, WebM and more — convert any video to MP3 or WAV.' },
+      { title: 'Video Format Converter', desc: 'Convert between MOV and MP4 formats for guaranteed playback compatibility across all devices.' },
+      { title: 'Secure & Private Processing', desc: 'Files are processed in temporary memory and deleted immediately after download. Nothing is stored.' }
     ],
     article: `
-### Paste Video Link and Download MP3
-Converting online videos to audio is a great way to save bandwidth and build a library of podcasts, lecture guides, or royalty-free music. With All Tool Master\'s **url to mp3 converter**, you can extract tracks from video URLs or local files in seconds. 
+### Convert MP4 to MP3 — Fast & Free
+Extracting audio from video files is one of the most common media tasks. With All Tool Master's **MP4 to MP3 converter**, you can strip the audio from any video file or URL in seconds — no software, no sign-up required.
 
-### Extract Audio from Video URL Instantly
+### Supported Conversions
 We support several conversion pathways:
-* **Video to MP3:** Creates compressed, highly compatible audio files ideal for mobile music players and smart devices.
-* **Video to WAV:** Exports lossless audio streams preserving full dynamic ranges for audio engineers and video editors.
-* **MOV to MP4:** Converts Apple QuickTime files to standard MP4 formats to guarantee playback on Windows and Android.
+* **MP4 / MOV / AVI / MKV → MP3:** Extracts compressed, highly compatible audio ideal for music players, podcasts, and mobile devices.
+* **Video → WAV:** Exports lossless audio streams preserving full dynamic range for audio engineers and video editors.
+* **MOV → MP4:** Converts Apple QuickTime files to standard MP4 for playback on Windows and Android.
+* **URL → MP3:** Paste a video URL and download the audio directly as MP3 or WAV.
 
-### Browser Based MP3 Converter for Mobile
-No downloads are needed to run our converter. It operates securely in your mobile browser, utilizing our cloud servers to fetch and encode the file, saving your mobile CPU and battery.
+### Works on Mobile, Tablet & Desktop
+No downloads required. The converter runs in your browser and uses cloud servers to process files — saving your device's CPU and battery.
 `,
     faqs: [
-      { question: 'Will I lose audio quality when converting video to MP3?', answer: 'We preserve the maximum audio bitrate (up to 320kbps for MP3). For absolute lossless quality, we recommend choosing the WAV format.' },
-      { question: 'What is the maximum file size limit for uploads?', answer: 'To keep processing speeds fast, we support files up to 100MB per upload session.' },
-      { question: 'Are my uploaded videos safe?', answer: 'Absolutely. We do not store, inspect, or log your files. All processing happens in transient memory and is wiped instantly.' }
+      { question: 'Will I lose audio quality when converting MP4 to MP3?', answer: 'We preserve the maximum audio bitrate (up to 320kbps for MP3). For absolute lossless quality, choose the WAV format.' },
+      { question: 'What video formats can I convert to MP3?', answer: 'You can convert MP4, MOV, AVI, MKV, WebM, FLV and most common video formats to MP3 or WAV.' },
+      { question: 'Can I convert a YouTube video to MP3?', answer: 'Yes! Paste the YouTube video URL and select MP3 as your output format to extract the audio track directly.' },
+      { question: 'Are my uploaded files safe?', answer: 'Absolutely. We do not store, inspect, or log your files. All processing happens in transient memory and files are wiped immediately after download.' }
     ]
   },
   'image-converter': {
