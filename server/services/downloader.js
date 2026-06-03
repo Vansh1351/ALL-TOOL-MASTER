@@ -100,12 +100,27 @@ export async function ensureYtdlp() {
     });
   });
 
-  if (hasGlobalYtdlp) {
+  const isLocalEnv = process.platform === 'win32' || process.platform === 'darwin' || process.env.NODE_ENV !== 'production';
+  const isCloudEnv = !isLocalEnv;
+
+  if (hasGlobalYtdlp && !isCloudEnv) {
     console.log("Global yt-dlp found in system PATH. Skipping download and using system installation.");
     return 'yt-dlp';
   }
 
   if (fs.existsSync(binaryPath)) {
+    // Attempt to update the binary in the background to ensure it stays up to date
+    try {
+      execFile(binaryPath, ['-U'], (err, stdout, stderr) => {
+        if (err) {
+          console.warn("Failed to auto-update yt-dlp binary in background:", stderr || err.message);
+        } else {
+          console.log("yt-dlp binary updated in background:", stdout.trim());
+        }
+      });
+    } catch (e) {
+      console.warn("Error running auto-update in background:", e);
+    }
     return binaryPath;
   }
 
@@ -158,8 +173,7 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
     '--no-playlist',
     '--no-warnings',
     '--restrict-filenames',
-    '--no-check-certificate',
-    '--extractor-args', 'youtube:player_client=android,ios'
+    '--no-check-certificate'
   ];
 
   // Check if the binary supports browser impersonation (--list-impersonate-targets)
@@ -184,10 +198,6 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
   }
 
   const resolvedCookiesPath = setupCookies();
-  if (resolvedCookiesPath) {
-    console.log(`Using cookies file: ${resolvedCookiesPath}`);
-    args.push('--cookies', resolvedCookiesPath);
-  }
 
   if (format === 'mp3') {
     args.push('-x', '--audio-format', 'mp3', '--audio-quality', '0');
@@ -207,16 +217,135 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
   }
 
   return new Promise((resolve, reject) => {
-    const runCommand = (currentArgs, isFallback = false, triedBrowserCookies = false) => {
-      console.log(`Running yt-dlp command: ${binary} ${currentArgs.join(' ')}`);
-      execFile(binary, currentArgs, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
+    const attempts = [];
+
+    // Base command structure
+    const baseArgs = [...args];
+
+    // Helper to filter out args we want to exclude
+    const filterArgs = (argList, excludePatterns) => {
+      const filtered = [];
+      for (let i = 0; i < argList.length; i++) {
+        let matched = false;
+        for (const pattern of excludePatterns) {
+          if (argList[i] === pattern) {
+            matched = true;
+            break;
+          }
+        }
+        if (matched) {
+          // If the excluded argument takes a parameter (e.g. -f, --cookies, --extractor-args), skip the next token too
+          const hasParam = ['-f', '-S', '--cookies', '--extractor-args', '--cookies-from-browser'].includes(argList[i]);
+          if (hasParam) {
+            i++;
+          }
+        } else {
+          filtered.push(argList[i]);
+        }
+      }
+      return filtered;
+    };
+
+    // Helper to check if cookies are present in base arguments
+    const addCookies = (argList) => {
+      if (resolvedCookiesPath) {
+        return [...argList, '--cookies', resolvedCookiesPath];
+      }
+      return argList;
+    };
+
+    // 1. Default player client, with cookies
+    attempts.push({
+      name: "Default player client (with cookies)",
+      args: addCookies([...baseArgs])
+    });
+
+    // 2. Default player client, without cookies
+    attempts.push({
+      name: "Default player client (without cookies)",
+      args: [...baseArgs]
+    });
+
+    // 3. Fallback format (no -f/-S restrictions), with cookies
+    attempts.push({
+      name: "Fallback format selection (with cookies)",
+      args: addCookies(filterArgs([...baseArgs], ['-f', '-S']))
+    });
+
+    // 4. Fallback format (no -f/-S restrictions), without cookies
+    attempts.push({
+      name: "Fallback format selection (without cookies)",
+      args: filterArgs([...baseArgs], ['-f', '-S'])
+    });
+
+    // 5. TV client fallback, without cookies
+    attempts.push({
+      name: "TV player client fallback (without cookies)",
+      args: [
+        ...filterArgs([...baseArgs], ['-f', '-S']),
+        '--extractor-args', 'youtube:player_client=tv_simply,default,-tv'
+      ]
+    });
+
+    // 6. Web Embedded client fallback, without cookies
+    attempts.push({
+      name: "Web Embedded player client fallback (without cookies)",
+      args: [
+        ...filterArgs([...baseArgs], ['-f', '-S']),
+        '--extractor-args', 'youtube:player_client=web_embedded,web_safari,default'
+      ]
+    });
+
+    // 7. Android/iOS client fallback, with cookies
+    attempts.push({
+      name: "Android/iOS player client fallback (with cookies)",
+      args: addCookies([
+        ...filterArgs([...baseArgs], ['-f', '-S']),
+        '--extractor-args', 'youtube:player_client=android,ios'
+      ])
+    });
+
+    // 8. Android/iOS client fallback, without cookies
+    attempts.push({
+      name: "Android/iOS player client fallback (without cookies)",
+      args: [
+        ...filterArgs([...baseArgs], ['-f', '-S']),
+        '--extractor-args', 'youtube:player_client=android,ios'
+      ]
+    });
+
+    // Filter duplicates to optimize runs (e.g. if resolvedCookiesPath is null, with/without cookies are identical)
+    const uniqueAttempts = [];
+    const seenArgs = new Set();
+    for (const attempt of attempts) {
+      const key = attempt.args.join(' ');
+      if (!seenArgs.has(key)) {
+        seenArgs.add(key);
+        uniqueAttempts.push(attempt);
+      }
+    }
+
+    let currentAttemptIndex = 0;
+    let lastErrorMsg = '';
+
+    const runNextAttempt = (triedBrowserCookies = false) => {
+      if (currentAttemptIndex >= uniqueAttempts.length) {
+        return reject(new Error(`All yt-dlp fallback attempts failed. Last error: ${lastErrorMsg}`));
+      }
+
+      const attempt = uniqueAttempts[currentAttemptIndex];
+      console.log(`[Attempt ${currentAttemptIndex + 1}/${uniqueAttempts.length}] Running yt-dlp command: ${binary} ${attempt.args.join(' ')}`);
+
+      execFile(binary, attempt.args, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
         if (error) {
-          const errMessage = stderr || error.message;
-          console.error(`yt-dlp execution error (isFallback=${isFallback}, triedBrowserCookies=${triedBrowserCookies}):`, errMessage);
-          
+          const errMessage = (stderr || error.message).trim();
+          lastErrorMsg = errMessage;
+          console.error(`Attempt "${attempt.name}" failed:`, errMessage);
+
           const isBotBlock = errMessage.toLowerCase().includes("confirm you're not a bot") || 
                               errMessage.toLowerCase().includes("sign in to confirm");
 
+          // Local browser cookies fallback
           if (isBotBlock && !triedBrowserCookies) {
             const isLocalEnv = process.platform === 'win32' || process.platform === 'darwin' || process.env.NODE_ENV !== 'production';
             if (isLocalEnv) {
@@ -224,106 +353,62 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
                 ? ['chrome', 'edge', 'firefox', 'opera', 'brave'] 
                 : (process.platform === 'darwin' ? ['safari', 'chrome', 'firefox'] : ['firefox', 'chrome']);
               
-              console.log(`Bot block detected. Attempting to bypass using local browser cookies on platform: ${process.platform}...`);
+              console.log(`Bot block detected. Attempting to bypass using local browser cookies...`);
               
               const tryBrowserCookies = (browserList, index) => {
                 if (index >= browserList.length) {
-                  // Tried all browsers, fail with user-friendly error message
-                  const userFriendlyError = "YouTube blocked the download with a bot-verification check (Sign in to confirm you're not a bot). All attempts to extract local browser cookies failed. Please close your browser completely or configure 'YOUTUBE_COOKIES' in your server settings.";
-                  return reject(new Error(userFriendlyError));
+                  console.warn("Failed to retrieve cookies from any local browser. Proceeding to next configuration.");
+                  currentAttemptIndex++;
+                  return runNextAttempt(false);
                 }
                 
                 const browser = browserList[index];
-                console.log(`Retrying download with cookies from browser: ${browser}...`);
+                console.log(`Retrying current configuration with cookies from browser: ${browser}...`);
                 
-                // Copy current args but remove any existing --cookies or --cookies-from-browser
-                const fallbackArgs = [];
-                for (let i = 0; i < currentArgs.length; i++) {
-                  if (currentArgs[i] === '--cookies' || currentArgs[i] === '--cookies-from-browser') {
-                    i++; // skip option and value
-                  } else {
-                    fallbackArgs.push(currentArgs[i]);
-                  }
-                }
+                const fallbackArgs = filterArgs(attempt.args, ['--cookies', '--cookies-from-browser']);
                 fallbackArgs.push('--cookies-from-browser', browser);
                 
-                console.log(`Running yt-dlp with browser cookies command: ${binary} ${fallbackArgs.join(' ')}`);
                 execFile(binary, fallbackArgs, { maxBuffer: 1024 * 1024 * 10 }, (err, subStdout, subStderr) => {
                   if (err) {
-                    const nextErrMessage = subStderr || err.message;
-                    console.warn(`Failed with cookies from browser ${browser}: ${nextErrMessage}`);
+                    console.warn(`Failed with cookies from browser ${browser}: ${subStderr || err.message}`);
                     return tryBrowserCookies(browserList, index + 1);
                   }
                   
                   console.log(`Successfully downloaded using cookies from browser: ${browser}`);
-                  const files = fs.readdirSync(outputDir);
-                  const matches = files.filter(f => f.startsWith(`download_`));
-                  if (matches.length === 0) {
-                    return tryBrowserCookies(browserList, index + 1);
-                  }
-                  const latestFile = matches
-                    .map(f => ({ name: f, time: fs.statSync(path.join(outputDir, f)).mtimeMs }))
-                    .sort((a, b) => b.time - a.time)[0].name;
-                  
-                  return resolve(path.join(outputDir, latestFile));
+                  return resolveFile();
                 });
               };
               
               return tryBrowserCookies(browsers, 0);
-            } else {
-              // Cloud environment
-              const platform = process.env.SPACE_ID ? 'Hugging Face' : (process.env.RENDER ? 'Render' : 'cloud hosting platform');
-              const userFriendlyError = `YouTube blocked the download with a bot-verification check (Sign in to confirm you're not a bot). Since the server is hosted in the cloud (${platform}), you must provide cookies to authenticate. Please export your YouTube cookies in Netscape format (using a browser extension like 'Get cookies.txt LOCALLY') and set them in your ${platform} dashboard environment variables under the name 'YOUTUBE_COOKIES'. If you already set it, your cookies may have expired and you need to export new ones.`;
-              return reject(new Error(userFriendlyError));
             }
           }
 
-          // Fallback if specific requested format was not found or failed to merge
-          if (!isFallback && format !== 'mp3' && (errMessage.includes('Requested format is not available') || errMessage.includes('format is not available'))) {
-            console.warn("Requested format not available. Retrying with default best streams...");
-            
-            // Remove -f and -S arguments and their values to let it fallback to default best format selection
-            const fallbackArgs = [];
-            for (let i = 0; i < currentArgs.length; i++) {
-              if (currentArgs[i] === '-f' || currentArgs[i] === '-S') {
-                i++; // Skip option and its value
-              } else {
-                fallbackArgs.push(currentArgs[i]);
-              }
-            }
-            return runCommand(fallbackArgs, true, triedBrowserCookies);
-          }
-          
-          // If the bot block was detected and we couldn't bypass it, customize the error message
-          if (isBotBlock) {
-            const platform = process.env.SPACE_ID ? 'Hugging Face' : (process.env.RENDER ? 'Render' : 'cloud hosting platform');
-            const userFriendlyError = `YouTube blocked the download with a bot-verification check (Sign in to confirm you're not a bot). If running in the cloud (${platform}), please set up/renew your 'YOUTUBE_COOKIES' environment variable. If running locally, make sure you close your browser completely before retrying.`;
-            return reject(new Error(userFriendlyError));
-          }
-
-          return reject(new Error(errMessage));
+          // Move to next configuration
+          currentAttemptIndex++;
+          return runNextAttempt(triedBrowserCookies);
         }
-        
-        console.log('yt-dlp finished:', stdout);
-        
-        // Find files starting with download_ and created recently
-        const files = fs.readdirSync(outputDir);
-        const matches = files.filter(f => f.startsWith(`download_`));
-        
-        if (matches.length === 0) {
-          return reject(new Error('File not found after yt-dlp finished processing.'));
-        }
-        
-        // Find the latest modified file
-        const latestFile = matches
-          .map(f => ({ name: f, time: fs.statSync(path.join(outputDir, f)).mtimeMs }))
-          .sort((a, b) => b.time - a.time)[0].name;
 
-        resolve(path.join(outputDir, latestFile));
+        console.log(`yt-dlp finished successfully with config: "${attempt.name}"`, stdout);
+        return resolveFile();
       });
     };
 
-    runCommand(args);
+    const resolveFile = () => {
+      const files = fs.readdirSync(outputDir);
+      const matches = files.filter(f => f.startsWith(`download_`));
+      
+      if (matches.length === 0) {
+        return reject(new Error('File not found after yt-dlp finished processing.'));
+      }
+      
+      const latestFile = matches
+        .map(f => ({ name: f, time: fs.statSync(path.join(outputDir, f)).mtimeMs }))
+        .sort((a, b) => b.time - a.time)[0].name;
+
+      resolve(path.join(outputDir, latestFile));
+    };
+
+    runNextAttempt();
   });
 }
 
