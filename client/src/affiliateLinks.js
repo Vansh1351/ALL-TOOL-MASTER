@@ -6,5 +6,5 @@ export const AFFILIATE_LINKS = {
   hostinger: 'https://www.hostinger.com/', 
 
   // Namecheap Affiliate
-  namecheap: 'https://namecheap.pxf.io/c/7359569/1632743/5618'
+  namecheap: 'https://namecheap.pxf.io/YVBkBP'
 };
