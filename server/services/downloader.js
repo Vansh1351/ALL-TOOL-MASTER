@@ -184,7 +184,8 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
     '--no-playlist',
     '--no-warnings',
     '--restrict-filenames',
-    '--no-check-certificate'
+    '--no-check-certificate',
+    '-4'
   ];
 
   // Check if the binary supports the requested browser impersonation target.
@@ -454,9 +455,9 @@ async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
         body: {
           url: videoUrl,
           videoQuality: quality === 'best' ? '1080' : quality.replace('p', ''),
-          audioOnly: format === 'mp3',
+          downloadMode: format === 'mp3' ? 'audio' : 'auto',
           audioFormat: format === 'mp3' ? 'mp3' : undefined,
-          filenamePattern: 'classic'
+          filenameStyle: 'classic'
         }
       },
       {
