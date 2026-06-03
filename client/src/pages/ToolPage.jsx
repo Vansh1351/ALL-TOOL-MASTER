@@ -8,7 +8,7 @@ import { SEO_DATA } from '../seoData';
 import { TOOLS_DATA } from '../components/ToolGrid';
 import { AFFILIATE_LINKS } from '../affiliateLinks';
 
-const rawBackendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const rawBackendUrl = import.meta.env.VITE_API_URL || 'https://vansh135-all-tool-master-backend.hf.space';
 const BACKEND_URL = rawBackendUrl.replace(/\/+$/, '');
 
 const rawBackupUrl = import.meta.env.VITE_BACKUP_API_URL || '';

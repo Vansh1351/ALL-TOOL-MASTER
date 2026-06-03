@@ -37,6 +37,18 @@ try {
   console.error("Failed to copy ffmpeg/ffprobe binaries to bin folder:", err);
 }
 
+function isLocalDesktopRuntime() {
+  if (process.env.ALLOW_BROWSER_COOKIES === 'true') {
+    return true;
+  }
+
+  if (process.env.NODE_ENV === 'production' || process.env.RENDER || process.env.SPACE_ID || process.env.HF_SPACE_ID) {
+    return false;
+  }
+
+  return process.platform === 'win32' || process.platform === 'darwin';
+}
+
 // Helper to configure cookies for yt-dlp to bypass bot challenges
 function setupCookies() {
   const envCookies = process.env.YOUTUBE_COOKIES;
@@ -100,26 +112,25 @@ export async function ensureYtdlp() {
     });
   });
 
-  const isLocalEnv = process.platform === 'win32' || process.platform === 'darwin' || process.env.NODE_ENV !== 'production';
-  const isCloudEnv = !isLocalEnv;
-
-  if (hasGlobalYtdlp && !isCloudEnv) {
-    console.log("Global yt-dlp found in system PATH. Skipping download and using system installation.");
+  if (hasGlobalYtdlp) {
+    console.log("Global yt-dlp found in system PATH. Using system installation.");
     return 'yt-dlp';
   }
 
   if (fs.existsSync(binaryPath)) {
-    // Attempt to update the binary in the background to ensure it stays up to date
-    try {
-      execFile(binaryPath, ['-U'], (err, stdout, stderr) => {
-        if (err) {
-          console.warn("Failed to auto-update yt-dlp binary in background:", stderr || err.message);
-        } else {
-          console.log("yt-dlp binary updated in background:", stdout.trim());
-        }
-      });
-    } catch (e) {
-      console.warn("Error running auto-update in background:", e);
+    if (process.env.NODE_ENV !== 'production') {
+      // Attempt to update the binary in the background during local development only.
+      try {
+        execFile(binaryPath, ['-U'], (err, stdout, stderr) => {
+          if (err) {
+            console.warn("Failed to auto-update yt-dlp binary in background:", stderr || err.message);
+          } else {
+            console.log("yt-dlp binary updated in background:", stdout.trim());
+          }
+        });
+      } catch (e) {
+        console.warn("Error running auto-update in background:", e);
+      }
     }
     return binaryPath;
   }
@@ -176,18 +187,28 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
     '--no-check-certificate'
   ];
 
-  // Check if the binary supports browser impersonation (--list-impersonate-targets)
-  const supportsImpersonate = await new Promise(resolve => {
-    execFile(binary, ['--list-impersonate-targets'], (err) => {
-      resolve(!err);
+  // Check if the binary supports the requested browser impersonation target.
+  const chromeImpersonateTarget = await new Promise(resolve => {
+    execFile(binary, ['--list-impersonate-targets'], { maxBuffer: 1024 * 1024 }, (err, stdout, stderr) => {
+      if (err) {
+        return resolve(null);
+      }
+
+      const targetList = `${stdout || ''}\n${stderr || ''}`;
+      const chromeTarget = targetList
+        .split(/\r?\n/)
+        .map(line => line.trim().split(/\s+/)[0])
+        .find(target => /^chrome(?:-\d+)?$/i.test(target));
+
+      resolve(chromeTarget || null);
     });
   });
 
-  if (supportsImpersonate) {
-    console.log(`yt-dlp binary "${binary}" supports TLS impersonation. Enabling Chrome impersonation.`);
-    args.push('--impersonate', 'chrome');
+  if (chromeImpersonateTarget) {
+    console.log(`yt-dlp binary "${binary}" supports Chrome TLS impersonation. Enabling ${chromeImpersonateTarget} impersonation.`);
+    args.push('--impersonate', chromeImpersonateTarget);
   } else {
-    console.log(`yt-dlp binary "${binary}" does not support TLS impersonation. Bypassing impersonate argument.`);
+    console.log(`yt-dlp binary "${binary}" does not list Chrome as an impersonation target. Bypassing impersonate argument.`);
   }
 
   if (!hasGlobalFfmpeg) {
@@ -347,8 +368,7 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
 
           // Local browser cookies fallback
           if (isBotBlock && !triedBrowserCookies) {
-            const isLocalEnv = process.platform === 'win32' || process.platform === 'darwin' || process.env.NODE_ENV !== 'production';
-            if (isLocalEnv) {
+            if (isLocalDesktopRuntime()) {
               const browsers = process.platform === 'win32' 
                 ? ['chrome', 'edge', 'firefox', 'opera', 'brave'] 
                 : (process.platform === 'darwin' ? ['safari', 'chrome', 'firefox'] : ['firefox', 'chrome']);
@@ -380,6 +400,8 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
               };
               
               return tryBrowserCookies(browsers, 0);
+            } else {
+              console.warn("Bot block detected, but browser-cookie scraping is disabled for this runtime. Set YOUTUBE_COOKIES or ALLOW_BROWSER_COOKIES=true to opt in.");
             }
           }
 

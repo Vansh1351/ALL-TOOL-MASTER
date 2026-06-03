@@ -26,6 +26,7 @@ COPY . .
 # Hugging Face Spaces run on port 7860
 EXPOSE 7860
 ENV PORT=7860
+ENV NODE_ENV=production
 
 # Start server using garbage collection flag and 4GB memory allocation
 CMD ["node", "--expose-gc", "--max-old-space-size=4096", "server.js"]
