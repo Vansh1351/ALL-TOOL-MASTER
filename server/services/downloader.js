@@ -447,71 +447,89 @@ async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
   let lastError = null;
 
   for (const instance of instances) {
-    try {
-      console.log(`Attempting Cobalt download using instance: ${instance}...`);
-      const body = {
-        url: videoUrl,
-        vQuality: quality === 'best' ? '1080' : quality.replace('p', ''),
-        isAudioOnly: format === 'mp3',
-        filenameStyle: 'classic'
-      };
-
-      const res = await fetch(`${instance}/api/json`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      });
-
-      if (!res.ok) {
-        throw new Error(`HTTP error ${res.status}: ${res.statusText}`);
-      }
-
-      const json = await res.json();
-      if (json.status === 'error') {
-        throw new Error(json.error?.code || 'Unknown cobalt error');
-      }
-
-      const mediaUrl = json.url;
-      if (!mediaUrl) {
-        throw new Error('No download URL returned from cobalt');
-      }
-
-      console.log(`Cobalt returned download URL: ${mediaUrl}`);
-
-      // Fetch the file from Cobalt URL and save it to outputDir
-      const fileRes = await fetch(mediaUrl);
-      if (!fileRes.ok) {
-        throw new Error(`Failed to fetch media file: ${fileRes.statusText}`);
-      }
-
-      // Try to extract extension from content-disposition
-      const cd = fileRes.headers.get('content-disposition');
-      let ext = format === 'mp3' ? '.mp3' : '.mp4';
-      if (cd) {
-        const match = cd.match(/filename=["']?([^"';]+)["']?/);
-        if (match) {
-          const fname = match[1];
-          const lastDot = fname.lastIndexOf('.');
-          if (lastDot !== -1) {
-            ext = fname.substring(lastDot);
-          }
+    // We try v10 endpoint (root '/') first, then legacy endpoint ('/api/json')
+    const endpointsToTry = [
+      {
+        url: `${instance.replace(/\/+$/, '')}/`,
+        body: {
+          url: videoUrl,
+          videoQuality: quality === 'best' ? '1080' : quality.replace('p', ''),
+          audioOnly: format === 'mp3',
+          audioFormat: format === 'mp3' ? 'mp3' : undefined,
+          filenamePattern: 'classic'
+        }
+      },
+      {
+        url: `${instance.replace(/\/+$/, '')}/api/json`,
+        body: {
+          url: videoUrl,
+          vQuality: quality === 'best' ? '1080' : quality.replace('p', ''),
+          isAudioOnly: format === 'mp3',
+          filenameStyle: 'classic'
         }
       }
+    ];
 
-      // Save locally to outputDir
-      const finalPath = path.join(outputDir, `download_${Date.now()}_video${ext}`);
-      
-      const buffer = await fileRes.arrayBuffer();
-      fs.writeFileSync(finalPath, Buffer.from(buffer));
+    for (const endpoint of endpointsToTry) {
+      try {
+        console.log(`Attempting Cobalt request to: ${endpoint.url}`);
+        const res = await fetch(endpoint.url, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(endpoint.body)
+        });
 
-      console.log(`Successfully saved Cobalt download to ${finalPath}`);
-      return finalPath;
-    } catch (err) {
-      console.warn(`Cobalt instance ${instance} failed:`, err.message);
-      lastError = err;
+        if (!res.ok) {
+          throw new Error(`HTTP error ${res.status}: ${res.statusText}`);
+        }
+
+        const json = await res.json();
+        if (json.status === 'error') {
+          throw new Error(json.error?.code || json.error || 'Unknown cobalt error');
+        }
+
+        const mediaUrl = json.url;
+        if (!mediaUrl) {
+          throw new Error('No direct download URL returned from cobalt');
+        }
+
+        console.log(`Cobalt returned download URL: ${mediaUrl}`);
+
+        // Fetch the file from Cobalt URL and save it to outputDir
+        const fileRes = await fetch(mediaUrl);
+        if (!fileRes.ok) {
+          throw new Error(`Failed to fetch media file: ${fileRes.statusText}`);
+        }
+
+        // Try to extract extension from content-disposition
+        const cd = fileRes.headers.get('content-disposition');
+        let ext = format === 'mp3' ? '.mp3' : '.mp4';
+        if (cd) {
+          const match = cd.match(/filename=["']?([^"';]+)["']?/);
+          if (match) {
+            const fname = match[1];
+            const lastDot = fname.lastIndexOf('.');
+            if (lastDot !== -1) {
+              ext = fname.substring(lastDot);
+            }
+          }
+        }
+
+        // Save locally to outputDir
+        const finalPath = path.join(outputDir, `download_${Date.now()}_video${ext}`);
+        
+        const buffer = await fileRes.arrayBuffer();
+        fs.writeFileSync(finalPath, Buffer.from(buffer));
+
+        console.log(`Successfully saved Cobalt download to ${finalPath}`);
+        return finalPath;
+      } catch (err) {
+        console.warn(`Cobalt endpoint ${endpoint.url} failed:`, err.message);
+        lastError = err;
+      }
     }
   }
 
