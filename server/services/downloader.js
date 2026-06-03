@@ -336,6 +336,47 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
       ]
     });
 
+    // 9. Android/iOS client legacy format fallback, with cookies
+    attempts.push({
+      name: "Android/iOS legacy format fallback (with cookies)",
+      args: addCookies([
+        ...filterArgs([...baseArgs], ['-f', '-S']),
+        '-f', format === 'mp3' ? 'ba/b' : 'best',
+        '--extractor-args', 'youtube:player_client=android,ios'
+      ])
+    });
+
+    // 10. Android/iOS client legacy format fallback, without cookies (high success rate on datacenters)
+    attempts.push({
+      name: "Android/iOS legacy format fallback (without cookies)",
+      args: [
+        ...filterArgs([...baseArgs], ['-f', '-S']),
+        '-f', format === 'mp3' ? 'ba/b' : 'best',
+        '--extractor-args', 'youtube:player_client=android,ios'
+      ]
+    });
+
+    // 11. TV player client legacy format fallback, without cookies
+    attempts.push({
+      name: "TV legacy format fallback (without cookies)",
+      args: [
+        ...filterArgs([...baseArgs], ['-f', '-S']),
+        '-f', format === 'mp3' ? 'ba/b' : 'best',
+        '--extractor-args', 'youtube:player_client=tv_simply,default,-tv'
+      ]
+    });
+
+    // 12. Web Embedded player client legacy format fallback, without cookies
+    attempts.push({
+      name: "Web Embedded legacy format fallback (without cookies)",
+      args: [
+        ...filterArgs([...baseArgs], ['-f', '-S']),
+        '-f', format === 'mp3' ? 'ba/b' : 'best',
+        '--extractor-args', 'youtube:player_client=web_embedded,web_safari,default'
+      ]
+    });
+
+
     // Filter duplicates to optimize runs (e.g. if resolvedCookiesPath is null, with/without cookies are identical)
     const uniqueAttempts = [];
     const seenArgs = new Set();
