@@ -434,5 +434,117 @@ Have fun with your files. All Tool Master processes document translations secure
       { question: 'What is Gen-Z brainrot?', answer: 'It is a humorous slang vocabulary popular on TikTok, YouTube, and Twitch.' },
       { question: 'Is this tool free?', answer: 'Yes! All Tool Master is completely free, unlimited, and requires no registration.' }
     ]
+  },
+  'file-compressor': {
+    title: 'Free Online File Compressor - Compress Images, Videos, PDFs | All Tool Master',
+    description: 'Compress files online free without losing quality. Reduce image, video, audio, and PDF file sizes instantly. No signup required. Supports batch compression.',
+    h1: 'Free Online File Compressor',
+    introduction: 'Need to shrink large files for email attachments, faster uploads, or saving storage space? All Tool Master\'s File Compressor supports real compression of images (JPG, PNG, WebP), videos (MP4, MOV), audio (MP3, WAV), and documents (PDF) — all directly in your browser. Choose your compression level from fast to maximum, upload up to 20 files at once, and download compressed results instantly. No registration, no watermarks, and files are deleted immediately after processing.',
+    howTo: [
+      'Click the upload area or drag and drop one or more files (images, videos, audio, PDFs, etc.) into the compressor.',
+      'Select your preferred compression level: Fast (minimal reduction), Balanced (recommended), or Maximum (smallest size).',
+      'Click the "Compress Files" button to start processing.',
+      'Once complete, click "Download" to save the compressed file(s). Multiple files are packaged into a single ZIP.'
+    ],
+    features: [
+      { title: 'Multi-Format Compression', desc: 'Compress images, videos, audio files, and PDFs all in one tool. Supports JPG, PNG, WebP, MP4, MOV, MP3, WAV, and more.' },
+      { title: 'Batch Processing', desc: 'Upload and compress up to 20 files simultaneously. All compressed files are packaged into a single ZIP download.' },
+      { title: 'Adjustable Compression Levels', desc: 'Choose from three compression levels (1-9) to balance between file size reduction and quality preservation.' },
+      { title: 'No Quality Loss', desc: 'Our smart compression algorithms minimize visible quality degradation while maximizing file size reduction.' }
+    ],
+    article: `
+### Compress Files Online Free — Fast & Secure
+Large files slow down everything: email attachments bounce, uploads take forever, and storage fills up quickly. All Tool Master's **free online file compressor** solves this by reducing file sizes directly in your browser.
+
+### Supported File Types
+We support real compression across multiple formats:
+* **Image Compression:** Reduce JPG, PNG, and WebP file sizes by up to 80% while maintaining visual quality. Perfect for web optimization.
+* **Video Compression:** Shrink MP4, MOV, and AVI files using intelligent bitrate reduction. Ideal for sharing on social media or email.
+* **Audio Compression:** Compress MP3, WAV, and FLAC files without noticeable audio degradation.
+* **PDF Compression:** Reduce PDF document sizes by compressing embedded images and optimizing internal structures.
+
+### How File Compression Works
+Our backend uses ffmpeg for media files and sharp/pngquant for images, applying format-specific optimizations. Video files are re-encoded with optimized CRF values, while images undergo lossy or lossless compression depending on the level you choose.
+`,
+    faqs: [
+      { question: 'Will compression reduce the quality of my files?', answer: 'Our tool uses smart compression algorithms that minimize quality loss. For images, you typically won\'t notice any visual difference. For videos, slight quality reduction may occur at maximum compression levels.' },
+      { question: 'How many files can I compress at once?', answer: 'You can upload and compress up to 20 files simultaneously. All compressed files are downloaded as a single ZIP archive.' },
+      { question: 'What is the maximum file size I can upload?', answer: 'We support file uploads up to 500MB per file. For very large video files, consider splitting them first.' }
+    ]
+  },
+  'resume-builder': {
+    title: 'Free Resume Builder Online - ATS-Friendly Templates | All Tool Master',
+    description: 'Build a professional ATS-friendly resume online free. No signup required. Fill your details, preview in real-time, and download as PDF instantly.',
+    h1: 'Free Resume Builder Online — No Signup Required',
+    introduction: 'Creating a professional resume shouldn\'t cost money or require complex software. All Tool Master\'s Resume Builder lets you create an ATS-optimized, professionally formatted resume directly in your browser. Simply fill in your personal details, work experience, education, and skills, preview the result in real-time, and download a pixel-perfect PDF. No accounts, no templates to buy, no watermarks — completely free.',
+    howTo: [
+      'Fill in your personal information: name, email, phone, location, and professional summary.',
+      'Add your work experience entries with company name, role, dates, and key responsibilities.',
+      'Enter your education history including institution, degree, and graduation year.',
+      'List your technical and soft skills.',
+      'Preview your resume in real-time on the right panel, then click "Download PDF" to save.'
+    ],
+    features: [
+      { title: 'ATS-Friendly Format', desc: 'Our resume template is designed to pass Applicant Tracking System (ATS) scans used by 99% of Fortune 500 companies.' },
+      { title: 'Live Preview', desc: 'See your resume update in real-time as you type. No guessing what the final result will look like.' },
+      { title: 'Instant PDF Download', desc: 'Generate a clean, professionally formatted PDF with one click. No watermarks or branding added.' },
+      { title: 'Zero Registration', desc: 'No email, no account, no credit card. Start building your resume immediately.' }
+    ],
+    article: `
+### Build Your Resume Online Free in 5 Minutes
+Job hunting is stressful enough without paying for resume builders. All Tool Master's **free resume builder** gives you a professional, ATS-friendly template with live preview and instant PDF download.
+
+### Why ATS-Friendly Matters
+Most large companies use Applicant Tracking Systems (ATS) to filter resumes before a human ever sees them. Our template uses:
+* **Clean HTML Structure:** No tables, columns, or graphics that confuse ATS parsers.
+* **Standard Section Headers:** Work Experience, Education, Skills — exactly what ATS software expects.
+* **Readable Font Stack:** Professional typography that renders well in both digital and print formats.
+
+### Professional Resume in Minutes
+Simply fill in the form fields, watch your resume come together in the live preview, and download your PDF. It's that simple. No signup, no upsells, no hidden fees.
+`,
+    faqs: [
+      { question: 'Is this resume builder really free?', answer: 'Yes, 100% free. No signup, no credit card, no premium tiers. Download unlimited resumes as PDFs.' },
+      { question: 'Will my resume pass ATS screening?', answer: 'Our template is specifically designed to be ATS-compatible. It uses clean formatting, standard section headers, and avoids graphical elements that confuse ATS parsers.' },
+      { question: 'Can I customize the design?', answer: 'The current version uses a proven professional template. Future updates will include multiple template options and color themes.' }
+    ]
+  },
+  'ai-script-writer': {
+    title: 'Free AI Script Writer Online - Movie, YouTube & Podcast Scripts | All Tool Master',
+    description: 'Generate professional scripts with AI for free. Create movie screenplays, YouTube video scripts, podcast scripts, and ad copy from a title and premise. No signup.',
+    h1: 'Free AI Script Writer — Generate Professional Scripts Instantly',
+    introduction: 'Writing scripts from scratch is time-consuming and often requires expensive software or hiring professionals. All Tool Master\'s AI Script Writer generates full professional scripts — movie screenplays, YouTube video scripts, podcast outlines, and advertising copy — from just a title, genre, and brief premise. Powered by Google Gemini AI, it produces industry-standard formatted scripts in seconds. Completely free, no signup required.',
+    howTo: [
+      'Enter your script title and select the type (movie, YouTube, podcast, advertisement, etc.).',
+      'Choose a genre or tone (comedy, drama, horror, educational, promotional, etc.).',
+      'Write a brief premise or description of what your script should cover.',
+      'Optionally add character names or specific instructions.',
+      'Click "Generate Script" and receive a full, formatted script ready for production.'
+    ],
+    features: [
+      { title: 'Multiple Script Types', desc: 'Generate scripts for movies, short films, YouTube videos, podcasts, advertisements, and social media content.' },
+      { title: 'Industry-Standard Formatting', desc: 'Scripts follow proper screenplay formatting with scene headings, action lines, character names, and dialogue.' },
+      { title: 'AI-Powered Creativity', desc: 'Powered by Google Gemini AI for natural dialogue, compelling plot structure, and genre-appropriate tone.' },
+      { title: 'Instant Generation', desc: 'Get a complete script in seconds. Edit, refine, and regenerate as many times as you want.' }
+    ],
+    article: `
+### Generate Professional Scripts with AI — Free Online
+Whether you're a filmmaker, YouTuber, podcaster, or content creator, having a solid script is the foundation of great content. All Tool Master's **AI script writer** generates complete, professionally formatted scripts from minimal input.
+
+### Script Types We Support
+Our AI can generate scripts for various formats:
+* **Movie & Short Film Scripts:** Full screenplays with proper formatting, scene descriptions, and natural dialogue.
+* **YouTube Video Scripts:** Engaging video scripts with hooks, transitions, and call-to-actions optimized for audience retention.
+* **Podcast Scripts:** Structured outlines with talking points, segues, and interview questions.
+* **Ad Copy & Promotional Scripts:** Persuasive advertising scripts for social media, radio, or TV spots.
+
+### How Our AI Script Writer Works
+Simply provide a title, select your script type and genre, and write a brief premise. Our Gemini-powered AI analyzes your input and generates a complete, formatted script. You can refine the output, adjust the tone, or regenerate entirely — all for free.
+`,
+    faqs: [
+      { question: 'How long are the generated scripts?', answer: 'Script length varies by type. Movie scripts can be 5-15 pages, YouTube scripts 1-3 pages, and ad scripts 1 page. You can request specific lengths in your premise.' },
+      { question: 'Can I edit the generated script?', answer: 'Yes! Copy the generated script and edit it in any text editor or screenwriting software. The output is plain text that can be pasted anywhere.' },
+      { question: 'Do I need a Gemini API key?', answer: 'For optimal results, you can add your own free Gemini API key in Settings. The tool also works with the platform\'s shared key for basic requests.' }
+    ]
   }
 };

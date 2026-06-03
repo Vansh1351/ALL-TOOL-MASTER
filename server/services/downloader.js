@@ -185,7 +185,8 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
     '--no-warnings',
     '--restrict-filenames',
     '--no-check-certificate',
-    '-4'
+    '-4',
+    '--socket-timeout', '30'
   ];
 
   // Check if the binary supports the requested browser impersonation target.
@@ -477,19 +478,21 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
 }
 
 async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
-  // List of public cobalt instances to cycle through
+  // Curated list of public cobalt instances (v10 API preferred)
   const instances = [
     'https://api.cobalt.tools',
-    'https://co.wuk.sh',
-    'https://cobalt.api.ryzetech.live',
-    'https://cobalt.kudo.lol',
-    'https://cobalt-api.lule.rocks'
+    'https://cobalt.canine.tools',
+    'https://cobalt.snoo.click',
+    'https://cobalt-api.kwiatekmiki.com',
+    'https://cobalt.nahcrof.com',
+    'https://co.wuk.sh'
   ];
 
   let lastError = null;
+  const COBALT_TIMEOUT_MS = 20000; // 20 second timeout per request
 
   for (const instance of instances) {
-    // We try v10 endpoint (root '/') first, then legacy endpoint ('/api/json')
+    // Try v10 endpoint (root '/') first, then legacy endpoint ('/api/json')
     const endpointsToTry = [
       {
         url: `${instance.replace(/\/+$/, '')}/`,
@@ -515,14 +518,19 @@ async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
     for (const endpoint of endpointsToTry) {
       try {
         console.log(`Attempting Cobalt request to: ${endpoint.url}`);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), COBALT_TIMEOUT_MS);
+
         const res = await fetch(endpoint.url, {
           method: 'POST',
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(endpoint.body)
+          body: JSON.stringify(endpoint.body),
+          signal: controller.signal
         });
+        clearTimeout(timeout);
 
         if (!res.ok) {
           throw new Error(`HTTP error ${res.status}: ${res.statusText}`);
@@ -541,7 +549,11 @@ async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
         console.log(`Cobalt returned download URL: ${mediaUrl}`);
 
         // Fetch the file from Cobalt URL and save it to outputDir
-        const fileRes = await fetch(mediaUrl);
+        const dlController = new AbortController();
+        const dlTimeout = setTimeout(() => dlController.abort(), 120000); // 2 min for large files
+        const fileRes = await fetch(mediaUrl, { signal: dlController.signal });
+        clearTimeout(dlTimeout);
+
         if (!fileRes.ok) {
           throw new Error(`Failed to fetch media file: ${fileRes.statusText}`);
         }
@@ -569,7 +581,8 @@ async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
         console.log(`Successfully saved Cobalt download to ${finalPath}`);
         return finalPath;
       } catch (err) {
-        console.warn(`Cobalt endpoint ${endpoint.url} failed:`, err.message);
+        const errMsg = err.name === 'AbortError' ? 'Request timed out' : err.message;
+        console.warn(`Cobalt endpoint ${endpoint.url} failed:`, errMsg);
         lastError = err;
       }
     }
@@ -579,18 +592,20 @@ async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
 }
 
 export async function downloadMedia(url, format, quality, outputDir) {
+  // Strategy: Try Cobalt API first (faster, uses external CDN infrastructure)
+  // then fall back to local yt-dlp binary (slower on datacenter IPs but more compatible)
   try {
-    // Try yt-dlp first
-    const filePath = await downloadMediaWithYtdlp(url, format, quality, outputDir);
+    console.log('Attempting download via Cobalt API (priority)...');
+    const filePath = await downloadWithCobalt(url, format, quality, outputDir);
     return filePath;
-  } catch (ytdlpError) {
-    console.warn(`yt-dlp download failed (${ytdlpError.message}). Trying Cobalt API fallback...`);
+  } catch (cobaltError) {
+    console.warn(`Cobalt API failed (${cobaltError.message}). Falling back to yt-dlp...`);
     try {
-      const filePath = await downloadWithCobalt(url, format, quality, outputDir);
+      const filePath = await downloadMediaWithYtdlp(url, format, quality, outputDir);
       return filePath;
-    } catch (cobaltError) {
-      console.error(`Cobalt download fallback also failed: ${cobaltError.message}`);
-      // Throw the original yt-dlp error so they see the detailed yt-dlp issue if both fail
+    } catch (ytdlpError) {
+      console.error(`yt-dlp fallback also failed: ${ytdlpError.message}`);
+      // Throw yt-dlp error as it has more detailed diagnostics
       throw ytdlpError;
     }
   }

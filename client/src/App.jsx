@@ -247,6 +247,28 @@ export default function App() {
     if (descMeta) {
       descMeta.setAttribute('content', desc);
     }
+    
+    // Update canonical URL
+    const canonicalLink = document.getElementById('canonical-url');
+    if (canonicalLink) {
+      canonicalLink.setAttribute('href', `https://alltoolmaster.me${path}`);
+    }
+    
+    // Update og:url
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) {
+      ogUrl.setAttribute('content', `https://alltoolmaster.me${path}`);
+    }
+    
+    // Update og:title and og:description
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) {
+      ogTitle.setAttribute('content', title);
+    }
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) {
+      ogDesc.setAttribute('content', desc);
+    }
   }, [view, activeTool, selectedBlogSlug]);
 
   const toggleTheme = () => {
