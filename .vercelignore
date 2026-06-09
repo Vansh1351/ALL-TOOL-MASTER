@@ -1,0 +1,22 @@
+# Ignore backend server and all its binaries/temp uploads
+server/
+
+# Ignore assets/backups
+ALL - TOOL - MASTER LOGO.png
+*.patch
+
+# Ignore build artifacts (Vercel builds on its servers)
+node_modules/
+client/node_modules/
+dist/
+client/dist/
+
+# Ignore environment/local files
+.env
+.env.production
+.env.local
+.vscode/
+.idea/
+.DS_Store
+*.log
+.gemini/
