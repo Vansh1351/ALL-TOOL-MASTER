@@ -1,0 +1,59 @@
+# All Tool Master
+
+> All Tool Master is a free online tools platform offering file converters, social media video downloaders, and AI-powered note-taking tools. No registration required. All tools run in the browser and are completely free.
+
+## Tools Available
+
+### File Converters
+- PDF to Word: https://alltoolmaster.me/convert/pdf-to-word
+- PDF to DOCX: https://alltoolmaster.me/convert/pdf-to-docx
+- Word to PDF: https://alltoolmaster.me/convert/word-to-pdf
+- DOCX to PDF: https://alltoolmaster.me/convert/docx-to-pdf
+- JPG to PNG: https://alltoolmaster.me/convert/jpg-to-png
+- PNG to JPG: https://alltoolmaster.me/convert/png-to-jpg
+- WebP to PNG: https://alltoolmaster.me/convert/webp-to-png
+- MP4 to MP3: https://alltoolmaster.me/convert/mp4-to-mp3
+- Video to Audio: https://alltoolmaster.me/convert/video-to-audio
+- MOV to MP4: https://alltoolmaster.me/convert/mov-to-mp4
+- Excel to PDF: https://alltoolmaster.me/convert/excel-to-pdf
+- HEIC to JPG: https://alltoolmaster.me/convert/heic-to-jpg
+
+### Video Downloaders (free, no watermark)
+- YouTube Downloader: https://alltoolmaster.me/downloader/youtube
+- Instagram Downloader: https://alltoolmaster.me/downloader/instagram
+- TikTok Downloader: https://alltoolmaster.me/downloader/tiktok
+- Facebook Downloader: https://alltoolmaster.me/downloader/facebook
+- Twitter/X Downloader: https://alltoolmaster.me/downloader/twitter
+- Vimeo Downloader: https://alltoolmaster.me/downloader/vimeo
+- YouTube Shorts: https://alltoolmaster.me/downloader/shorts
+
+### AI Notes Tools
+- Lecture Notes: https://alltoolmaster.me/ai-notes/lecture-notes
+- Meeting Assistant: https://alltoolmaster.me/ai-notes/meeting-assistant
+- Transcript Generator: https://alltoolmaster.me/ai-notes/transcript
+- Audio Analyzer: https://alltoolmaster.me/ai-notes/audio-analyzer
+- Video Summarizer: https://alltoolmaster.me/ai-notes/video-summarizer
+- Speech to Text: https://alltoolmaster.me/ai-notes/speech-to-text
+- Study Guide: https://alltoolmaster.me/ai-notes/study-guide
+- Voice Notes: https://alltoolmaster.me/ai-notes/voice-notes
+- Brainrot Translator: https://alltoolmaster.me/ai-notes/brainrot
+
+### Utility Tools
+- ZIP Extractor: https://alltoolmaster.me/utility/zip-extractor
+- Unzip Files: https://alltoolmaster.me/utility/unzip
+- File Compressor: https://alltoolmaster.me/utility/file-compressor
+- Resume Builder: https://alltoolmaster.me/utility/resume-builder
+
+### Blog
+- Blog Index: https://alltoolmaster.me/blog
+
+## About
+All Tool Master is a browser-based, server-backed utility platform. All tools are free to use without signup or registration. Files are processed in secure temporary memory and immediately deleted after download. The platform uses Node.js with FFmpeg for media conversion and Google Gemini AI for AI-powered tools.
+
+Built for students, professionals, and content creators who need fast, reliable file conversion, media downloading, and AI note-taking without paywalls or watermarks.
+
+Launched: 2025
+Built by: Vansh Shah (Mumbai, India)
+
+## Contact
+https://alltoolmaster.me/contact

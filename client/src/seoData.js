@@ -32,7 +32,9 @@ Unlike generic downloading websites that trigger pop-ups and virus warnings, All
     faqs: [
       { question: 'Is downloading YouTube videos legal?', answer: 'Downloading copyrighted videos without the owner\'s permission is against YouTube\'s terms of service. We recommend using this tool strictly for personal archiving, educational analysis, public-domain clips, or content you own.' },
       { question: 'Can I download YouTube Shorts directly to my gallery?', answer: 'Yes. Our converter fully supports short-form video URLs. Simply paste the Shorts link and select your output format to save it to your local gallery.' },
-      { question: 'Do I need to sign up or pay to download?', answer: 'No. All Tool Master is completely free, unlimited, and requires no email registration or credit cards.' }
+      { question: 'Do I need to sign up or pay to download?', answer: 'No. All Tool Master is completely free, unlimited, and requires no email registration or credit cards.' },
+      { question: 'Does the YouTube downloader work on iPhone and Android?', answer: 'Yes. The tool is fully mobile-optimized and runs in any modern browser including Safari on iOS and Chrome on Android. On iPhone, downloaded files save to the Files app.' },
+      { question: 'What video quality can I download from YouTube?', answer: 'Our downloader fetches the highest available stream — up to 1080p HD for video, and 320kbps for MP3 audio extraction.' }
     ]
   },
   'url-to-mp4': {
@@ -69,7 +71,9 @@ All Tool Master prioritizing speed and security. Our backend isolates the fetch 
     faqs: [
       { question: 'Can I convert TikTok videos without watermark online?', answer: 'Yes. Our downloader extracts the raw source video from the TikTok CDN, allowing you to download the MP4 without any watermark overlay.' },
       { question: 'Does the downloader work on iOS and Android devices?', answer: 'Yes! The downloader runs completely in-browser. On iOS, downloads will save to your Files app, while Android devices save them directly to the Downloads folder.' },
-      { question: 'Is there a limit to how many links I can convert?', answer: 'There are no limits. You can download and convert as many links as you want, completely free of charge.' }
+      { question: 'Is there a limit to how many links I can convert?', answer: 'There are no limits. You can download and convert as many links as you want, completely free of charge.' },
+      { question: 'Can I download Instagram Reels with audio intact?', answer: 'Yes. We extract the original source video from Instagram\'s CDN which includes the full audio track intact.' },
+      { question: 'Does the Facebook video downloader work for private videos?', answer: 'No. Our tool only works with publicly accessible videos. Private Facebook videos require being logged in with the owner\'s account.' }
     ]
   },
   'mp4-to-mp3': {
@@ -108,7 +112,8 @@ No downloads required. The converter runs in your browser and uses cloud servers
       { question: 'Will I lose audio quality when converting MP4 to MP3?', answer: 'We preserve the maximum audio bitrate (up to 320kbps for MP3). For absolute lossless quality, choose the WAV format.' },
       { question: 'What video formats can I convert to MP3?', answer: 'You can convert MP4, MOV, AVI, MKV, WebM, FLV and most common video formats to MP3 or WAV.' },
       { question: 'Can I convert a YouTube video to MP3?', answer: 'Yes! Paste the YouTube video URL and select MP3 as your output format to extract the audio track directly.' },
-      { question: 'Are my uploaded files safe?', answer: 'Absolutely. We do not store, inspect, or log your files. All processing happens in transient memory and files are wiped immediately after download.' }
+      { question: 'Are my uploaded files safe?', answer: 'Absolutely. We do not store, inspect, or log your files. All processing happens in transient memory and files are wiped immediately after download.' },
+      { question: 'How large of a file can I upload for conversion?', answer: 'You can upload media files up to 100MB. For very large video files, consider using the URL paste option for best performance.' }
     ]
   },
   'image-converter': {
@@ -145,7 +150,9 @@ Save time by uploading multiple image files at once. All Tool Master processes t
     faqs: [
       { question: 'Can I convert multiple images at once?', answer: 'Yes! Our tool supports batch file uploads, allowing you to convert multiple images simultaneously and package the output as a ZIP.' },
       { question: 'Does converting JPG to WEBP reduce quality?', answer: 'WEBP uses advanced lossy compression to reduce file size while keeping visual differences imperceptible to the human eye.' },
-      { question: 'Can I convert HEIC photos on a mobile browser?', answer: 'Yes. Our tool is mobile-friendly and converts iPhone HEIC files directly in Safari or Chrome without any extra apps.' }
+      { question: 'Can I convert HEIC photos on a mobile browser?', answer: 'Yes. Our tool is mobile-friendly and converts iPhone HEIC files directly in Safari or Chrome without any extra apps.' },
+      { question: 'What is the maximum image file size I can upload?', answer: 'Our image converter supports files up to 50MB per image. For batch conversions, upload up to 20 images at once.' },
+      { question: 'Does converting PNG to JPG remove the transparent background?', answer: 'Yes. Since JPG does not support transparency, the transparent areas are replaced with a white background during conversion. Use PNG output to keep transparency.' }
     ]
   },
   'pdf-converter': {
@@ -181,7 +188,9 @@ Document security is critical. All Tool Master handles PDF files strictly inside
     faqs: [
       { question: 'Will my PDF document layout be preserved?', answer: 'Our converter reads PDF text structures and layout coordinates to construct a matching Word document, preserving formatting as closely as possible.' },
       { question: 'Can I convert scanned PDFs to Word?', answer: 'Yes. The converter reads raw text structures. For scanned images, it compiles them into readable segments inside the document.' },
-      { question: 'What document formats are supported?', answer: 'We support PDF, DOCX, Excel sheets, and TXT files for conversion.' }
+      { question: 'What document formats are supported?', answer: 'We support PDF, DOCX, Excel sheets, and TXT files for conversion.' },
+      { question: 'Is there a page limit for PDF conversion?', answer: 'We support PDF files up to 100MB and 300 pages. For very large documents, splitting them into smaller chunks before uploading is recommended.' },
+      { question: 'Does converting Word to PDF preserve fonts and formatting?', answer: 'Yes. Our conversion engine embeds fonts and preserves paragraph formatting, tables, and images in the final PDF output.' }
     ]
   },
   'zip-extractor': {
@@ -217,7 +226,9 @@ Your security is our priority. Unlike other online converters that store your un
     faqs: [
       { question: 'Do I need to install WinRAR or 7-Zip to extract files?', answer: 'No. Our tool runs completely in your web browser. You can extract and view ZIP archives on any system without installing software.' },
       { question: 'Can I unzip large files on my mobile phone?', answer: 'Yes! Our tool is fully optimized for mobile devices, allowing you to unzip files on iPhones and Android devices with ease.' },
-      { question: 'What is the file upload size limit?', answer: 'We support ZIP files up to 100MB to ensure high-speed browser decompression.' }
+      { question: 'What is the file upload size limit?', answer: 'We support ZIP files up to 100MB to ensure high-speed browser decompression.' },
+      { question: 'Can I also create ZIP archives with this tool?', answer: 'Yes. Beyond extracting, you can bundle multiple files into a new ZIP archive. Upload your files and select the "Create ZIP" option to package them for download.' },
+      { question: 'Is my uploaded ZIP file kept private?', answer: 'Absolutely. ZIP files are processed in temporary server memory and deleted immediately after you download the extracted contents. We never store your files.' }
     ]
   },
   'ai-video-summarizer': {
@@ -253,7 +264,9 @@ Don\'t waste time fast-forwarding through hours of footage. Get a structured tex
     faqs: [
       { question: 'How long does it take to summarize a video?', answer: 'Most videos are transcribed and summarized in under a minute depending on length and backend queues.' },
       { question: 'Is there a limit on video length?', answer: 'We support video files up to 100MB. For longer videos, pasting the YouTube URL link is recommended.' },
-      { question: 'Is my data secure?', answer: 'Yes. All video uploads are processed securely and deleted immediately. We do not use your video data to train AI models.' }
+      { question: 'Is my data secure?', answer: 'Yes. All video uploads are processed securely and deleted immediately. We do not use your video data to train AI models.' },
+      { question: 'Can I summarize videos in languages other than English?', answer: 'Yes. Gemini AI supports multiple languages including Spanish, French, Hindi, Arabic, Mandarin, and more for summarization and transcription.' },
+      { question: 'What does the AI video summary include?', answer: 'The summary includes key topics, timestamps, speaker points, main conclusions, and a structured outline suitable for study notes or business reports.' }
     ]
   },
   'ai-transcript': {
@@ -289,7 +302,9 @@ Save time on manual transcription. Simply upload your files, click convert, and 
     faqs: [
       { question: 'What audio formats are supported for transcription?', answer: 'We support MP3, WAV, M4A, AAC, and MP4 formats up to 100MB.' },
       { question: 'Can the AI transcribe multiple speakers?', answer: 'Yes. The transcription engine identifies natural dialogue transitions and structures the text clearly.' },
-      { question: 'Is my voice recording kept private?', answer: 'Absolutely. All processing occurs in temporary memory, and your audio files are deleted immediately after transcription.' }
+      { question: 'Is my voice recording kept private?', answer: 'Absolutely. All processing occurs in temporary memory, and your audio files are deleted immediately after transcription.' },
+      { question: 'How accurate is the AI speech-to-text transcription?', answer: 'Gemini AI achieves over 95% accuracy on clear English speech. Accuracy may vary for heavy accents, low-quality recordings, or technical jargon.' },
+      { question: 'Can I transcribe a lecture recording from Zoom or Google Meet?', answer: 'Yes. Download the meeting recording as an MP4 or MP3 file and upload it to the transcript generator for a verbatim text output.' }
     ]
   },
   'ai-audio-analyzer': {
@@ -325,7 +340,9 @@ Avoid writing manual summaries. Let our backend handle transcribing and topic ma
     faqs: [
       { question: 'Can I analyze a foreign language audio recording?', answer: 'Yes. Gemini has multilingual capabilities and can analyze and translate audio in Spanish, French, German, Hindi, and more.' },
       { question: 'Do I need my own Gemini API Key?', answer: 'You can use the default free pool, but configuring your own Gemini API key in the settings ensures unlimited, uninterrupted processing.' },
-      { question: 'How secure is my audio data?', answer: 'All files are uploaded over SSL, processed in transient RAM pools, and deleted immediately after the response is sent.' }
+      { question: 'How secure is my audio data?', answer: 'All files are uploaded over SSL, processed in transient RAM pools, and deleted immediately after the response is sent.' },
+      { question: 'What kind of insights does the audio analyzer provide?', answer: 'It identifies key topics, speaker roles, sentiment/tone, core arguments, conclusions, and time-based summaries of audio recordings.' },
+      { question: 'Can I paste a transcript instead of uploading audio?', answer: 'Yes. The tool also accepts pasted verbatim text transcripts in the text input area, so you can analyze existing transcriptions without uploading a file.' }
     ]
   },
   'ai-lecture-notes': {
@@ -360,7 +377,9 @@ Bypassing manual transcription allows you to focus on active learning and practi
     faqs: [
       { question: 'Can the AI analyze hand-written notes or slides?', answer: 'Yes. If you copy and paste the OCR text of your slides or hand-written drafts, the AI will organize it into a structured study guide.' },
       { question: 'Is this tool free for students?', answer: 'Yes. All Tool Master is completely free to help students access quality study materials without paywalls.' },
-      { question: 'What languages does the lecture note generator support?', answer: 'The engine supports multiple languages, including English, Spanish, French, German, and Mandarin.' }
+      { question: 'What languages does the lecture note generator support?', answer: 'The engine supports multiple languages, including English, Spanish, French, German, and Mandarin.' },
+      { question: 'What does a generated lecture note include?', answer: 'The output typically includes a topic outline, key term glossary, important formulas or dates, and a set of study questions and answers derived from the lecture content.' },
+      { question: 'Can I use this tool for online course transcripts?', answer: 'Absolutely. You can paste the auto-generated transcript from a Coursera, edX, or YouTube lecture to instantly get a formatted study guide.' }
     ]
   },
   'ai-meeting-minutes': {
@@ -396,7 +415,9 @@ We prioritize data security. Meeting recordings are processed in secure memory a
     faqs: [
       { question: 'How secure are my corporate meeting recordings?', answer: 'We prioritize privacy. Files are sent securely, processed, and deleted immediately. We do not train models on your data.' },
       { question: 'Can I upload a Zoom or Google Meet cloud recording?', answer: 'Yes. Simply download the audio/video file and upload it into our tool for transcription and summary.' },
-      { question: 'How accurate is the action item generator?', answer: 'The model analyzes context clues in the audio to identify tasks and assignees with high accuracy.' }
+      { question: 'How accurate is the action item generator?', answer: 'The model analyzes context clues in the audio to identify tasks and assignees with high accuracy.' },
+      { question: 'What does the meeting minutes output look like?', answer: 'The output includes a brief executive summary, key discussion points organized by topic, a speaker tracking section, and a formatted action items table with tasks and suggested owners.' },
+      { question: 'Can I process meeting recordings longer than one hour?', answer: 'Yes. For recordings over 100MB, we recommend uploading the audio-only MP3 file to reduce size while retaining full transcription accuracy.' }
     ]
   },
   'pdf-to-brainrot': {
@@ -432,7 +453,9 @@ Have fun with your files. All Tool Master processes document translations secure
     faqs: [
       { question: 'Can I translate files of any size?', answer: 'We support PDF uploads up to 100MB. For larger documents, copy and paste the text segments directly.' },
       { question: 'What is Gen-Z brainrot?', answer: 'It is a humorous slang vocabulary popular on TikTok, YouTube, and Twitch.' },
-      { question: 'Is this tool free?', answer: 'Yes! All Tool Master is completely free, unlimited, and requires no registration.' }
+      { question: 'Is this tool free?', answer: 'Yes! All Tool Master is completely free, unlimited, and requires no registration.' },
+      { question: 'Can I translate plain text or just PDFs?', answer: 'Both! You can either upload a PDF document or paste any text directly into the input field to get the Gen-Z slang translation.' },
+      { question: 'What kind of slang does the translator use?', answer: 'The translator uses current Gen-Z internet slang including terms like "rizz", "gyatt", "no cap", "slay", "skibidi", "based", and more — keeping it fun and internet-cultural.' }
     ]
   },
   'file-compressor': {
@@ -469,7 +492,9 @@ Our backend uses ffmpeg for media files and sharp/pngquant for images, applying 
     faqs: [
       { question: 'Will compression reduce the quality of my files?', answer: 'Our tool uses smart compression algorithms that minimize quality loss. For images, you typically won\'t notice any visual difference. For videos, slight quality reduction may occur at maximum compression levels.' },
       { question: 'How many files can I compress at once?', answer: 'You can upload and compress up to 20 files simultaneously. All compressed files are downloaded as a single ZIP archive.' },
-      { question: 'What is the maximum file size I can upload?', answer: 'We support file uploads up to 500MB per file. For very large video files, consider splitting them first.' }
+      { question: 'What is the maximum file size I can upload?', answer: 'We support file uploads up to 500MB per file. For very large video files, consider splitting them first.' },
+      { question: 'Can I compress files on my phone?', answer: 'Yes. The file compressor is fully mobile-optimized and works in Safari on iOS and Chrome on Android without any app installation.' },
+      { question: 'Does the tool support PDF compression?', answer: 'Yes. PDF files are compressed by optimizing embedded images and internal structure, typically reducing size by 30-60% without visible content loss.' }
     ]
   },
   'resume-builder': {
@@ -506,7 +531,9 @@ Simply fill in the form fields, watch your resume come together in the live prev
     faqs: [
       { question: 'Is this resume builder really free?', answer: 'Yes, 100% free. No signup, no credit card, no premium tiers. Download unlimited resumes as PDFs.' },
       { question: 'Will my resume pass ATS screening?', answer: 'Our template is specifically designed to be ATS-compatible. It uses clean formatting, standard section headers, and avoids graphical elements that confuse ATS parsers.' },
-      { question: 'Can I customize the design?', answer: 'The current version uses a proven professional template. Future updates will include multiple template options and color themes.' }
+      { question: 'Can I customize the design?', answer: 'The current version uses a proven professional template. Future updates will include multiple template options and color themes.' },
+      { question: 'Can I save my resume and edit it later?', answer: 'The builder currently does not save server-side. To save your progress, copy the form data. Future updates will add local browser storage for auto-saving.' },
+      { question: 'What information should I include in my resume?', answer: 'Include your contact information, professional summary, work experience (3-5 recent roles), education, and a skills section. Tailor the content to each job description for best ATS results.' }
     ]
   },
   'ai-script-writer': {
@@ -544,7 +571,9 @@ Simply provide a title, select your script type and genre, and write a brief pre
     faqs: [
       { question: 'How long are the generated scripts?', answer: 'Script length varies by type. Movie scripts can be 5-15 pages, YouTube scripts 1-3 pages, and ad scripts 1 page. You can request specific lengths in your premise.' },
       { question: 'Can I edit the generated script?', answer: 'Yes! Copy the generated script and edit it in any text editor or screenwriting software. The output is plain text that can be pasted anywhere.' },
-      { question: 'Do I need a Gemini API key?', answer: 'For optimal results, you can add your own free Gemini API key in Settings. The tool also works with the platform\'s shared key for basic requests.' }
+      { question: 'Do I need a Gemini API key?', answer: 'For optimal results, you can add your own free Gemini API key in Settings. The tool also works with the platform\'s shared key for basic requests.' },
+      { question: 'What genres does the AI script writer support?', answer: 'The AI supports all genres including drama, comedy, thriller, horror, documentary, educational, promotional, romance, sci-fi, and more. Specify your genre in the premise for best results.' },
+      { question: 'Can I use the generated scripts commercially?', answer: 'Scripts generated using Gemini AI may be used commercially. Review Google\'s Gemini API terms of service to understand usage rights for AI-generated content.' }
     ]
   }
 };

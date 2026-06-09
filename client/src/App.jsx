@@ -222,7 +222,7 @@ export default function App() {
         disclaimer: "Legal disclaimers for the All Tool Master toolset and conversions.",
         dmca: "DMCA copyright policy and takedown instructions for All Tool Master.",
         faqs: "Find answers to frequently asked questions about All Tool Master conversions, safety, and tools.",
-        deals: "Claim Hostinger web hosting deals and Namecheap domain registration discounts with our affiliate promo tools."
+        deals: "Domain registration discounts with our affiliate promo tools via Namecheap."
       };
       
       path = pathMap[view] || '/';
@@ -254,20 +254,82 @@ export default function App() {
       canonicalLink.setAttribute('href', `https://alltoolmaster.me${path}`);
     }
     
-    // Update og:url
-    const ogUrl = document.querySelector('meta[property="og:url"]');
-    if (ogUrl) {
-      ogUrl.setAttribute('content', `https://alltoolmaster.me${path}`);
+    // Update og:url, og:title, og:description
+    const ogUrl = document.getElementById('og-url');
+    if (ogUrl) ogUrl.setAttribute('content', `https://alltoolmaster.me${path}`);
+    const ogTitle = document.getElementById('og-title');
+    if (ogTitle) ogTitle.setAttribute('content', title);
+    const ogDesc = document.getElementById('og-desc');
+    if (ogDesc) ogDesc.setAttribute('content', desc);
+
+    // Update Twitter Card meta tags
+    const twTitle = document.getElementById('twitter-title');
+    if (twTitle) twTitle.setAttribute('content', title);
+    const twDesc = document.getElementById('twitter-desc');
+    if (twDesc) twDesc.setAttribute('content', desc);
+
+    // Noindex control for low-value pages
+    const robotsMeta = document.getElementById('robots-meta');
+    const noindexViews = ['privacy', 'terms', 'dmca', 'disclaimer', 'deals'];
+    if (robotsMeta) {
+      if (noindexViews.includes(view)) {
+        robotsMeta.setAttribute('content', 'noindex, nofollow');
+      } else {
+        robotsMeta.setAttribute('content', 'index, follow');
+      }
     }
-    
-    // Update og:title and og:description
-    const ogTitle = document.querySelector('meta[property="og:title"]');
-    if (ogTitle) {
-      ogTitle.setAttribute('content', title);
-    }
-    const ogDesc = document.querySelector('meta[property="og:description"]');
-    if (ogDesc) {
-      ogDesc.setAttribute('content', desc);
+
+    // Inject dynamic JSON-LD schema
+    const dynamicSchema = document.getElementById('dynamic-schema');
+    if (dynamicSchema) {
+      if (view === 'tool-page' && activeTool) {
+        const seoInfo = SEO_DATA[activeTool.id];
+        const toolUrl = `https://alltoolmaster.me${path}`;
+        const schema = {
+          '@context': 'https://schema.org',
+          '@type': 'WebApplication',
+          name: seoInfo?.h1 || activeTool.title,
+          url: toolUrl,
+          description: seoInfo?.description || activeTool.desc,
+          applicationCategory: 'UtilityApplication',
+          operatingSystem: 'Any',
+          offers: {
+            '@type': 'Offer',
+            price: '0',
+            priceCurrency: 'USD'
+          }
+        };
+        dynamicSchema.textContent = JSON.stringify(schema);
+      } else if (view === 'blog-post' && selectedBlogSlug) {
+        const post = BLOG_POSTS.find(p => p.slug === selectedBlogSlug);
+        if (post) {
+          const schema = {
+            '@context': 'https://schema.org',
+            '@type': 'Article',
+            headline: post.title,
+            description: post.excerpt,
+            author: {
+              '@type': 'Person',
+              name: 'All Tool Master'
+            },
+            publisher: {
+              '@type': 'Organization',
+              name: 'All Tool Master',
+              logo: {
+                '@type': 'ImageObject',
+                url: 'https://alltoolmaster.me/logo.png'
+              }
+            },
+            datePublished: post.date,
+            dateModified: post.date,
+            url: `https://alltoolmaster.me/blog/${post.slug}`,
+            image: 'https://alltoolmaster.me/logo.png'
+          };
+          dynamicSchema.textContent = JSON.stringify(schema);
+        }
+      } else {
+        dynamicSchema.textContent = '{}';
+      }
     }
   }, [view, activeTool, selectedBlogSlug]);
 
@@ -442,39 +504,19 @@ export default function App() {
               </div>
             </section>
 
-            {/* Hosting & Domain Affiliate Showcase */}
+            {/* Domain Affiliate Showcase */}
             <section style={{ padding: '50px 0', borderTop: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.02)' }}>
               <div className="container">
                 <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-                  <span className="badge">Exclusive Partner Deals</span>
-                  <h2 style={{ fontSize: '28px', fontWeight: '800', marginTop: '8px' }}>Launch Your Own Website & <span className="text-gradient">Save Big</span></h2>
-                  <p style={{ color: 'var(--text-muted)', marginTop: '8px', fontSize: '14.5px' }}>Need web hosting or a domain name for your new files, tools, or projects? Get started with our verified partners.</p>
+                  <span className="badge">Verified Partner Deal</span>
+                  <h2 style={{ fontSize: '28px', fontWeight: '800', marginTop: '8px' }}>Secure Your <span className="text-gradient">Domain Name</span></h2>
+                  <p style={{ color: 'var(--text-muted)', marginTop: '8px', fontSize: '14.5px' }}>Need a domain name for your new project? Get started with our verified partner and save big.</p>
                 </div>
 
                 <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                  gap: '24px',
-                  maxWidth: '900px',
+                  maxWidth: '500px',
                   margin: '0 auto'
                 }}>
-                  {/* Hostinger Promo Card */}
-                  <div className="glass-panel" style={{ padding: '24px', borderRadius: '18px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'rgba(0, 0, 0, 0.05)' }}>
-                    <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                        <span style={{ fontSize: '11px', fontWeight: '800', color: '#673ab7', background: 'rgba(103, 58, 183, 0.1)', padding: '4px 10px', borderRadius: '6px' }}>Hostinger Partner</span>
-                        <span style={{ fontSize: '12px', fontWeight: '800', color: '#10b981' }}>75% OFF + 3 Months Free</span>
-                      </div>
-                      <h3 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '8px' }}>High-Speed Premium Web Hosting</h3>
-                      <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5', marginBottom: '16px' }}>
-                        Ideal for WordPress blogs, portfolios, and coding projects. Includes a free domain name, free SSL certificates, and 24/7 client support.
-                      </p>
-                    </div>
-                    <a href={AFFILIATE_LINKS.hostinger} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ background: '#673ab7', borderColor: '#673ab7', width: '100%', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', textDecoration: 'none' }}>
-                      Claim Hostinger Discount <FiExternalLink size={14} />
-                    </a>
-                  </div>
-
                   {/* Namecheap Promo Card */}
                   <div className="glass-panel" style={{ padding: '24px', borderRadius: '18px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'rgba(0, 0, 0, 0.05)' }}>
                     <div>
@@ -482,7 +524,7 @@ export default function App() {
                         <span style={{ fontSize: '11px', fontWeight: '800', color: '#de4b1a', background: 'rgba(222, 75, 26, 0.1)', padding: '4px 10px', borderRadius: '6px' }}>Namecheap Partner</span>
                         <span style={{ fontSize: '12px', fontWeight: '800', color: '#10b981' }}>Domains from $0.99</span>
                       </div>
-                      <h3 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '8px' }}>Domain Registration & Security</h3>
+                      <h3 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '8px' }}>Domain Registration &amp; Security</h3>
                       <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5', marginBottom: '16px' }}>
                         Secure your custom domain name with lifetime free privacy protection, premium DNS resolution, and 1-click integrations with Vercel and GitHub.
                       </p>

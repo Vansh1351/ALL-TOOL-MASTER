@@ -1,4 +1,25 @@
 User-agent: *
 Allow: /
+Disallow: /deals
+Disallow: /privacy
+Disallow: /terms
+Disallow: /dmca
+Disallow: /disclaimer
+
+# Allow AI crawlers explicitly for platform discoverability
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: CCBot
+Allow: /
 
 Sitemap: https://alltoolmaster.me/sitemap.xml

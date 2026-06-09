@@ -1,29 +1,9 @@
 import React from 'react';
 import { AFFILIATE_LINKS } from '../affiliateLinks';
-import { FiServer, FiGlobe, FiCheck, FiShoppingBag, FiExternalLink } from 'react-icons/fi';
+import { FiGlobe, FiCheck, FiShoppingBag, FiExternalLink } from 'react-icons/fi';
 
 export default function DealsPage() {
   const deals = [
-    {
-      id: 'hostinger',
-      title: 'Hostinger Premium Web Hosting',
-      tagline: 'High-speed, cloud-based hosting optimized for WordPress and web creators.',
-      discount: 'Save up to 75% Off',
-      price: 'From $2.99/mo',
-      bonus: '+ 3 Months Free',
-      icon: FiServer,
-      color: '#673ab7',
-      features: [
-        'Free Domain registration included',
-        'Unlimited free SSL certificates',
-        '100 GB SSD storage & unlimited bandwidth',
-        '24/7/365 active customer support',
-        'One-click WordPress installer',
-        'Weekly automated backups'
-      ],
-      link: AFFILIATE_LINKS.hostinger,
-      cta: 'Claim Hostinger Deal'
-    },
     {
       id: 'namecheap',
       title: 'Namecheap Domain Names & Security',

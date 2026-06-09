@@ -930,12 +930,12 @@ VITE_API_URL=https://your-backend-server.com`;
             </ol>
           </div>
 
-          {/* Partner Promo: Affiliate Banner */}
+          {/* Partner Promo: Namecheap Affiliate Banner */}
           <div className="glass-panel" style={{ 
             padding: '20px', 
             borderRadius: '20px', 
             border: '1px solid var(--border-color)',
-            background: 'linear-gradient(135deg, rgba(103,58,183,0.05) 0%, rgba(222,75,26,0.05) 100%)',
+            background: 'linear-gradient(135deg, rgba(222,75,26,0.05) 0%, rgba(0,0,0,0.03) 100%)',
             position: 'relative',
             overflow: 'hidden'
           }}>
@@ -946,57 +946,36 @@ VITE_API_URL=https://your-backend-server.com`;
               width: '60px',
               height: '60px',
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, #673ab7 0%, #de4b1a 100%)',
+              background: '#de4b1a',
               filter: 'blur(30px)',
               opacity: 0.2,
               zIndex: 0
             }} />
             
             <div style={{ position: 'relative', zIndex: 1 }}>
-              <span className="badge" style={{ fontSize: '10px', padding: '3px 8px', marginBottom: '8px', display: 'inline-block' }}>Exclusive Partner Offer</span>
-              <h4 style={{ fontSize: '14px', fontWeight: '800', marginBottom: '6px' }}>Need Web Hosting or a Domain?</h4>
+              <span className="badge" style={{ fontSize: '10px', padding: '3px 8px', marginBottom: '8px', display: 'inline-block' }}>Verified Partner</span>
+              <h4 style={{ fontSize: '14px', fontWeight: '800', marginBottom: '6px' }}>Need a Domain Name?</h4>
               <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', lineHeight: '1.4', marginBottom: '14px' }}>
-                Launch your website with <strong>Hostinger</strong> (75% off + free domain) or secure cheap names at <strong>Namecheap</strong> ($0.99 domains).
+                Get cheap domains from <strong>Namecheap</strong> — starting at $0.99 with free privacy protection and SSL.
               </p>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <a 
-                  href={AFFILIATE_LINKS.hostinger}
+                  href={AFFILIATE_LINKS.namecheap}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn btn-primary"
                   style={{
                     height: '34px',
                     fontSize: '12px',
-                    background: '#673ab7',
-                    borderColor: '#673ab7',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '4px',
-                    textDecoration: 'none'
-                  }}
-                >
-                  Get Hosting Deal <FiExternalLink size={12} />
-                </a>
-                <a 
-                  href={AFFILIATE_LINKS.namecheap}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-secondary"
-                  style={{
-                    height: '34px',
-                    fontSize: '12px',
+                    background: '#de4b1a',
                     borderColor: '#de4b1a',
-                    color: '#de4b1a',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '4px',
                     textDecoration: 'none'
                   }}
-                  onMouseEnter={(e) => { e.target.style.background = 'rgba(222, 75, 26, 0.05)' }}
-                  onMouseLeave={(e) => { e.target.style.background = 'none' }}
                 >
                   Get Domain Deal <FiExternalLink size={12} />
                 </a>
@@ -1007,7 +986,7 @@ VITE_API_URL=https://your-backend-server.com`;
                   onClick={() => navigate('deals')}
                   style={{ fontSize: '11px', color: 'var(--accent-color)', fontWeight: '700', textDecoration: 'underline', cursor: 'pointer' }}
                 >
-                  Learn more about resources
+                  View all partner deals
                 </span>
               </div>
             </div>
