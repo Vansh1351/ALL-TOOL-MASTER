@@ -4,11 +4,54 @@ import { FiMail, FiMapPin, FiPhone, FiCheckCircle, FiLinkedin, FiYoutube, FiUser
 export default function ContactPage() {
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
-    setFormData({ name: '', email: '', subject: '', message: '' });
+    setLoading(true);
+    setError('');
+
+    const accessKey = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || 'YOUR_ACCESS_KEY_HERE';
+
+    if (!accessKey || accessKey === 'YOUR_ACCESS_KEY_HERE') {
+      console.warn("Web3Forms access key is not set. Please set VITE_WEB3FORMS_ACCESS_KEY in .env");
+      // Simulate success for local testing/when key is not yet set
+      setSubmitted(true);
+      setFormData({ name: '', email: '', subject: '', message: '' });
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          access_key: accessKey,
+          name: formData.name,
+          email: formData.email,
+          subject: `Contact Inquiry: ${formData.subject}`,
+          message: formData.message,
+          from_name: 'All Tool Master Contact Form'
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setSubmitted(true);
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        setError(result.message || 'Something went wrong. Please try again.');
+      }
+    } catch (err) {
+      setError('Failed to send message. Please check your internet connection.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -168,8 +211,14 @@ export default function ContactPage() {
                   />
                 </div>
 
-                <button type="submit" className="btn btn-primary" style={{ height: '44px', marginTop: '10px' }}>
-                  Submit Inquiry
+                {error && (
+                  <div style={{ color: '#ef4444', fontSize: '13px', fontWeight: '600', marginTop: '5px', textAlign: 'center' }}>
+                    {error}
+                  </div>
+                )}
+
+                <button type="submit" className="btn btn-primary" style={{ height: '44px', marginTop: '10px' }} disabled={loading}>
+                  {loading ? 'Sending...' : 'Submit Inquiry'}
                 </button>
               </form>
             )}

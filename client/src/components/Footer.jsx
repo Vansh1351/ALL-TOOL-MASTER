@@ -4,12 +4,53 @@ import { TOOLS_DATA } from './ToolGrid';
 
 export default function Footer({ setView, navigate }) {
   const [email, setEmail] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [statusMsg, setStatusMsg] = useState('');
 
-  const handleSubscribe = (e) => {
+  const handleSubscribe = async (e) => {
     e.preventDefault();
     if (!email) return;
-    alert(`Thank you for subscribing with: ${email}`);
-    setEmail('');
+    setSubmitting(true);
+    setStatusMsg('');
+
+    const accessKey = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || 'YOUR_ACCESS_KEY_HERE';
+
+    if (!accessKey || accessKey === 'YOUR_ACCESS_KEY_HERE') {
+      console.warn("Web3Forms access key is not set. Please set VITE_WEB3FORMS_ACCESS_KEY in .env");
+      alert(`Thank you for subscribing with: ${email}`);
+      setEmail('');
+      setSubmitting(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          access_key: accessKey,
+          email: email,
+          subject: 'New Newsletter Subscription',
+          message: `Email ${email} has subscribed to the newsletter.`,
+          from_name: 'All Tool Master Newsletter'
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setStatusMsg('Subscribed successfully!');
+        setEmail('');
+      } else {
+        setStatusMsg(result.message || 'Failed to subscribe. Please try again.');
+      }
+    } catch (err) {
+      setStatusMsg('Failed to subscribe. Check your connection.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleLinkClick = (viewId) => {
@@ -166,11 +207,17 @@ export default function Footer({ setView, navigate }) {
                 className="input-field"
                 style={{ padding: '8px 12px', fontSize: '13px', height: '40px' }}
                 required
+                disabled={submitting}
               />
-              <button type="submit" className="btn btn-primary" style={{ padding: '0 16px', height: '40px' }}>
-                <FiSend />
+              <button type="submit" className="btn btn-primary" style={{ padding: '0 16px', height: '40px' }} disabled={submitting}>
+                {submitting ? '...' : <FiSend />}
               </button>
             </form>
+            {statusMsg && (
+              <span style={{ fontSize: '11px', color: statusMsg.includes('successfully') ? '#10b981' : '#ef4444', marginTop: '-8px', display: 'block', fontWeight: '600' }}>
+                {statusMsg}
+              </span>
+            )}
 
             <div style={{ display: 'flex', gap: '14px', marginTop: '4px' }}>
               <a href="https://www.linkedin.com/in/vansh-shah-824926291/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-muted)', fontSize: '18px' }} title="LinkedIn"><FiLinkedin /></a>
