@@ -156,43 +156,25 @@ export default function DealsPage({ navigate }) {
                 </div>
 
                 {/* Buttons Container */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px', zIndex: 1 }}>
+                <div className="deals-btn-container">
+                  <button 
+                    onClick={() => navigate(deal.reviewView)}
+                    className="btn btn-secondary"
+                  >
+                    {deal.id === 'namecheap' ? 'Read Full Review' : 'View Landing Page'}
+                  </button>
                   <a 
                     href={deal.link}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn btn-primary"
                     style={{
-                      width: '100%',
-                      height: '46px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      textDecoration: 'none',
                       background: deal.color,
-                      borderColor: deal.color,
-                      fontSize: '14px',
-                      whiteSpace: 'nowrap'
+                      borderColor: deal.color
                     }}
                   >
                     <FiShoppingBag /> {deal.cta} <FiExternalLink size={14} />
                   </a>
-                  <button 
-                    onClick={() => navigate(deal.reviewView)}
-                    className="btn btn-secondary"
-                    style={{ 
-                      width: '100%', 
-                      height: '46px', 
-                      fontSize: '14px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {deal.id === 'namecheap' ? 'Read Full Review' : 'View Landing Page'}
-                  </button>
                 </div>
               </div>
             );

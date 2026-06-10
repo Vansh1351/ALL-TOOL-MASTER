@@ -354,3 +354,42 @@ h1, h2, h3, h4, h5, h6 {
     opacity: 1;
   }
 }
+
+/* Deals CTA Buttons Layout */
+.deals-btn-container {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  z-index: 1;
+  width: 100%;
+}
+
+.deals-btn-container .btn {
+  flex: 1;
+  height: 46px;
+  white-space: nowrap;
+  padding: 12px 14px;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .deals-btn-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .deals-btn-container .btn {
+    width: 100%;
+    flex: none;
+    font-size: 14.5px;
+    padding: 12px 24px;
+  }
+  .deals-btn-container .btn-primary {
+    order: -1;
+  }
+  .deals-btn-container .btn-secondary {
+    order: 0;
+  }
+}
