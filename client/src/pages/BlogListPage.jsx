@@ -3,19 +3,41 @@ import { BLOG_POSTS } from '../blogData';
 import { TOOLS_DATA } from '../components/ToolGrid';
 import { FiCalendar, FiClock, FiUser, FiArrowRight } from 'react-icons/fi';
 
-export default function BlogListPage({ navigate }) {
-  const [selectedCategory, setSelectedCategory] = useState('All');
-
-  const getToolCategory = (toolId) => {
-    const tool = TOOLS_DATA.find(t => t.id === toolId);
-    return tool ? tool.category : 'General';
+export default function BlogListPage({ navigate, category }) {
+  const categoryMap = {
+    'all': 'All',
+    'downloader': 'Downloader',
+    'converter': 'Converter',
+    'ai-tools': 'AI Tool',
+    'productivity': 'Productivity',
+    'web-hosting': 'Web Hosting'
   };
 
-  const filteredPosts = selectedCategory === 'All'
-    ? BLOG_POSTS
-    : BLOG_POSTS.filter(post => getToolCategory(post.relatedToolId) === selectedCategory);
+  const getToolCategory = (toolId) => {
+    if (toolId === 'web-hosting') return 'Web Hosting';
+    const tool = TOOLS_DATA.find(t => t.id === toolId);
+    if (!tool) return 'General';
+    return tool.category === 'Utility' ? 'Productivity' : tool.category;
+  };
 
-  const categories = ['All', 'Downloader', 'Converter', 'AI Tool'];
+  const activeLabel = categoryMap[category] || 'All';
+
+  const filteredPosts = activeLabel === 'All'
+    ? BLOG_POSTS
+    : BLOG_POSTS.filter(post => getToolCategory(post.relatedToolId) === activeLabel);
+
+  const categories = [
+    { label: 'All', slug: 'all' },
+    { label: 'Converter', slug: 'converter' },
+    { label: 'Downloader', slug: 'downloader' },
+    { label: 'AI Tool', slug: 'ai-tools' },
+    { label: 'Productivity', slug: 'productivity' },
+    { label: 'Web Hosting', slug: 'web-hosting' }
+  ];
+
+  const handleCategoryClick = (catSlug) => {
+    navigate('blog-list', null, null, catSlug);
+  };
 
   return (
     <div style={{ padding: '60px 0' }} className="animate-fade-in">
@@ -42,12 +64,12 @@ export default function BlogListPage({ navigate }) {
         }}>
           {categories.map(cat => (
             <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`btn ${selectedCategory === cat ? 'btn-primary' : 'btn-secondary'}`}
+              key={cat.slug}
+              onClick={() => handleCategoryClick(cat.slug)}
+              className={`btn ${activeLabel === cat.label ? 'btn-primary' : 'btn-secondary'}`}
               style={{ padding: '8px 16px', fontSize: '13px', borderRadius: '20px' }}
             >
-              {cat}
+              {cat.label}
             </button>
           ))}
         </div>
@@ -74,7 +96,13 @@ export default function BlogListPage({ navigate }) {
                   transition: 'all 0.3s ease',
                   border: '1px solid var(--border-color)'
                 }}
-                onClick={() => navigate('blog-post', null, post.slug)}
+                onClick={() => {
+                  if (post.isAffiliateReview) {
+                    navigate('namecheap-review');
+                  } else {
+                    navigate('blog-post', null, post.slug);
+                  }
+                }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-4px)';
                   e.currentTarget.style.borderColor = 'var(--accent-color)';

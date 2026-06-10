@@ -2,7 +2,8 @@ import React from 'react';
 import { 
   FiYoutube, FiMusic, FiImage, FiFileText, 
   FiFolderPlus, FiVideo, FiMic, FiCompass, 
-  FiBookOpen, FiClock, FiSettings, FiVolume2 
+  FiBookOpen, FiClock, FiSettings, FiVolume2,
+  FiStar
 } from 'react-icons/fi';
 
 export const TOOLS_DATA = [
@@ -71,7 +72,7 @@ export const TOOLS_DATA = [
     icon: FiMusic,
     color: '#ec4899',
     category: 'Converter',
-    routes: ['/convert/mp4-to-mp3', '/convert/mov-to-mp4', '/convert/video-to-audio'],
+    routes: ['/convert/mp4-to-mp3', '/convert/mp4-to-wav', '/convert/mov-to-mp4', '/convert/mp3-to-wav', '/convert/video-to-audio'],
     keywords: [
       'mp4 to mp3', 'mp4 to mp3 converter', 'mov to mp4', 'video converter', 'audio converter', 'file converter', 
       'mov converter', 'wav converter', 'media converter', 'convert flac to mp3 without losing quality', 
@@ -99,7 +100,7 @@ export const TOOLS_DATA = [
     icon: FiImage,
     color: '#3b82f6',
     category: 'Converter',
-    routes: ['/convert/heic-to-jpg', '/convert/webp-to-png', '/convert/jpg-to-png', '/convert/png-to-jpg'],
+    routes: ['/convert/heic-to-jpg', '/convert/webp-to-png', '/convert/jpg-to-png', '/convert/png-to-jpg', '/convert/jpg-to-pdf', '/convert/png-to-pdf'],
     keywords: [
       'image converter', 'jpg to png', 'png to jpg', 'jpg to pdf', 'png to pdf', 'image to docx', 'file converter', 
       'picture converter', 'bulk image converter', 'document converter', 'how to convert HEIC to JPG online free', 
@@ -129,7 +130,7 @@ export const TOOLS_DATA = [
     icon: FiFileText,
     color: '#10b981',
     category: 'Converter',
-    routes: ['/convert/pdf-to-word', '/convert/pdf-to-docx', '/convert/docx-to-pdf', '/convert/word-to-pdf', '/convert/excel-to-pdf'],
+    routes: ['/convert/pdf-to-word', '/convert/pdf-to-docx', '/convert/docx-to-pdf', '/convert/word-to-pdf', '/convert/excel-to-pdf', '/convert/pdf-to-jpg'],
     keywords: [
       'pdf converter', 'pdf to docx', 'docx to pdf', 'text to pdf', 'document converter', 'file converter', 
       'pdf translator', 'word to pdf', 'pdf to word', 'best free PDF to Word converter software download', 
@@ -156,7 +157,7 @@ export const TOOLS_DATA = [
     icon: FiFolderPlus,
     color: '#f59e0b',
     category: 'Utility',
-    routes: ['/utility/zip-extractor', '/utility/unzip'],
+    routes: ['/utility/zip-extractor', '/utility/unzip', '/convert/zip-extractor'],
     keywords: [
       'zip extractor', 'zip archiver', 'unzip', 'zip files', 'extract zip', 'compress files', 'zip file converter', 
       'file archiver', 'zip extractor online free', 'extract zip files without software', 'online zip archive creator', 
@@ -323,7 +324,7 @@ export const TOOLS_DATA = [
   }
 ];
 
-export default function ToolGrid({ filterText, onSelectTool }) {
+export default function ToolGrid({ filterText, onSelectTool, bookmarks = [], toggleBookmark = () => {} }) {
   const filteredTools = React.useMemo(() => {
     const query = (filterText || '').toLowerCase().trim();
     if (!query) {
@@ -483,13 +484,36 @@ export default function ToolGrid({ filterText, onSelectTool }) {
                       }}>
                         <IconComp />
                       </div>
-                      <span className="badge" style={{
-                        background: 'var(--bg-grid)',
-                        border: '1px solid var(--border-color)',
-                        color: 'var(--text-muted)'
-                      }}>
-                        {tool.category}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span className="badge" style={{
+                          background: 'var(--bg-grid)',
+                          border: '1px solid var(--border-color)',
+                          color: 'var(--text-muted)'
+                        }}>
+                          {tool.category}
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            toggleBookmark(tool.id);
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: bookmarks.includes(tool.id) ? 'var(--accent-color)' : 'var(--text-muted)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            fontSize: '16px',
+                            padding: '4px',
+                            transition: 'var(--transition-smooth)'
+                          }}
+                          title={bookmarks.includes(tool.id) ? 'Remove Bookmark' : 'Add Bookmark'}
+                        >
+                          <FiStar style={{ fill: bookmarks.includes(tool.id) ? 'var(--accent-color)' : 'none' }} />
+                        </button>
+                      </div>
                     </div>
 
                     <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '8px' }}>

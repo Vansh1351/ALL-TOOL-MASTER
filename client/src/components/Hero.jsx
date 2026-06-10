@@ -69,7 +69,7 @@ export default function Hero({ searchVal, setSearchVal, scrollToTools }) {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px', alignItems: 'center' }} className="popular-tags-container">
               <span style={{ fontSize: '12.5px', color: 'var(--text-muted)', fontWeight: '600' }}>Popular Searches:</span>
               {[
-                'URL to MP4', 'YouTube to MP3', 'PDF to Word', 'HEIC to JPG', 'AI Note Taker', 'WebP to PNG', 'AI Summarizer'
+                'mp4', 'pdf', 'jpg', 'zip', 'youtube', 'instagram', 'ai notes'
               ].map((tag) => (
                 <button
                   key={tag}

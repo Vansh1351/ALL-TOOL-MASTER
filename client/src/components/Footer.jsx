@@ -163,6 +163,20 @@ export default function Footer({ setView, navigate }) {
                 Deals & Hosting
               </a>
               <a 
+                href="/hosting/namecheap-review" 
+                onClick={(e) => { e.preventDefault(); handleLinkClick('namecheap-review'); }} 
+                style={{ color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'none' }}
+              >
+                Namecheap Review
+              </a>
+              <a 
+                href="/analytics" 
+                onClick={(e) => { e.preventDefault(); handleLinkClick('analytics-dashboard'); }} 
+                style={{ color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'none' }}
+              >
+                SaaS Analytics
+              </a>
+              <a 
                 href="/privacy" 
                 onClick={(e) => { e.preventDefault(); handleLinkClick('privacy'); }} 
                 style={{ color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'none' }}

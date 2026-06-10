@@ -6,25 +6,46 @@ import HistoryPanel from './components/HistoryPanel';
 import FAQAccordion from './components/FAQAccordion';
 import Footer from './components/Footer';
 
-// Pages
-import AboutPage from './pages/AboutPage';
-import ContactPage from './pages/ContactPage';
-import PrivacyPage from './pages/PrivacyPage';
-import TermsPage from './pages/TermsPage';
-import DisclaimerPage from './pages/DisclaimerPage';
-import DmcaPage from './pages/DmcaPage';
-import ToolPage from './pages/ToolPage';
-import BlogListPage from './pages/BlogListPage';
-import BlogPostPage from './pages/BlogPostPage';
-import FileCompressor from './pages/FileCompressor';
-import ResumeBuilder from './pages/ResumeBuilder';
-import ScriptWriter from './pages/ScriptWriter';
-import DealsPage from './pages/DealsPage';
+// Pages (Lazy Loaded)
+const AboutPage = React.lazy(() => import('./pages/AboutPage'));
+const ContactPage = React.lazy(() => import('./pages/ContactPage'));
+const PrivacyPage = React.lazy(() => import('./pages/PrivacyPage'));
+const TermsPage = React.lazy(() => import('./pages/TermsPage'));
+const DisclaimerPage = React.lazy(() => import('./pages/DisclaimerPage'));
+const DmcaPage = React.lazy(() => import('./pages/DmcaPage'));
+const ToolPage = React.lazy(() => import('./pages/ToolPage'));
+const BlogListPage = React.lazy(() => import('./pages/BlogListPage'));
+const BlogPostPage = React.lazy(() => import('./pages/BlogPostPage'));
+const FileCompressor = React.lazy(() => import('./pages/FileCompressor'));
+const ResumeBuilder = React.lazy(() => import('./pages/ResumeBuilder'));
+const ScriptWriter = React.lazy(() => import('./pages/ScriptWriter'));
+const DealsPage = React.lazy(() => import('./pages/DealsPage'));
+
+// New Page Modules
+const NamecheapReview = React.lazy(() => import('./pages/NamecheapReview'));
+const AnalyticsDashboard = React.lazy(() => import('./pages/AnalyticsDashboard'));
+
 import { BLOG_POSTS } from './blogData';
 import { SEO_DATA } from './seoData';
 import { AFFILIATE_LINKS } from './affiliateLinks';
 
-import { FiShield, FiZap, FiUserCheck, FiCpu, FiStar, FiExternalLink } from 'react-icons/fi';
+
+import { FiShield, FiZap, FiUserCheck, FiCpu, FiStar, FiExternalLink, FiClock } from 'react-icons/fi';
+
+function SkeletonLoader() {
+  return (
+    <div className="container animate-fade-in" style={{ padding: '40px 0', minHeight: '60vh' }}>
+      <div className="skeleton" style={{ height: '40px', width: '50%', marginBottom: '20px', borderRadius: '8px' }}></div>
+      <div className="skeleton" style={{ height: '20px', width: '90%', marginBottom: '12px', borderRadius: '6px' }}></div>
+      <div className="skeleton" style={{ height: '20px', width: '80%', marginBottom: '32px', borderRadius: '6px' }}></div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
+        <div className="skeleton" style={{ height: '220px', borderRadius: '16px' }}></div>
+        <div className="skeleton" style={{ height: '220px', borderRadius: '16px' }}></div>
+        <div className="skeleton" style={{ height: '220px', borderRadius: '16px' }}></div>
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
@@ -32,9 +53,50 @@ export default function App() {
   const [searchVal, setSearchVal] = useState('');
   const [activeTool, setActiveTool] = useState(null);
   const [selectedBlogSlug, setSelectedBlogSlug] = useState(null);
+  const [selectedBlogCategory, setSelectedBlogCategory] = useState(null);
   const [history, setHistory] = useState(JSON.parse(localStorage.getItem('ops_history')) || []);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [geminiKey, setGeminiKey] = useState(localStorage.getItem('gemini_api_key') || '');
+  
+  // Bookmarks, Recently Used, Conversion Counter & Toasts
+  const [bookmarks, setBookmarks] = useState(JSON.parse(localStorage.getItem('ops_bookmarks')) || []);
+  const [recentlyUsed, setRecentlyUsed] = useState(JSON.parse(localStorage.getItem('ops_recently_used')) || []);
+  const [conversionCount, setConversionCount] = useState(parseInt(localStorage.getItem('ops_conversion_count')) || 14205);
+  const [toasts, setToasts] = useState([]);
+
+  const addToast = (message, type = 'success') => {
+    const id = Date.now();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 4000);
+  };
+
+  const toggleBookmark = (toolId) => {
+    let updated;
+    if (bookmarks.includes(toolId)) {
+      updated = bookmarks.filter(id => id !== toolId);
+      addToast('Removed from favorites', 'info');
+    } else {
+      updated = [...bookmarks, toolId];
+      addToast('Added to favorites', 'success');
+    }
+    setBookmarks(updated);
+    localStorage.setItem('ops_bookmarks', JSON.stringify(updated));
+  };
+
+  const addRecentlyUsed = (toolId) => {
+    const filtered = recentlyUsed.filter(id => id !== toolId);
+    const updated = [toolId, ...filtered].slice(0, 4); // Keep top 4
+    setRecentlyUsed(updated);
+    localStorage.setItem('ops_recently_used', JSON.stringify(updated));
+  };
+
+  const incrementConversion = () => {
+    const updated = conversionCount + 1;
+    setConversionCount(updated);
+    localStorage.setItem('ops_conversion_count', updated.toString());
+  };
   
   const toolsRef = useRef(null);
 
@@ -45,13 +107,18 @@ export default function App() {
   }, [theme]);
 
   // Navigate helper function
-  const navigate = (viewId, tool = null, slug = null) => {
+  const navigate = (viewId, tool = null, slug = null, category = null) => {
     setView(viewId);
     setActiveTool(tool);
     setSelectedBlogSlug(slug);
+    setSelectedBlogCategory(category);
     
     if (viewId !== 'dashboard') {
       setSearchVal('');
+    }
+    
+    if (viewId === 'tool-page' && tool) {
+      addRecentlyUsed(tool.id);
     }
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -80,17 +147,44 @@ export default function App() {
         return;
       }
 
-      // Deals page
+      // Deals page & Namecheap Reviews
+      if (path === '/hosting/namecheap-review' || path === '/deals/namecheap') {
+        setView('namecheap-review');
+        setActiveTool(null);
+        setSelectedBlogSlug(null);
+        setSelectedBlogCategory(null);
+        return;
+      }
       if (path === '/deals') {
         setView('deals');
         setActiveTool(null);
         setSelectedBlogSlug(null);
+        setSelectedBlogCategory(null);
+        return;
+      }
+
+      // Analytics Dashboard
+      if (path === '/analytics' || path === '/admin-analytics') {
+        setView('analytics-dashboard');
+        setActiveTool(null);
+        setSelectedBlogSlug(null);
+        setSelectedBlogCategory(null);
         return;
       }
       
       // Blog pages
       if (path === '/blog') {
         setView('blog-list');
+        setSelectedBlogCategory(null);
+        setActiveTool(null);
+        setSelectedBlogSlug(null);
+        return;
+      }
+      
+      if (path.startsWith('/blog/category/')) {
+        const cat = path.substring(15);
+        setView('blog-list');
+        setSelectedBlogCategory(cat);
         setActiveTool(null);
         setSelectedBlogSlug(null);
         return;
@@ -101,6 +195,7 @@ export default function App() {
         setView('blog-post');
         setSelectedBlogSlug(slug);
         setActiveTool(null);
+        setSelectedBlogCategory(null);
         return;
       }
       
@@ -161,9 +256,9 @@ export default function App() {
     let desc = "Access free online file tools. Fast PDF and media converter, universal web video downloader from URL, and smart AI note-taker online. No registration required.";
     
     if (view === 'tool-page' && activeTool) {
-      const firstRoute = activeTool.routes ? activeTool.routes[0] : '/';
-      path = firstRoute;
-      const seoInfo = SEO_DATA[activeTool.id];
+      const currentPath = window.location.pathname;
+      path = activeTool.routes && activeTool.routes.includes(currentPath) ? currentPath : (activeTool.routes ? activeTool.routes[0] : '/');
+      const seoInfo = SEO_DATA[path] || SEO_DATA[activeTool.id];
       title = seoInfo?.title || `${activeTool.title} | Free Online Converter & AI Notes | All Tool Master`;
       desc = seoInfo?.description || `${activeTool.desc} Safe, fast, and browser-based format utilities by All Tool Master.`;
       
@@ -186,12 +281,18 @@ export default function App() {
         window.gtag('event', 'screen_view', { screen_name: `blog-post-${selectedBlogSlug}` });
       }
     } else if (view === 'blog-list') {
-      path = '/blog';
-      title = "All Tool Master Blog | Free Online Guides & Video Converter Tutorials";
-      desc = "Learn how to convert MP4 to MP3, download YouTube videos, convert HEIC to JPG online, and transcribe meeting transcripts with AI tools.";
+      if (selectedBlogCategory) {
+        path = `/blog/category/${selectedBlogCategory}`;
+        title = `${selectedBlogCategory.charAt(0).toUpperCase() + selectedBlogCategory.slice(1)} Articles | All Tool Master Blog`;
+        desc = `Browse high-quality educational guides, tool reviews, and productivity tutorials in the ${selectedBlogCategory} category.`;
+      } else {
+        path = '/blog';
+        title = "All Tool Master Blog | Free Online Guides & Video Converter Tutorials";
+        desc = "Learn how to convert MP4 to MP3, download YouTube videos, convert HEIC to JPG online, and transcribe meeting transcripts with AI tools.";
+      }
       
       if (window.gtag) {
-        window.gtag('event', 'screen_view', { screen_name: 'blog-list' });
+        window.gtag('event', 'screen_view', { screen_name: `blog-list${selectedBlogCategory ? `-${selectedBlogCategory}` : ''}` });
       }
     } else if (view !== 'dashboard') {
       const pathMap = {
@@ -202,7 +303,9 @@ export default function App() {
         disclaimer: '/disclaimer',
         dmca: '/dmca',
         faqs: '/faqs',
-        deals: '/deals'
+        deals: '/deals',
+        'namecheap-review': '/hosting/namecheap-review',
+        'analytics-dashboard': '/analytics'
       };
       const titleMap = {
         about: "About Us | All Tool Master",
@@ -212,7 +315,9 @@ export default function App() {
         disclaimer: "Disclaimer | All Tool Master",
         dmca: "DMCA Policy | All Tool Master",
         faqs: "Frequently Asked Questions | All Tool Master",
-        deals: "Hosting Deals & Domains | All Tool Master"
+        deals: "Hosting Deals & Domains | All Tool Master",
+        'namecheap-review': "Namecheap Review & Student Domain Discounts | All Tool Master",
+        'analytics-dashboard': "SaaS Performance & Tool Traffic Analytics | All Tool Master"
       };
       const descMap = {
         about: "Learn about All Tool Master, our mission to build secure, browser-based file conversion and AI productivity tools.",
@@ -222,7 +327,9 @@ export default function App() {
         disclaimer: "Legal disclaimers for the All Tool Master toolset and conversions.",
         dmca: "DMCA copyright policy and takedown instructions for All Tool Master.",
         faqs: "Find answers to frequently asked questions about All Tool Master conversions, safety, and tools.",
-        deals: "Domain registration discounts with our affiliate promo tools via Namecheap."
+        deals: "Domain registration discounts with our affiliate promo tools via Namecheap.",
+        'namecheap-review': "Read our comprehensive Namecheap review. Compare pricing vs GoDaddy, free domain privacy protection, and claim special student discounts.",
+        'analytics-dashboard': "View real-time traffic statistics, top active digital converter utilities, and affiliate conversion rates on All Tool Master."
       };
       
       path = pathMap[view] || '/';
@@ -283,9 +390,11 @@ export default function App() {
     const dynamicSchema = document.getElementById('dynamic-schema');
     if (dynamicSchema) {
       if (view === 'tool-page' && activeTool) {
-        const seoInfo = SEO_DATA[activeTool.id];
-        const toolUrl = `https://alltoolmaster.me${path}`;
-        const schema = {
+        const currentPath = window.location.pathname;
+        const seoInfo = SEO_DATA[currentPath] || SEO_DATA[activeTool.id];
+        const toolUrl = `https://alltoolmaster.me${currentPath}`;
+        
+        const mainSchema = {
           '@context': 'https://schema.org',
           '@type': 'WebApplication',
           name: seoInfo?.h1 || activeTool.title,
@@ -299,18 +408,67 @@ export default function App() {
             priceCurrency: 'USD'
           }
         };
-        dynamicSchema.textContent = JSON.stringify(schema);
+
+        let schemas = [mainSchema];
+        
+        // FAQPage Schema
+        if (seoInfo && seoInfo.faqs && seoInfo.faqs.length > 0) {
+          const faqSchema = {
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: seoInfo.faqs.map(f => ({
+              '@type': 'Question',
+              name: f.question,
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: f.answer
+              }
+            }))
+          };
+          schemas.push(faqSchema);
+        }
+
+        // BreadcrumbList Schema
+        const breadcrumbs = {
+          '@context': 'https://schema.org',
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            {
+              '@type': 'ListItem',
+              position: 1,
+              name: 'Home',
+              item: 'https://alltoolmaster.me'
+            },
+            {
+              '@type': 'ListItem',
+              position: 2,
+              name: activeTool.category,
+              item: `https://alltoolmaster.me/${activeTool.category.toLowerCase()}`
+            },
+            {
+              '@type': 'ListItem',
+              position: 3,
+              name: seoInfo?.h1 || activeTool.title,
+              item: toolUrl
+            }
+          ]
+        };
+        schemas.push(breadcrumbs);
+
+        dynamicSchema.textContent = JSON.stringify(schemas);
       } else if (view === 'blog-post' && selectedBlogSlug) {
         const post = BLOG_POSTS.find(p => p.slug === selectedBlogSlug);
         if (post) {
-          const schema = {
+          const articleSchema = {
             '@context': 'https://schema.org',
             '@type': 'Article',
             headline: post.title,
             description: post.excerpt,
             author: {
               '@type': 'Person',
-              name: 'All Tool Master'
+              name: 'Vansh Shah',
+              jobTitle: 'Founder',
+              url: 'https://www.linkedin.com/in/vansh-shah-824926291/'
             },
             publisher: {
               '@type': 'Organization',
@@ -325,13 +483,83 @@ export default function App() {
             url: `https://alltoolmaster.me/blog/${post.slug}`,
             image: 'https://alltoolmaster.me/logo.png'
           };
-          dynamicSchema.textContent = JSON.stringify(schema);
+
+          const breadcrumbs = {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              {
+                '@type': 'ListItem',
+                position: 1,
+                name: 'Home',
+                item: 'https://alltoolmaster.me'
+              },
+              {
+                '@type': 'ListItem',
+                position: 2,
+                name: 'Blog',
+                item: 'https://alltoolmaster.me/blog'
+              },
+              {
+                '@type': 'ListItem',
+                position: 3,
+                name: post.title,
+                item: `https://alltoolmaster.me/blog/${post.slug}`
+              }
+            ]
+          };
+
+          dynamicSchema.textContent = JSON.stringify([articleSchema, breadcrumbs]);
         }
+      } else if (view === 'dashboard') {
+        const orgSchema = {
+          '@context': 'https://schema.org',
+          '@type': 'Organization',
+          name: 'All Tool Master',
+          url: 'https://alltoolmaster.me',
+          logo: 'https://alltoolmaster.me/logo.png',
+          sameAs: [
+            'https://www.linkedin.com/in/vansh-shah-824926291/',
+            'https://www.youtube.com/@VANSHSHAH-india'
+          ]
+        };
+
+        const websiteSchema = {
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          name: 'All Tool Master',
+          url: 'https://alltoolmaster.me',
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: 'https://alltoolmaster.me/search?q={search_term_string}',
+            'query-input': 'required name=search_term_string'
+          }
+        };
+
+        dynamicSchema.textContent = JSON.stringify([orgSchema, websiteSchema]);
       } else {
-        dynamicSchema.textContent = '{}';
+        const breadcrumbs = {
+          '@context': 'https://schema.org',
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            {
+              '@type': 'ListItem',
+              position: 1,
+              name: 'Home',
+              item: 'https://alltoolmaster.me'
+            },
+            {
+              '@type': 'ListItem',
+              position: 2,
+              name: view.charAt(0).toUpperCase() + view.slice(1).replace('-', ' '),
+              item: `https://alltoolmaster.me/${view}`
+            }
+          ]
+        };
+        dynamicSchema.textContent = JSON.stringify([breadcrumbs]);
       }
     }
-  }, [view, activeTool, selectedBlogSlug]);
+  }, [view, activeTool, selectedBlogSlug, selectedBlogCategory]);
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
@@ -417,11 +645,61 @@ export default function App() {
               scrollToTools={scrollToTools} 
             />
 
+            {/* Bookmarks & Recently Used Section */}
+            {(bookmarks.length > 0 || recentlyUsed.length > 0) && (
+              <section style={{ padding: '20px 0 0 0' }}>
+                <div className="container">
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
+                    {bookmarks.length > 0 && (
+                      <div className="glass-panel" style={{ padding: '20px', borderRadius: '16px' }}>
+                        <h3 style={{ fontSize: '15px', fontWeight: '800', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-color)' }}>
+                          <FiStar style={{ fill: 'var(--accent-color)' }} /> Favorite Tools
+                        </h3>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                          {bookmarks.map(id => {
+                            const t = TOOLS_DATA.find(x => x.id === id);
+                            if (!t) return null;
+                            const IconComp = t.icon;
+                            return (
+                              <button key={id} onClick={() => navigate('tool-page', t)} className="btn btn-secondary" style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <IconComp size={14} style={{ color: t.color }} /> {t.title}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    {recentlyUsed.length > 0 && (
+                      <div className="glass-panel" style={{ padding: '20px', borderRadius: '16px' }}>
+                        <h3 style={{ fontSize: '15px', fontWeight: '800', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <FiClock /> Recently Used
+                        </h3>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                          {recentlyUsed.map(id => {
+                            const t = TOOLS_DATA.find(x => x.id === id);
+                            if (!t) return null;
+                            const IconComp = t.icon;
+                            return (
+                              <button key={id} onClick={() => navigate('tool-page', t)} className="btn btn-secondary" style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <IconComp size={14} style={{ color: t.color }} /> {t.title}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </section>
+            )}
+
             {/* Tool Dashboard Tiles */}
             <div ref={toolsRef}>
               <ToolGrid 
                 filterText={searchVal} 
                 onSelectTool={(tool) => navigate('tool-page', tool)} 
+                bookmarks={bookmarks}
+                toggleBookmark={toggleBookmark}
               />
             </div>
 
@@ -579,33 +857,41 @@ export default function App() {
           </div>
         )}
 
-        {view === 'about' && <AboutPage />}
-        {view === 'contact' && <ContactPage />}
-        {view === 'privacy' && <PrivacyPage />}
-        {view === 'terms' && <TermsPage />}
-        {view === 'disclaimer' && <DisclaimerPage />}
-        {view === 'dmca' && <DmcaPage />}
-        {view === 'faqs' && <FAQAccordion />}
-        {view === 'blog-list' && <BlogListPage navigate={navigate} />}
-        {view === 'deals' && <DealsPage />}
-        {view === 'blog-post' && <BlogPostPage slug={selectedBlogSlug} navigate={navigate} />}
-        {view === 'tool-page' && activeTool && (
-          activeTool.id === 'file-compressor' ? (
-            <FileCompressor tool={activeTool} setView={setView} setActiveTool={setActiveTool} addToHistory={addToHistory} navigate={navigate} />
-          ) : activeTool.id === 'resume-builder' ? (
-            <ResumeBuilder tool={activeTool} setView={setView} setActiveTool={setActiveTool} navigate={navigate} />
-          ) : activeTool.id === 'ai-script-writer' ? (
-            <ScriptWriter tool={activeTool} setView={setView} setActiveTool={setActiveTool} navigate={navigate} />
-          ) : (
-            <ToolPage 
-              tool={activeTool} 
-              setView={setView} 
-              setActiveTool={setActiveTool} 
-              addToHistory={addToHistory} 
-              navigate={navigate}
-            />
-          )
-        )}
+        <React.Suspense fallback={<SkeletonLoader />}>
+          {view === 'about' && <AboutPage />}
+          {view === 'contact' && <ContactPage />}
+          {view === 'privacy' && <PrivacyPage />}
+          {view === 'terms' && <TermsPage />}
+          {view === 'disclaimer' && <DisclaimerPage />}
+          {view === 'dmca' && <DmcaPage />}
+          {view === 'faqs' && <FAQAccordion />}
+          {view === 'blog-list' && <BlogListPage category={selectedBlogCategory} navigate={navigate} />}
+          {view === 'deals' && <DealsPage navigate={navigate} />}
+          {view === 'blog-post' && <BlogPostPage slug={selectedBlogSlug} navigate={navigate} />}
+          {view === 'namecheap-review' && <NamecheapReview navigate={navigate} />}
+          {view === 'analytics-dashboard' && <AnalyticsDashboard navigate={navigate} />}
+          {view === 'tool-page' && activeTool && (
+            activeTool.id === 'file-compressor' ? (
+              <FileCompressor tool={activeTool} setView={setView} setActiveTool={setActiveTool} addToHistory={addToHistory} navigate={navigate} addToast={addToast} incrementConversion={incrementConversion} />
+            ) : activeTool.id === 'resume-builder' ? (
+              <ResumeBuilder tool={activeTool} setView={setView} setActiveTool={setActiveTool} navigate={navigate} addToast={addToast} />
+            ) : activeTool.id === 'ai-script-writer' ? (
+              <ScriptWriter tool={activeTool} setView={setView} setActiveTool={setActiveTool} navigate={navigate} addToast={addToast} />
+            ) : (
+              <ToolPage 
+                tool={activeTool} 
+                setView={setView} 
+                setActiveTool={setActiveTool} 
+                addToHistory={addToHistory} 
+                navigate={navigate}
+                addToast={addToast}
+                incrementConversion={incrementConversion}
+                bookmarks={bookmarks}
+                toggleBookmark={toggleBookmark}
+              />
+            )
+          )}
+        </React.Suspense>
       </main>
 
       {/* Footer */}
@@ -664,6 +950,15 @@ export default function App() {
 
         </div>
       )}
+
+      {/* Toast Notification System */}
+      <div className="toast-container">
+        {toasts.map(toast => (
+          <div key={toast.id} className={`toast toast-${toast.type}`}>
+            <span>{toast.message}</span>
+          </div>
+        ))}
+      </div>
 
     </div>
   );

@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { 
   FiArrowLeft, FiDownload, FiUploadCloud, FiClipboard, 
-  FiCheckCircle, FiAlertCircle, FiCopy, FiFile, FiChevronDown, FiChevronUp, FiExternalLink 
+  FiCheckCircle, FiAlertCircle, FiCopy, FiFile, FiChevronDown, FiChevronUp, FiExternalLink,
+  FiStar
 } from 'react-icons/fi';
 import { SEO_DATA } from '../seoData';
 import { TOOLS_DATA } from '../components/ToolGrid';
@@ -14,7 +15,7 @@ const BACKEND_URL = rawBackendUrl.replace(/\/+$/, '');
 const rawBackupUrl = import.meta.env.VITE_BACKUP_API_URL || '';
 const BACKUP_URL = rawBackupUrl ? rawBackupUrl.replace(/\/+$/, '') : '';
 
-export default function ToolPage({ tool, setView, setActiveTool, addToHistory, navigate }) {
+export default function ToolPage({ tool, setView, setActiveTool, addToHistory, navigate, addToast, incrementConversion, bookmarks = [], toggleBookmark = () => {} }) {
   if (!tool) return null;
 
   const seoInfo = SEO_DATA[tool.id] || {
@@ -131,11 +132,29 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
 
   // Set default format on tool change
   useEffect(() => {
-    if (tool.id === 'mp4-to-mp3') setTargetFormat('mp4');
-    else if (tool.id === 'image-converter') setTargetFormat('png');
-    else if (tool.id === 'pdf-converter') setTargetFormat('docx');
-    else if (tool.id === 'zip-extractor') setTargetFormat('unzip');
-    else setTargetFormat('mp4');
+    const path = window.location.pathname;
+    
+    // Check path-specific format overrides
+    if (path === '/convert/mp4-to-mp3') setTargetFormat('mp3');
+    else if (path === '/convert/mp4-to-wav') setTargetFormat('wav');
+    else if (path === '/convert/mov-to-mp4') setTargetFormat('mp4');
+    else if (path === '/convert/mp3-to-wav') setTargetFormat('wav');
+    else if (path === '/convert/jpg-to-png') setTargetFormat('png');
+    else if (path === '/convert/png-to-jpg') setTargetFormat('jpg');
+    else if (path === '/convert/jpg-to-pdf') setTargetFormat('pdf');
+    else if (path === '/convert/png-to-pdf') setTargetFormat('pdf');
+    else if (path === '/convert/pdf-to-docx' || path === '/convert/pdf-to-word') setTargetFormat('docx');
+    else if (path === '/convert/docx-to-pdf' || path === '/convert/word-to-pdf') setTargetFormat('pdf');
+    else if (path === '/convert/pdf-to-jpg') setTargetFormat('jpg');
+    else if (path === '/convert/zip-extractor') setTargetFormat('unzip');
+    else {
+      // General fallbacks
+      if (tool.id === 'mp4-to-mp3') setTargetFormat('mp4');
+      else if (tool.id === 'image-converter') setTargetFormat('png');
+      else if (tool.id === 'pdf-converter') setTargetFormat('docx');
+      else if (tool.id === 'zip-extractor') setTargetFormat('unzip');
+      else setTargetFormat('mp4');
+    }
     
     // Reset states
     setUrl('');
@@ -156,8 +175,10 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
     try {
       const text = await navigator.clipboard.readText();
       setUrl(text);
+      if (addToast) addToast('URL pasted from clipboard', 'info');
     } catch (err) {
-      alert('Could not access clipboard. Please paste manually.');
+      if (addToast) addToast('Could not access clipboard. Please paste manually.', 'warning');
+      else alert('Could not access clipboard. Please paste manually.');
     }
   };
 
@@ -330,7 +351,8 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(aiResult);
-    alert('Copied to clipboard!');
+    if (addToast) addToast('Copied to clipboard!', 'success');
+    else alert('Copied to clipboard!');
   };
 
   const handleProcess = async () => {
@@ -394,6 +416,8 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
         setDownloadFilename(filename);
         setStatus('success');
         setProgress(100);
+        if (addToast) addToast('Video downloaded successfully!', 'success');
+        if (incrementConversion) incrementConversion();
         addToHistory({
           toolTitle: tool.title,
           fileName: filename,
@@ -434,6 +458,8 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
         setDownloadFilename(filename);
         setStatus('success');
         setProgress(100);
+        if (addToast) addToast('File processed successfully!', 'success');
+        if (incrementConversion) incrementConversion();
         addToHistory({
           toolTitle: tool.title,
           fileName: file.name,
@@ -468,6 +494,8 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
         setAiResult(response.data.result);
         setStatus('success');
         setProgress(100);
+        if (addToast) addToast('AI report generated successfully!', 'success');
+        if (incrementConversion) incrementConversion();
         addToHistory({
           toolTitle: tool.title,
           fileName: file ? file.name : 'Text Input',
@@ -508,6 +536,7 @@ VITE_API_URL=https://your-backend-server.com`;
       }
       setErrorMessage(errMsg);
       setStatus('error');
+      if (addToast) addToast('Processing failed. Check instructions.', 'error');
     }
   };
 
@@ -672,9 +701,30 @@ VITE_API_URL=https://your-backend-server.com`;
             }}>
               {React.createElement(tool.icon)}
             </div>
-            <div>
-              <h1 style={{ fontSize: '24px', fontWeight: '800', margin: 0 }}>{seoInfo.h1}</h1>
-              <span className="badge" style={{ marginTop: '4px', display: 'inline-block' }}>{tool.category}</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h1 style={{ fontSize: '24px', fontWeight: '800', margin: 0 }}>{seoInfo.h1}</h1>
+                <button
+                  onClick={() => toggleBookmark(tool.id)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: bookmarks.includes(tool.id) ? 'var(--accent-color)' : 'var(--text-muted)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    fontSize: '18px',
+                    padding: '4px',
+                    transition: 'var(--transition-smooth)'
+                  }}
+                  title={bookmarks.includes(tool.id) ? 'Remove Bookmark' : 'Add Bookmark'}
+                >
+                  <FiStar style={{ fill: bookmarks.includes(tool.id) ? 'var(--accent-color)' : 'none' }} />
+                </button>
+              </div>
+              <div>
+                <span className="badge" style={{ display: 'inline-block' }}>{tool.category}</span>
+              </div>
             </div>
           </div>
 

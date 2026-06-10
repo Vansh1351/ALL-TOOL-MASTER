@@ -575,5 +575,437 @@ Simply provide a title, select your script type and genre, and write a brief pre
       { question: 'What genres does the AI script writer support?', answer: 'The AI supports all genres including drama, comedy, thriller, horror, documentary, educational, promotional, romance, sci-fi, and more. Specify your genre in the premise for best results.' },
       { question: 'Can I use the generated scripts commercially?', answer: 'Scripts generated using Gemini AI may be used commercially. Review Google\'s Gemini API terms of service to understand usage rights for AI-generated content.' }
     ]
+  },
+  // --- 12 Dedicated Converter Landing Pages ---
+  '/convert/mp4-to-mp3': {
+    title: 'Convert MP4 to MP3 Online Free - High Quality Audio | All Tool Master',
+    description: 'Convert MP4 to MP3 online free. Extract audio from MP4 video in high-quality 320kbps format. Fast, secure, and no registration required.',
+    h1: 'Convert MP4 to MP3 Online Free',
+    introduction: 'Need to extract the audio track from an MP4 video? Our online MP4 to MP3 converter is the easiest solution. Upload your file, and we will convert it into a high-quality MP3 format in seconds. It is completely browser-based, safe, and free.',
+    howTo: [
+      'Click the upload dropzone to select an MP4 video file from your device.',
+      'Select MP3 as the target audio format.',
+      'Click the "Process" button to start the audio extraction.',
+      'Download your high-quality MP3 file immediately once complete.'
+    ],
+    features: [
+      { title: '320kbps High Bitrate', desc: 'Preserves maximum audio fidelity during extraction, giving you clear sound quality.' },
+      { title: 'Fast Cloud Processing', desc: 'Files are processed quickly on our secure servers, saving your local CPU resources.' },
+      { title: 'Zero Registration', desc: 'No accounts, no email address, and no premium plans required to convert.' },
+      { title: '100% Secure & Private', desc: 'All uploaded videos and extracted audios are permanently deleted from transient RAM.' }
+    ],
+    benefits: [
+      { title: 'Optimized for Mobile', desc: 'Works flawlessly on iPhone, iPad, Android, and tablets.' },
+      { title: 'Saves Device Space', desc: 'Convert heavy video files to lightweight audio tracks.' },
+      { title: 'Unlimited Conversions', desc: 'No daily limits or restrictions on file counts.' },
+      { title: 'Clean Interface', desc: 'No pop-up ads or redirects to spammy download pages.' }
+    ],
+    faqs: [
+      { question: 'How do I convert MP4 to MP3 online?', answer: 'Simply drag and drop your MP4 file into the upload zone above, select MP3 format, and click the Process button.' },
+      { question: 'Is the conversion free?', answer: 'Yes, All Tool Master offers unlimited conversions completely free of charge.' },
+      { question: 'Will I lose audio quality during conversion?', answer: 'We use the highest quality encoders to convert video audio tracks directly to 320kbps MP3s to minimize quality loss.' },
+      { question: 'Can I convert MP4 to MP3 on my mobile phone?', answer: 'Yes. The tool runs directly in Safari (iOS) and Chrome (Android) without requiring any application installs.' },
+      { question: 'Do you store my uploaded video files?', answer: 'No. Your files are processed in secure memory and deleted immediately after the download link is generated.' },
+      { question: 'What is the maximum file size limit?', answer: 'You can convert files up to 100MB in size. For larger files, consider compressing them first.' },
+      { question: 'Does it work on Mac and Linux?', answer: 'Yes, because it is browser-based, it works perfectly on macOS, Windows, Linux, and ChromeOS.' },
+      { question: 'Can I convert multiple files at once?', answer: 'Currently, the tool supports single-file conversion to maintain high speeds. Batch support will be added soon.' }
+    ],
+    relatedTools: ['/downloader/youtube', '/convert/mp4-to-wav', '/convert/mov-to-mp4']
+  },
+
+  '/convert/mp4-to-wav': {
+    title: 'Convert MP4 to WAV Online Free - Lossless Audio Converter | All Tool Master',
+    description: 'Convert MP4 to WAV online for free. Extract lossless WAV audio from any MP4 video in seconds. Secure, browser-based, no signup.',
+    h1: 'Convert MP4 to WAV Online Free',
+    introduction: 'Extract the full uncompressed audio quality from your MP4 videos. Our MP4 to WAV converter outputs lossless audio tracks, perfect for video editors, music production, and high-fidelity playback. Zero registration required.',
+    howTo: [
+      'Choose your MP4 video file and drag it into the upload dropzone.',
+      'Select WAV as the target audio format.',
+      'Click the "Process" button to start the lossless extraction.',
+      'Save the WAV file directly to your local device once conversion finishes.'
+    ],
+    features: [
+      { title: 'Lossless WAV Export', desc: 'Extracts uncompressed WAV audio files preserving original audio depth and frequency.' },
+      { title: 'Free for Audio Editors', desc: 'Get studio-quality WAV files for use in Premiere, Audacity, and DAWs without paying.' },
+      { title: 'No Desktop Software', desc: 'Skip downloading heavy converters. Convert everything directly in your web browser.' },
+      { title: 'Instant Deletion Policy', desc: 'Your media files are deleted from our servers immediately after processing.' }
+    ],
+    benefits: [
+      { title: 'Studio Compatibility', desc: 'WAV files are standard in professional sound design and video editing software.' },
+      { title: 'No Bitrate Compression', desc: 'Unlike MP3, WAV retains full uncompressed audio information.' },
+      { title: 'Mobile-Friendly', desc: 'Convert files directly on iPad and Android tablets while working on the go.' },
+      { title: 'No Hidden Fees', desc: 'Enjoy full-speed conversions with no daily quotas or premium accounts.' }
+    ],
+    faqs: [
+      { question: 'What is the difference between MP3 and WAV?', answer: 'MP3 is a compressed, lossy audio format with smaller file sizes. WAV is an uncompressed, lossless format that retains the full audio quality at the cost of larger file sizes.' },
+      { question: 'How do I convert MP4 to WAV?', answer: 'Upload your MP4 video, select WAV as your target format, and click the Process button to download the lossless audio.' },
+      { question: 'Is the WAV file size larger than MP3?', answer: 'Yes, because WAV is uncompressed, the output file will be significantly larger than an MP3 version.' },
+      { question: 'Is this converter safe?', answer: 'Absolutely. We do not inspect, log, or store your files. All files are wiped immediately upon download completion.' },
+      { question: 'Can I convert MP4 to WAV on iPhone?', answer: 'Yes. You can convert the file in Safari. The WAV output can be saved directly to your Files app.' },
+      { question: 'Does this tool require registration?', answer: 'No registration or login is required. You can start using the converter immediately.' },
+      { question: 'How long does the conversion take?', answer: 'Due to our high-speed servers, standard video audio extractions are completed in less than 5 seconds.' },
+      { question: 'What sample rates are supported for WAV?', answer: 'Our converter outputs standard 44.1kHz / 16-bit WAV files, which are ideal for editing and playback.' }
+    ],
+    relatedTools: ['/convert/mp4-to-mp3', '/convert/mp3-to-wav', '/downloader/youtube']
+  },
+
+  '/convert/mov-to-mp4': {
+    title: 'Convert MOV to MP4 Online Free - QuickTime Video Converter | All Tool Master',
+    description: 'Convert MOV to MP4 online free. Transform Apple QuickTime MOV videos to universally compatible MP4 format in seconds. Safe, fast, no limits.',
+    h1: 'Convert MOV to MP4 Online Free',
+    introduction: 'Apple QuickTime MOV files often fail to play on Windows, Android, and smart TVs. Our free MOV to MP4 converter translates your Apple videos into highly compatible H.264 MP4 videos in seconds. Completely free and secure.',
+    howTo: [
+      'Upload your Apple MOV file by clicking the dropzone or dragging it in.',
+      'Select MP4 as your target video format.',
+      'Click the "Process" button to start the video conversion.',
+      'Download your compatible MP4 video file once the conversion is complete.'
+    ],
+    features: [
+      { title: 'Universal Playback', desc: 'Converts MOV to H.264 AAC MP4, which plays on Windows, Android, TVs, and web browsers.' },
+      { title: 'Fast Conversion Speed', desc: 'Uses hardware-accelerated transcoding to convert videos in a fraction of the time.' },
+      { title: 'Maintains HD Quality', desc: 'Preserves resolution, aspect ratio, frame rates, and color profiles of the original video.' },
+      { title: 'Privacy Guarantee', desc: 'No files are logged, archived, or saved. Processing happens in RAM, which clears instantly.' }
+    ],
+    benefits: [
+      { title: 'Plays on Any Device', desc: 'Perfect for playing iPhone or Mac recordings on Windows PCs and Android tablets.' },
+      { title: 'Saves Storage space', desc: 'MP4 typically has better compression than MOV, resulting in smaller file sizes.' },
+      { title: 'Social Media Ready', desc: 'Prepare your Apple videos for seamless upload to Instagram, YouTube, and TikTok.' },
+      { title: 'Completely Unlimited', desc: 'Convert as many videos as you want without watermarks or time limits.' }
+    ],
+    faqs: [
+      { question: 'Why convert MOV to MP4?', answer: 'MOV is Apple\'s proprietary format. MP4 is universally supported across Windows, Android, TVs, and all web platforms, making it easier to share.' },
+      { question: 'Is there any loss of quality when converting MOV to MP4?', answer: 'Our converter uses high-quality libx264 compression to maintain the visual fidelity of your video while optimizing the file size.' },
+      { question: 'Can I play MOV files on Windows?', answer: 'Windows does not natively support some MOV codecs. Converting them to MP4 allows them to play in the default Media Player without installing extra codecs.' },
+      { question: 'How do I convert MOV to MP4 online?', answer: 'Drag and drop your MOV file, choose MP4 target format, and click Process to convert and download the video.' },
+      { question: 'Does this tool work on mobile devices?', answer: 'Yes, it is fully responsive and runs on iPhones, iPads, Android phones, and laptops.' },
+      { question: 'Can I batch convert MOV to MP4?', answer: 'Currently, the interface converts one video at a time to ensure maximum bandwidth and speed for all users.' },
+      { question: 'Are my private videos secure?', answer: 'Absolutely. All processing occurs in a secure sandbox backend and files are permanently deleted immediately after download.' },
+      { question: 'Why is my MOV file upload slow?', answer: 'Upload speed depends entirely on your internet connection\'s upload bandwidth. Since MOV files are uncompressed, they can take a moment to upload.' }
+    ],
+    relatedTools: ['/convert/mp4-to-mp3', '/utility/zip-extractor', '/downloader/youtube']
+  },
+
+  '/convert/mp3-to-wav': {
+    title: 'Convert MP3 to WAV Online Free - Audio File Converter | All Tool Master',
+    description: 'Convert MP3 to WAV online free. Convert compressed MP3 audio into standard uncompressed WAV format. Safe, browser-based, no signup.',
+    h1: 'Convert MP3 to WAV Online Free',
+    introduction: 'Convert your compressed MP3 tracks into high-fidelity uncompressed WAV files. Excellent for music producers, video editors, and audio projects that require standard CD-quality WAV formats. Zero software required.',
+    howTo: [
+      'Select the MP3 file you want to convert and drop it into the upload box.',
+      'Select WAV as your target audio format.',
+      'Click the "Process" button to start the audio transcoding.',
+      'Save the WAV file directly to your computer or mobile device.'
+    ],
+    features: [
+      { title: 'Standard WAV Output', desc: 'Generates 44.1kHz 16-bit WAV files compatible with all professional editing suites.' },
+      { title: 'Zero Signup Required', desc: 'Get conversions done immediately without entering passwords or email addresses.' },
+      { title: 'Compatible with DAWs', desc: 'Ideal for importing files into Pro Tools, FL Studio, Logic, Audacity, and Premiere.' },
+      { title: 'Secure Server Process', desc: 'No files are ever cached or stored. We delete all inputs immediately after download.' }
+    ],
+    benefits: [
+      { title: 'Ideal for Editing', desc: 'WAV files don\'t suffer from lag or decoding errors in video editing timelines.' },
+      { title: 'CD-Quality Audio', desc: 'Decode compressed MP3 files into a stable, uncompressed standard format.' },
+      { title: 'Convert Anywhere', desc: 'Works on school computers, office networks, and mobile browsers.' },
+      { title: 'No Hidden Limits', desc: 'Convert unlimited audio tracks without speed caps or watermark overlays.' }
+    ],
+    faqs: [
+      { question: 'Why convert MP3 to WAV?', answer: 'Some professional audio applications, video editors, and CD burners require uncompressed WAV files for timing accuracy and compatibility.' },
+      { question: 'Does converting MP3 to WAV improve the audio quality?', answer: 'No. MP3 is a lossy format, meaning some audio data was already discarded. Converting it to WAV cannot restore lost frequencies, but it places it in an uncompressed container.' },
+      { question: 'Is WAV a lossless format?', answer: 'Yes, WAV is a raw, uncompressed PCM format that is completely lossless.' },
+      { question: 'How do I convert MP3 to WAV?', answer: 'Upload your MP3 file, select WAV from the format selector, and click Process to save your new file.' },
+      { question: 'Can I use WAV files in video editing?', answer: 'Yes, WAV is the preferred audio format for editing timelines in Premiere Pro, Final Cut, DaVinci Resolve, and Audacity.' },
+      { question: 'Is this converter free to use?', answer: 'Yes, it is 100% free and requires no subscription.' },
+      { question: 'What is the file size limit?', answer: 'Our audio converter supports uploading MP3 files up to 100MB.' },
+      { question: 'Do I need to install any software?', answer: 'No. The conversion is processed entirely in the cloud and works in any web browser.' }
+    ],
+    relatedTools: ['/convert/mp4-to-wav', '/convert/mp4-to-mp3', '/ai-notes/transcript']
+  },
+
+  '/convert/jpg-to-png': {
+    title: 'Convert JPG to PNG Online Free - Image Converter | All Tool Master',
+    description: 'Convert JPG to PNG online free. Convert JPEG images into transparent-capable PNG files instantly. Free batch image converter online.',
+    h1: 'Convert JPG to PNG Online Free',
+    introduction: 'Convert your JPEG photos into PNG format to preserve image clarity and allow transparency support. Our image converter runs in your browser, keeping your graphics clear and optimized. Completely free with no signup.',
+    howTo: [
+      'Drag and drop your JPG/JPEG image into the upload section.',
+      'Select PNG as your target output format.',
+      'Click the "Process" button to convert the image.',
+      'Download your new PNG image or save the ZIP archive for batch uploads.'
+    ],
+    features: [
+      { title: 'Crisp Format Conversion', desc: 'Convert JPG to PNG while preserving resolutions, aspect ratios, and color accuracy.' },
+      { title: 'Supports Batch Uploads', desc: 'Convert multiple images at the same time and download them as a ZIP.' },
+      { title: 'Browser-Based Conversion', desc: 'No installation required. Everything works directly in your web browser.' },
+      { title: 'Safe Data Handling', desc: 'All uploaded images are automatically wiped from our secure RAM pools.' }
+    ],
+    benefits: [
+      { title: 'Supports Transparency', desc: 'PNG supports transparent alpha layers, making it excellent for logos and icons.' },
+      { title: 'No Image Blurring', desc: 'PNG uses lossless compression, meaning it won\'t degrade over multiple saves.' },
+      { title: 'Works on Mobile', desc: 'Convert screenshots and photos directly in Safari on iOS or Chrome on Android.' },
+      { title: 'Zero Daily Quotas', desc: 'Enjoy unlimited image conversions without watermarks or cost.' }
+    ],
+    faqs: [
+      { question: 'How do I convert JPG to PNG?', answer: 'Upload your JPG image, choose PNG target format, and click the Process button to convert and save.' },
+      { question: 'Why convert JPG to PNG?', answer: 'PNG uses lossless compression and supports transparency, which is ideal for graphic design, logos, and web assets.' },
+      { question: 'Will the transparent background work after converting?', answer: 'No. Since JPG does not support transparency, it has a flat background. Converting it to PNG creates a PNG container, but you must remove the background color separately.' },
+      { question: 'Does converting JPG to PNG increase file size?', answer: 'Yes, because PNG uses lossless compression which does not discard image data like JPG, the file size will usually increase.' },
+      { question: 'Can I convert multiple JPGs to PNGs?', answer: 'Yes. You can select and upload multiple images, and our tool will package the converted PNGs into a ZIP file.' },
+      { question: 'Is my image data kept private?', answer: 'Yes. Your images are only held in secure memory for the duration of the conversion and are deleted immediately.' },
+      { question: 'Does it work on mobile browsers?', answer: 'Yes. It is mobile-friendly and converts images directly in mobile Safari, Chrome, and Samsung Internet.' },
+      { question: 'Is there a daily limit on image conversions?', answer: 'No. All Tool Master offers completely unlimited free conversions.' }
+    ],
+    relatedTools: ['/convert/png-to-jpg', '/convert/jpg-to-pdf', '/convert/heic-to-jpg']
+  },
+
+  '/convert/png-to-jpg': {
+    title: 'Convert PNG to JPG Online Free - Compress Image Files | All Tool Master',
+    description: 'Convert PNG to JPG online free. Compress large PNG images into lightweight JPG files in seconds. Free batch image converter, no signup.',
+    h1: 'Convert PNG to JPG Online Free',
+    introduction: 'PNG files can be very heavy and increase webpage load times. Our free PNG to JPG converter compresses your images, transforming heavy PNG screenshots into lightweight, fast-loading JPG files. Completely free and secure.',
+    howTo: [
+      'Upload your PNG images by dropping them into the processing zone.',
+      'Select JPG as your target output format.',
+      'Click the "Process" button to start the compression.',
+      'Download your optimized JPG file or grab the ZIP for batch conversions.'
+    ],
+    features: [
+      { title: 'Optimized Image File Size', desc: 'Compresses large PNG files into lightweight JPEGs, saving device storage.' },
+      { title: 'Batch Processing Support', desc: 'Upload up to 20 images at once. Converts them all and packs them into a single ZIP.' },
+      { title: 'Web Page Speed Boost', desc: 'Convert website screenshots to JPG to reduce page load times and improve SEO.' },
+      { title: 'Total Privacy Guard', desc: 'No images are saved or logged. Transient memory is wiped immediately after processing.' }
+    ],
+    benefits: [
+      { title: 'Saves Disk Space', desc: 'JPG files are significantly smaller than PNGs, making them easier to email and upload.' },
+      { title: 'SEO Friendly Photos', desc: 'Lightweight JPEGs speed up your site, directly improving Google PageSpeed scores.' },
+      { title: 'Universal Upload Format', desc: 'Many online application forms only accept JPG or JPEG formats.' },
+      { title: 'Watermark-Free Results', desc: 'Your images remain clean, original, and free of any overlay branding.' }
+    ],
+    faqs: [
+      { question: 'How do I convert PNG to JPG online?', answer: 'Simply upload your PNG image, select JPG as your target, and click Process to download the compressed image.' },
+      { question: 'Why convert PNG to JPG?', answer: 'JPG files have much smaller file sizes than PNGs, making them faster to upload, email, and load on web servers.' },
+      { question: 'What happens to transparency when converting PNG to JPG?', answer: 'Since JPG does not support transparent alpha channels, any transparent sections in your PNG will be filled with a solid white background.' },
+      { question: 'Does PNG to JPG conversion reduce file size?', answer: 'Yes. In most cases, the output JPG will be 50% to 80% smaller than the original PNG.' },
+      { question: 'Can I download the JPGs in a ZIP?', answer: 'Yes, if you upload multiple PNG files, the converter will package the converted JPG files into a single ZIP file.' },
+      { question: 'Is there any compression loss?', answer: 'JPG is a lossy compression format. We use high-quality encoding (90% quality scale) to ensure the compression is visually unnoticeable.' },
+      { question: 'Do you keep a copy of my photos?', answer: 'No. All images are processed securely in temporary cache and permanently deleted right after download.' },
+      { question: 'What is the resolution of the output JPG?', answer: 'The output JPG will retain the exact pixel dimensions (width and height) of the original PNG.' }
+    ],
+    relatedTools: ['/convert/jpg-to-png', '/convert/png-to-pdf', '/convert/webp-to-png']
+  },
+
+  '/convert/jpg-to-pdf': {
+    title: 'Convert JPG to PDF Online Free - Merge Images to PDF | All Tool Master',
+    description: 'Convert JPG to PDF online for free. Combine and compile multiple JPG/JPEG images into a single PDF document. Safe, no registration, no watermark.',
+    h1: 'Convert JPG to PDF Online Free',
+    introduction: 'Need to compile document photos, invoices, or screenshots into a single document? Our free JPG to PDF converter lets you merge multiple JPEG images into a beautifully structured, lightweight PDF document in seconds. Zero watermarks.',
+    howTo: [
+      'Select one or more JPG images from your device and drag them into the dropzone.',
+      'Select PDF as your target document format.',
+      'Click the "Process" button to compile the images.',
+      'Download your completed PDF document instantly.'
+    ],
+    features: [
+      { title: 'Merge Multiple Photos', desc: 'Add multiple JPG images and compile them in order into a single multipage PDF file.' },
+      { title: 'No Signups or Installs', desc: 'No accounts, no credit cards, and no installations. Convert immediately.' },
+      { title: '轻量 PDF Output', desc: 'Compresses the PDF file size so it remains small enough for online application forms.' },
+      { title: 'Secure Document Sandbox', desc: 'Your documents are processed securely in memory and wiped immediately.' }
+    ],
+    benefits: [
+      { title: 'Perfect for Applications', desc: 'Easily compile passport scans, ID cards, and certificates into one PDF.' },
+      { title: 'Zero Branding Added', desc: 'Download clean documents without promotional footers or watermarks.' },
+      { title: 'Universal File Sharing', desc: 'Sharing a single PDF is much cleaner than sending dozens of individual JPEGs.' },
+      { title: 'High-Speed Merging', desc: 'Our backend compiles photos into document pages in just a few seconds.' }
+    ],
+    faqs: [
+      { question: 'How do I convert JPG to PDF?', answer: 'Upload one or more JPG files, choose PDF as your target format, and click the Process button.' },
+      { question: 'Can I merge multiple JPGs into one PDF?', answer: 'Yes! Select multiple photos at once. They will be compiled into a single, multi-page PDF document.' },
+      { question: 'Is there a file size limit?', answer: 'You can upload up to 20 images at a time with a total size limit of 100MB.' },
+      { question: 'Can I convert JPG to PDF on my phone?', answer: 'Yes. The tool is fully responsive and runs on iPhone (Safari) and Android (Chrome) without any extra apps.' },
+      { question: 'Will the PDF have a watermark?', answer: 'No, All Tool Master never adds watermarks or branding to your documents.' },
+      { question: 'How do you protect my uploaded documents?', answer: 'We value privacy. Files are processed in temporary RAM and are permanently deleted once the download finishes.' },
+      { question: 'Can I adjust page layout or margins?', answer: 'The converter automatically scale images to fit standard pages with a clean margin buffer.' },
+      { question: 'Is this service completely free?', answer: 'Yes, all our tools are 100% free and unlimited.' }
+    ],
+    relatedTools: ['/convert/png-to-pdf', '/convert/docx-to-pdf', '/convert/pdf-to-word']
+  },
+
+  '/convert/png-to-pdf': {
+    title: 'Convert PNG to PDF Online Free - Compile Screenshots | All Tool Master',
+    description: 'Convert PNG to PDF online free. Compile and convert multiple PNG images or screenshots into a single clean PDF document. Secure, fast, no limits.',
+    h1: 'Convert PNG to PDF Online Free',
+    introduction: 'Convert your PNG screenshots, design drafts, or documents into a single portable PDF file. Our browser-based PNG to PDF converter merges multiple images into a clean, searchable PDF page index. Safe, fast, and free.',
+    howTo: [
+      'Select the PNG images you want to compile and drop them in the box.',
+      'Select PDF as your target document format.',
+      'Click the "Process" button to start merging.',
+      'Save the compiled PDF document to your device immediately.'
+    ],
+    features: [
+      { title: 'Combine Multiple PNGs', desc: 'Compile PNG mockups, scans, and screenshots into a single multi-page PDF.' },
+      { title: 'Retains Transparent Layers', desc: 'Keeps image details intact while layering pages into a document structure.' },
+      { title: 'Small File Footprint', desc: 'Optimizes output sizes so they are lightweight enough for email attachments.' },
+      { title: 'Full Data Protection', desc: 'Your files are never stored or logged on disk. RAM is wiped instantly.' }
+    ],
+    benefits: [
+      { title: 'Compile Design Work', desc: 'Ideal for designers wanting to package PNG mockups into a single presentation PDF.' },
+      { title: 'Clean Screenshot PDF', desc: 'Convert desktop or phone screenshots into readable document sheets.' },
+      { title: 'Zero Daily Caps', desc: 'Convert unlimited files without quotas, registration, or paywalls.' },
+      { title: 'Universal Viewing', desc: 'PDFs open identically on Windows, Mac, iOS, Android, and Linux.' }
+    ],
+    faqs: [
+      { question: 'How do I convert PNG to PDF online?', answer: 'Simply drag and drop your PNG images, select PDF format, and click the Process button.' },
+      { question: 'Can I combine PNG screenshots into a PDF?', answer: 'Yes. You can upload multiple PNG screenshots, and they will be compiled into a single PDF in the order you selected them.' },
+      { question: 'Does the PDF preserve PNG transparency?', answer: 'The PDF layout places the images on standard white pages. If your PNG has transparent areas, they will render on white in the final PDF.' },
+      { question: 'Is there a page limit?', answer: 'You can merge up to 20 PNG files into a single PDF per conversion.' },
+      { question: 'Can I download the PDF immediately?', answer: 'Yes, the download link is generated instantly on the same page as soon as processing completes.' },
+      { question: 'Is it safe for sensitive documents?', answer: 'Yes. All Tool Master does not keep logs or store files. Processing happens in isolated temporary memory.' },
+      { question: 'Do I need an account to convert?', answer: 'No signup or account registration is required to use any of our utilities.' },
+      { question: 'Does it work on Android and iPad?', answer: 'Yes, it works on any mobile browser, saving the final PDF to your device\'s downloads.' }
+    ],
+    relatedTools: ['/convert/jpg-to-pdf', '/convert/docx-to-pdf', '/convert/pdf-to-docx']
+  },
+
+  '/convert/pdf-to-docx': {
+    title: 'Convert PDF to Word DOCX Online Free - Edit PDF | All Tool Master',
+    description: 'Convert PDF to editable Word DOCX online for free. Extract text and preserve formatting from PDF documents into Word format. Secure and no signup.',
+    h1: 'Convert PDF to Word DOCX Online Free',
+    introduction: 'Locked PDF files are notoriously difficult to edit. Our free PDF to Word converter extracts the text layers, paragraphs, and tables from your PDF and compiles them into a fully editable Microsoft Word DOCX file. Keep your formatting intact.',
+    howTo: [
+      'Upload the PDF file you want to edit by dropping it in the box.',
+      'Select DOCX as your target document format.',
+      'Click the "Process" button to extract the document layout.',
+      'Save the editable Word document to your local machine.'
+    ],
+    features: [
+      { title: 'Fully Editable DOCX', desc: 'Converts PDF documents into standard Microsoft Word files so you can edit text easily.' },
+      { title: 'Preserves Margins & Grid', desc: 'Uses advanced structure parsing to align tables, margins, and headers.' },
+      { title: 'OCR Layout Parsing', desc: 'Scans text coordinates to align paragraphs correctly inside the Word document.' },
+      { title: 'Secure Transient Memory', desc: 'No documents are saved on disk. Files are wiped immediately after conversion.' }
+    ],
+    benefits: [
+      { title: 'Edit Contracts & Resumes', desc: 'Quickly modify locked contracts, resume details, and student worksheets.' },
+      { title: 'No Acrobat License Needed', desc: 'Skip paying for Adobe Acrobat. All Tool Master converts documents for free.' },
+      { title: 'Fast and Unlimited', desc: 'No daily limits or timers. Convert as many documents as you need.' },
+      { title: 'Mobile Compatibility', desc: 'Convert files on iPad, Chromebook, and Android tablets easily.' }
+    ],
+    faqs: [
+      { question: 'How do I convert PDF to Word DOCX?', answer: 'Upload your PDF file, choose DOCX format, and click the Process button to download the editable Word file.' },
+      { question: 'Will the layout of my PDF be preserved in Word?', answer: 'Our converter reads the positioning of PDF elements to reconstruct paragraph flow and tables as accurately as possible.' },
+      { question: 'Can I convert scanned PDFs to editable Word?', answer: 'The tool extracts text layers from the PDF. If the PDF is a flat scanned image, it will extract the image into the DOCX.' },
+      { question: 'Is this tool free and unlimited?', answer: 'Yes, All Tool Master is completely free to use with no hidden fees or daily limits.' },
+      { question: 'Do you support secure PDF files?', answer: 'Password-protected or encrypted PDFs cannot be converted without first removing the security layer.' },
+      { question: 'How is my document privacy maintained?', answer: 'We prioritize security. Your files are processed in secure memory and deleted automatically after download.' },
+      { question: 'What is the difference between DOC and DOCX?', answer: 'DOCX is the modern open XML standard used by MS Word since 2007, offering better compression and formatting than the older DOC.' },
+      { question: 'Do I need to install Microsoft Word?', answer: 'No. The output DOCX file can be opened in Google Docs, LibreOffice, Apple Pages, or Microsoft Word.' }
+    ],
+    relatedTools: ['/convert/docx-to-pdf', '/convert/pdf-to-jpg', '/convert/jpg-to-pdf']
+  },
+
+  '/convert/docx-to-pdf': {
+    title: 'Convert Word DOCX to PDF Online Free - Safe Document Tool | All Tool Master',
+    description: 'Convert Word DOCX to PDF online for free. Transform Microsoft Word documents into stable, readable PDF format instantly. Secure, no registration.',
+    h1: 'Convert Word DOCX to PDF Online Free',
+    introduction: 'Protect your document layouts from changing across different operating systems. Our free DOCX to PDF converter locks your Word files into highly compatible PDF documents, ensuring fonts, margins, and tables look identical everywhere.',
+    howTo: [
+      'Drag and drop your Microsoft Word DOCX file into the upload dropzone.',
+      'Select PDF as your target document format.',
+      'Click the "Process" button to start the document compile.',
+      'Download your stable, locked PDF file immediately.'
+    ],
+    features: [
+      { title: 'Precise Layout Lock', desc: 'Converts Word text, fonts, margins, and table grids into a fixed PDF sheet.' },
+      { title: 'No Registration Required', desc: 'Convert sensitive agreements and homework immediately without signing up.' },
+      { title: 'Searchable PDF Output', desc: 'Maintains indexable text strings so the output PDF is fully searchable.' },
+      { title: 'Strict Privacy Protocol', desc: 'All files are processed in temporary RAM and permanently deleted immediately.' }
+    ],
+    benefits: [
+      { title: 'Universally Readable', desc: 'PDFs open identically on Windows, macOS, Android, iPhone, and Linux.' },
+      { title: 'Prevents Layout Shifting', desc: 'Stop worrying about Word fonts and margins shifting on other computers.' },
+      { title: 'Professional Submissions', desc: 'Always submit resumes, invoices, and contracts as PDFs for a polished look.' },
+      { title: 'Zero Daily Quotas', desc: 'Convert and save as many document files as you need for free.' }
+    ],
+    faqs: [
+      { question: 'How do I convert DOCX to PDF?', answer: 'Upload your Word DOCX file, choose PDF as your target format, and click the Process button.' },
+      { question: 'Will my fonts and spacing change?', answer: 'The conversion engine is built to embed standard fonts and align paragraph spacing to match the source document.' },
+      { question: 'Can I convert files on a mobile phone?', answer: 'Yes. Our web app runs natively in mobile browsers, letting you convert Word files on iOS or Android.' },
+      { question: 'Is the output PDF searchable?', answer: 'Yes. Our converter maintains the text layers so you can search and copy text from the resulting PDF.' },
+      { question: 'What is the file size limit for Word files?', answer: 'You can upload and convert Word documents up to 100MB in size.' },
+      { question: 'Do you add watermarks to my PDFs?', answer: 'No. The generated PDFs are clean, professional, and free of any watermarks or platform advertising.' },
+      { question: 'How long are my documents saved?', answer: 'Your files are only kept in transient memory for the conversion and are deleted immediately upon download.' },
+      { question: 'Is it safe to convert bank statements and agreements?', answer: 'Yes. We do not keep logs, inspect files, or use persistent storage. All data is wiped from RAM immediately.' }
+    ],
+    relatedTools: ['/convert/pdf-to-docx', '/convert/excel-to-pdf', '/convert/jpg-to-pdf']
+  },
+
+  '/convert/pdf-to-jpg': {
+    title: 'Convert PDF to JPG Online Free - Extract PDF Pages | All Tool Master',
+    description: 'Convert PDF to JPG online free. Convert each page of a PDF document into a high-quality JPEG image in seconds. Secure, browser-based, no limits.',
+    h1: 'Convert PDF to JPG Online Free',
+    introduction: 'Need to extract pages from a PDF as images? Our free PDF to JPG converter converts every page of your PDF document into a high-resolution JPEG image. Download them individually or packaged in a ZIP archive. Safe and free.',
+    howTo: [
+      'Upload the PDF file you want to convert by dragging it into the box.',
+      'Select JPG as your target output format.',
+      'Click the "Process" button to start the page extraction.',
+      'Save the JPG pages individually or download the compiled ZIP file.'
+    ],
+    features: [
+      { title: 'High-Resolution JPEG Page', desc: 'Converts PDF vector elements into crisp, high-resolution raster JPEG images.' },
+      { title: 'Download All in ZIP', desc: 'Packs all extracted pages into a single ZIP file for quick, one-click downloads.' },
+      { title: 'Extract Specific Pages', desc: 'Convert multi-page PDF documents into individual image attachments.' },
+      { title: 'Private Sandbox Backend', desc: 'No files are ever stored on disk. All files are wiped from memory immediately.' }
+    ],
+    benefits: [
+      { title: 'Easy Social Sharing', desc: 'Perfect for sharing specific PDF pages on platforms that only support images.' },
+      { title: 'Lightweight Review', desc: 'Convert reports to JPG for quick previewing on mobile messaging apps.' },
+      { title: 'Zero Daily Quotas', desc: 'Extract unlimited document pages without watermarks or cost.' },
+      { title: 'Works on All Browsers', desc: 'Fully compatible with Safari, Chrome, Edge, and mobile phone browsers.' }
+    ],
+    faqs: [
+      { question: 'How do I convert PDF to JPG?', answer: 'Upload your PDF document, select JPG target format, and click the Process button to download the images.' },
+      { question: 'Does each page of the PDF become a separate JPG?', answer: 'Yes. Every page of your PDF is rendered as a standalone JPG image.' },
+      { question: 'Can I download all JPG pages at once?', answer: 'Yes. For multi-page PDFs, the converter packages all extracted JPEG pages into a single, neat ZIP archive.' },
+      { question: 'Will the image resolution be high?', answer: 'Our converter renders pages at high DPI to ensure all text remains sharp and readable in the JPG output.' },
+      { question: 'Is the converter free and unlimited?', answer: 'Yes. There are no limits on the number of PDFs you can convert.' },
+      { question: 'Can I extract images from PDF?', answer: 'Yes, this tool converts the pages of the PDF into JPGs. To extract individual embedded images, you can run page conversions and crop them.' },
+      { question: 'Is it secure for private PDFs?', answer: 'Absolutely. All processing occurs in a secure backend memory pool and all files are deleted instantly.' },
+      { question: 'Does it work on Mac and mobile?', answer: 'Yes. It works natively in any modern browser on macOS, Windows, Linux, Android, and iOS.' }
+    ],
+    relatedTools: ['/convert/pdf-to-docx', '/convert/jpg-to-pdf', '/convert/docx-to-pdf']
+  },
+
+  '/convert/zip-extractor': {
+    title: 'ZIP Extractor Online Free - Unzip Files Online | All Tool Master',
+    description: 'Zip extractor online free. Extract ZIP files without software in your browser. Fast, secure online unzip tool and file compressor free.',
+    h1: 'ZIP Extractor & Online Unzip Tool',
+    introduction: 'Decompressing file archives shouldn\'t require installing bulky third-party software like WinRAR or 7-Zip. All Tool Master provides a secure, browser-based ZIP extractor and file archiver. Upload any compressed ZIP archive and our system will decompress and extract the files instantly, letting you download them individually or repackage them safely.',
+    howTo: [
+      'Select a ZIP file from your device and drag it into the extraction zone.',
+      'Select Unzip as your target format option.',
+      'Click the "Process" button to decompress the archive.',
+      'Download the extracted files individually or download the repackaged files.'
+    ],
+    features: [
+      { title: 'Decompress Files Instantly', desc: 'Extract files from standard ZIP archives in seconds without installing WinRAR.' },
+      { title: 'Multi-Format Archiver', desc: 'Extract and package files to ZIP or decompress them directly in your browser.' },
+      { title: 'Fast Client Extraction', desc: 'Unzips archives quickly using secure backends with high-speed memory buffers.' },
+      { title: 'Total Privacy Shield', desc: 'No archive content is stored, tracked, or logged. Everything is deleted instantly.' }
+    ],
+    benefits: [
+      { title: 'Saves Device CPU', desc: 'Cloud-based and memory-based extraction keeps your device running cool.' },
+      { title: 'No Software Installs', desc: 'Ideal for Chromebooks and school computers where you cannot install software.' },
+      { title: 'Works on Mobile', desc: 'Extract ZIP archives directly on your iPhone or Android tablet.' },
+      { title: 'Zero Daily Quotas', desc: 'Extract as many archives as you need without premium accounts.' }
+    ],
+    faqs: [
+      { question: 'What is a ZIP extractor?', answer: 'A ZIP extractor is a tool that allows you to open compressed ZIP archives and retrieve the original files contained inside.' },
+      { question: 'How do I unzip files online?', answer: 'Upload your ZIP archive above, set the format to unzip, and click Process to view and download the extracted files.' },
+      { question: 'Do I need to download WinRAR or 7-Zip?', answer: 'No. All Tool Master extracts files directly in the browser using Node, removing the need for third-party programs.' },
+      { question: 'Is there a file size limit for extracting?', answer: 'You can upload and decompress ZIP archives up to 100MB.' },
+      { question: 'Can I extract password-protected ZIPs?', answer: 'No, password-protected or encrypted archives are not supported for safety and processing limits.' },
+      { question: 'Are my files uploaded to a server?', answer: 'Files are uploaded to a secure temporary sandbox to process decompression, and all extracted files are wiped from memory immediately.' },
+      { question: 'Can I create ZIP files on this website?', answer: 'Yes! Our compressor tool allows you to upload multiple files and packages them into a ZIP archive.' },
+      { question: 'Does it work on ChromeOS and Safari?', answer: 'Yes. Since it is browser-based, it works perfectly on Chromebooks, MacBooks, iPads, and Windows computers.' }
+    ],
+    relatedTools: ['/utility/file-compressor', '/convert/pdf-to-docx', '/convert/jpg-to-png']
   }
 };

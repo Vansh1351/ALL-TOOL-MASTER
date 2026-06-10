@@ -2,7 +2,7 @@ import React from 'react';
 import { AFFILIATE_LINKS } from '../affiliateLinks';
 import { FiGlobe, FiCheck, FiShoppingBag, FiExternalLink } from 'react-icons/fi';
 
-export default function DealsPage() {
+export default function DealsPage({ navigate }) {
   const deals = [
     {
       id: 'namecheap',
@@ -133,27 +133,36 @@ export default function DealsPage() {
                   </div>
                 </div>
 
-                {/* Claim CTA Button */}
-                <a 
-                  href={deal.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-primary"
-                  style={{
-                    width: '100%',
-                    height: '46px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    textDecoration: 'none',
-                    background: deal.color,
-                    borderColor: deal.color,
-                    zIndex: 1
-                  }}
-                >
-                  <FiShoppingBag /> {deal.cta} <FiExternalLink size={14} />
-                </a>
+                {/* Buttons Container */}
+                <div style={{ display: 'flex', gap: '12px', marginTop: '20px', zIndex: 1 }}>
+                  <button 
+                    onClick={() => navigate('namecheap-review')}
+                    className="btn btn-secondary"
+                    style={{ flex: 1, height: '46px', fontSize: '14px' }}
+                  >
+                    Read Full Review
+                  </button>
+                  <a 
+                    href={deal.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-primary"
+                    style={{
+                      flex: 1,
+                      height: '46px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      textDecoration: 'none',
+                      background: deal.color,
+                      borderColor: deal.color,
+                      fontSize: '14px'
+                    }}
+                  >
+                    <FiShoppingBag /> {deal.cta} <FiExternalLink size={14} />
+                  </a>
+                </div>
               </div>
             );
           })}
