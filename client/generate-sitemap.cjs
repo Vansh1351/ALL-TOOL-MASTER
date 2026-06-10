@@ -33,7 +33,10 @@ const blogPosts = [
   '/blog/free-resume-builder-no-signup-2026',
   '/blog/best-ai-script-writer-free-online',
   '/blog/youtube-to-mp3-converter-safe-free',
-  '/blog/namecheap-review-domain-hosting-deals'
+  '/blog/namecheap-review-domain-hosting-deals',
+  '/blog/canva-vs-photoshop',
+  '/blog/how-to-create-social-media-posts-with-canva',
+  '/blog/best-free-canva-templates-for-students'
 ];
 
 const seoToolPages = [

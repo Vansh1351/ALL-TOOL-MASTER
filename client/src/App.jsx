@@ -254,6 +254,8 @@ export default function App() {
     let path = '/';
     let title = "All Tool Master | Free Online File Converter, Downloader & AI Notes";
     let desc = "Access free online file tools. Fast PDF and media converter, universal web video downloader from URL, and smart AI note-taker online. No registration required.";
+    let ogTitleVal = "";
+    let ogDescVal = "";
     
     if (view === 'tool-page' && activeTool) {
       const currentPath = window.location.pathname;
@@ -273,8 +275,10 @@ export default function App() {
       path = `/blog/${selectedBlogSlug}`;
       const post = BLOG_POSTS.find(p => p.slug === selectedBlogSlug);
       if (post) {
-        title = `${post.title} | All Tool Master Blog`;
-        desc = post.excerpt;
+        title = post.seoTitle || `${post.title} | All Tool Master Blog`;
+        desc = post.metaDescription || post.excerpt;
+        ogTitleVal = post.ogTitle;
+        ogDescVal = post.ogDescription;
       }
       
       if (window.gtag) {
@@ -365,15 +369,15 @@ export default function App() {
     const ogUrl = document.getElementById('og-url');
     if (ogUrl) ogUrl.setAttribute('content', `https://alltoolmaster.me${path}`);
     const ogTitle = document.getElementById('og-title');
-    if (ogTitle) ogTitle.setAttribute('content', title);
+    if (ogTitle) ogTitle.setAttribute('content', ogTitleVal || title);
     const ogDesc = document.getElementById('og-desc');
-    if (ogDesc) ogDesc.setAttribute('content', desc);
+    if (ogDesc) ogDesc.setAttribute('content', ogDescVal || desc);
 
     // Update Twitter Card meta tags
     const twTitle = document.getElementById('twitter-title');
-    if (twTitle) twTitle.setAttribute('content', title);
+    if (twTitle) twTitle.setAttribute('content', ogTitleVal || title);
     const twDesc = document.getElementById('twitter-desc');
-    if (twDesc) twDesc.setAttribute('content', desc);
+    if (twDesc) twDesc.setAttribute('content', ogDescVal || desc);
 
     // Noindex control for low-value pages
     const robotsMeta = document.getElementById('robots-meta');
@@ -459,7 +463,7 @@ export default function App() {
       } else if (view === 'blog-post' && selectedBlogSlug) {
         const post = BLOG_POSTS.find(p => p.slug === selectedBlogSlug);
         if (post) {
-          const articleSchema = {
+          const articleSchema = post.articleSchema || {
             '@context': 'https://schema.org',
             '@type': 'Article',
             headline: post.title,
@@ -509,7 +513,11 @@ export default function App() {
             ]
           };
 
-          dynamicSchema.textContent = JSON.stringify([articleSchema, breadcrumbs]);
+          const schemas = [articleSchema, breadcrumbs];
+          if (post.faqSchema) {
+            schemas.push(post.faqSchema);
+          }
+          dynamicSchema.textContent = JSON.stringify(schemas);
         }
       } else if (view === 'dashboard') {
         const orgSchema = {
