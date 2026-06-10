@@ -11,8 +11,8 @@ export const AFFILIATE_LINKS = {
   // Grammarly Affiliate (under process)
   grammarly: '#',
 
-  // ElevenLabs Affiliate (under process)
-  elevenlabs: '#',
+  // ElevenLabs Affiliate
+  elevenlabs: 'https://try.elevenlabs.io/n4t9ne4v39mh',
 
   // NordVPN Affiliate (under process)
   nordvpn: '#',

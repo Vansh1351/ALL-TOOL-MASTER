@@ -1,6 +1,6 @@
 import React from 'react';
 import { AFFILIATE_LINKS } from '../affiliateLinks';
-import { FiGlobe, FiCheck, FiShoppingBag, FiExternalLink } from 'react-icons/fi';
+import { FiGlobe, FiCheck, FiShoppingBag, FiExternalLink, FiVolume2 } from 'react-icons/fi';
 
 export default function DealsPage({ navigate }) {
   const deals = [
@@ -22,7 +22,29 @@ export default function DealsPage({ navigate }) {
         '24/7 helpful customer service support'
       ],
       link: AFFILIATE_LINKS.namecheap,
-      cta: 'Claim Namecheap Deal'
+      cta: 'Claim Namecheap Deal',
+      reviewView: 'namecheap-review'
+    },
+    {
+      id: 'elevenlabs',
+      title: 'ElevenLabs AI Voice Generator',
+      tagline: 'Create realistic AI voices, voiceovers, dubbing, podcasts, and audiobooks.',
+      discount: 'Free Plan Available',
+      price: 'Advanced AI Speech',
+      bonus: 'Supports 29+ Languages',
+      icon: FiVolume2,
+      color: '#d97706',
+      features: [
+        'Human-like AI voices & expression',
+        'Instant Text to Speech generation',
+        'High-fidelity Voice Cloning',
+        'Automated AI Dubbing & translation',
+        'Audiobook & long-form voice builder',
+        'Completely free plan available'
+      ],
+      link: AFFILIATE_LINKS.elevenlabs,
+      cta: 'Try ElevenLabs Free',
+      reviewView: 'elevenlabs-deal'
     }
   ];
 
@@ -136,11 +158,11 @@ export default function DealsPage({ navigate }) {
                 {/* Buttons Container */}
                 <div style={{ display: 'flex', gap: '12px', marginTop: '20px', zIndex: 1 }}>
                   <button 
-                    onClick={() => navigate('namecheap-review')}
+                    onClick={() => navigate(deal.reviewView)}
                     className="btn btn-secondary"
                     style={{ flex: 1, height: '46px', fontSize: '14px' }}
                   >
-                    Read Full Review
+                    {deal.id === 'namecheap' ? 'Read Full Review' : 'View Landing Page'}
                   </button>
                   <a 
                     href={deal.link}

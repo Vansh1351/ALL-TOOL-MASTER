@@ -14,7 +14,8 @@ const staticRoutes = [
   '/faqs',
   '/deals',
   '/hosting/namecheap-review',
-  '/deals/namecheap'
+  '/deals/namecheap',
+  '/deals/elevenlabs'
 ];
 
 const blogCategories = [
@@ -35,7 +36,11 @@ const blogPosts = [
   '/blog/namecheap-review-domain-hosting-deals',
   '/blog/canva-vs-photoshop',
   '/blog/how-to-create-social-media-posts-with-canva',
-  '/blog/best-free-canva-templates-for-students'
+  '/blog/best-free-canva-templates-for-students',
+  '/blog/best-ai-voice-generator-2026',
+  '/blog/how-to-create-voiceovers-with-elevenlabs',
+  '/blog/elevenlabs-vs-murf-vs-playht',
+  '/blog/top-ai-tools-for-content-creators-2026'
 ];
 
 const seoToolPages = [

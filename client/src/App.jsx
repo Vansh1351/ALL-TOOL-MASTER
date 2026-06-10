@@ -24,6 +24,7 @@ const DealsPage = React.lazy(() => import('./pages/DealsPage'));
 // New Page Modules
 const NamecheapReview = React.lazy(() => import('./pages/NamecheapReview'));
 const AnalyticsDashboard = React.lazy(() => import('./pages/AnalyticsDashboard'));
+const ElevenLabsDeal = React.lazy(() => import('./pages/ElevenLabsDeal'));
 
 import { BLOG_POSTS } from './blogData';
 import { SEO_DATA } from './seoData';
@@ -157,6 +158,13 @@ export default function App() {
       }
       if (path === '/deals') {
         setView('deals');
+        setActiveTool(null);
+        setSelectedBlogSlug(null);
+        setSelectedBlogCategory(null);
+        return;
+      }
+      if (path === '/deals/elevenlabs' || path === '/deals/eleven-labs') {
+        setView('elevenlabs-deal');
         setActiveTool(null);
         setSelectedBlogSlug(null);
         setSelectedBlogCategory(null);
@@ -309,7 +317,8 @@ export default function App() {
         faqs: '/faqs',
         deals: '/deals',
         'namecheap-review': '/hosting/namecheap-review',
-        'analytics-dashboard': '/analytics'
+        'analytics-dashboard': '/analytics',
+        'elevenlabs-deal': '/deals/elevenlabs'
       };
       const titleMap = {
         about: "About Us | All Tool Master",
@@ -321,7 +330,8 @@ export default function App() {
         faqs: "Frequently Asked Questions | All Tool Master",
         deals: "Hosting Deals & Domains | All Tool Master",
         'namecheap-review': "Namecheap Review & Student Domain Discounts | All Tool Master",
-        'analytics-dashboard': "SaaS Performance & Tool Traffic Analytics | All Tool Master"
+        'analytics-dashboard': "SaaS Performance & Tool Traffic Analytics | All Tool Master",
+        'elevenlabs-deal': "Get Started With ElevenLabs AI Voice Generator | All Tool Master"
       };
       const descMap = {
         about: "Learn about All Tool Master, our mission to build secure, browser-based file conversion and AI productivity tools.",
@@ -333,7 +343,8 @@ export default function App() {
         faqs: "Find answers to frequently asked questions about All Tool Master conversions, safety, and tools.",
         deals: "Domain registration discounts with our affiliate promo tools via Namecheap.",
         'namecheap-review': "Read our comprehensive Namecheap review. Compare pricing vs GoDaddy, free domain privacy protection, and claim special student discounts.",
-        'analytics-dashboard': "View real-time traffic statistics, top active digital converter utilities, and affiliate conversion rates on All Tool Master."
+        'analytics-dashboard': "View real-time traffic statistics, top active digital converter utilities, and affiliate conversion rates on All Tool Master.",
+        'elevenlabs-deal': "Create realistic AI voices, voiceovers, dubbing, podcasts, and audiobooks using ElevenLabs. Start free with our affiliate partner registration."
       };
       
       path = pathMap[view] || '/';
@@ -878,6 +889,7 @@ export default function App() {
           {view === 'blog-post' && <BlogPostPage slug={selectedBlogSlug} navigate={navigate} />}
           {view === 'namecheap-review' && <NamecheapReview navigate={navigate} />}
           {view === 'analytics-dashboard' && <AnalyticsDashboard navigate={navigate} />}
+          {view === 'elevenlabs-deal' && <ElevenLabsDeal />}
           {view === 'tool-page' && activeTool && (
             activeTool.id === 'file-compressor' ? (
               <FileCompressor tool={activeTool} setView={setView} setActiveTool={setActiveTool} addToHistory={addToHistory} navigate={navigate} addToast={addToast} incrementConversion={incrementConversion} />
