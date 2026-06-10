@@ -1007,5 +1007,225 @@ Simply provide a title, select your script type and genre, and write a brief pre
       { question: 'Does it work on ChromeOS and Safari?', answer: 'Yes. Since it is browser-based, it works perfectly on Chromebooks, MacBooks, iPads, and Windows computers.' }
     ],
     relatedTools: ['/utility/file-compressor', '/convert/pdf-to-docx', '/convert/jpg-to-png']
+  },
+  '/downloader/youtube': {
+    title: 'Free YouTube to MP3 Converter & YouTube to MP4 Converter | All Tool Master',
+    description: 'Convert and download YouTube videos online for free. Use the ultimate free youtube to mp3 converter and youtube to mp4 converter. Fast, safe, and no signup.',
+    h1: 'Free YouTube to MP3 & YouTube to MP4 Converter',
+    introduction: 'Welcome to the ultimate online hub for media conversion. All Tool Master offers a secure, fast, and completely free youtube to mp3 converter and youtube to mp4 converter. Download your favorite YouTube videos, Shorts, and Vimeo clips in high-quality formats directly from your web browser. No software installation, registration, or email signup required.',
+    howTo: [
+      'Copy the link of the YouTube video or Short from your address bar.',
+      'Paste the video link into the URL input field above.',
+      'Choose your target output format: MP3 for audio or MP4 for high-definition video.',
+      'Click the "Process" button to start the conversion securely.',
+      'Once complete, click the download button to save the converted media file to your device.'
+    ],
+    features: [
+      { title: 'Free YouTube to MP3 Converter', desc: 'Isolate and extract audio tracks from any video directly into standard 320kbps MP3 audio format.' },
+      { title: 'YouTube to MP4 Converter HD', desc: 'Save streaming videos in crisp, high-definition MP4 format up to 1080p without quality degradation.' },
+      { title: 'No Installation Required', desc: 'Everything runs securely in our browser sandbox. No browser extensions, downloads, or setups needed.' },
+      { title: '100% Secure & Ads-Free', desc: 'Enjoy clean conversions without annoying popups. We delete processed files instantly from memory.' }
+    ],
+    benefits: [
+      { title: 'Crystal Clear Audio', desc: 'Get high-bitrate MP3 extractions that preserve the original soundtrack clarity.' },
+      { title: 'Watermark-Free Videos', desc: 'Download standard videos or YouTube Shorts in clean MP4 without branding overlays.' },
+      { title: 'Saves Device Memory', desc: 'No need to download desktop applications or mobile apps; do it all online.' },
+      { title: 'Completely Unlimited', desc: 'Convert as many videos and audio tracks as you need, without daily caps or fees.' }
+    ],
+    faqs: [
+      { question: 'Is this YouTube to MP3 and MP4 converter free?', answer: 'Yes! All Tool Master is 100% free with no hidden charges, subscription caps, or premium tiers.' },
+      { question: 'What video quality is supported for MP4 downloads?', answer: 'Our youtube to mp4 converter extracts the highest quality streams available, supporting up to 1080p HD.' },
+      { question: 'Can I convert YouTube Shorts to MP3 or MP4?', answer: 'Absolutely. Simply paste the YouTube Shorts link and select MP3 or MP4 format to save it to your local gallery.' },
+      { question: 'Are my conversions safe and private?', answer: 'Yes. All file processing happens in transient memory. We do not store, log, or track your media files.' },
+      { question: 'Does it work on mobile phones?', answer: 'Yes. The converter works in any modern browser including Safari on iOS and Chrome on Android.' }
+    ],
+    relatedTools: ['/downloader/facebook', '/convert/mp4-to-mp3', '/ai-notes/transcript']
+  },
+  '/convert/heic-to-jpg': {
+    title: 'HEIC to JPG Converter Online Free - Convert HEIC to JPG | All Tool Master',
+    description: 'Convert iPhone HEIC photos to standard JPG format using our free heic to jpg converter online. Batch convert multiple HEIC files to JPG without quality loss.',
+    h1: 'HEIC to JPG Converter Online Free',
+    introduction: 'Apple\'s High Efficiency Image Format (HEIC) is great for saving space on your iPhone, but it is incompatible with Windows, Android, and many web applications. All Tool Master\'s free heic to jpg converter online lets you translate HEIC files into universal JPG format instantly. Upload one or multiple images and download high-quality JPGs without installing software.',
+    howTo: [
+      'Drag and drop your HEIC images into the converter box above.',
+      'Select JPG as your output format.',
+      'Click the "Process" button to convert your images.',
+      'Download your converted JPG photos individually or as a compressed ZIP file.'
+    ],
+    features: [
+      { title: 'Batch HEIC to JPG Converter', desc: 'Upload and convert up to 20 HEIC images simultaneously in a single click.' },
+      { title: 'Lossless Image Conversion', desc: 'Preserves the original color profiles, dimensions, and image metadata during conversion.' },
+      { title: 'Windows & Android Compatibility', desc: 'Instantly make your iPhone photos accessible and shareable across all platforms.' },
+      { title: 'Instant ZIP Download', desc: 'Convert multiple images and download them packaged in a single, neat ZIP archive.' }
+    ],
+    benefits: [
+      { title: 'Save Local CPU Power', desc: 'Everything is processed on our high-speed servers, saving your computer or phone battery.' },
+      { title: 'Completely Free of Charge', desc: 'No premium features, daily limits, or watermarks. Convert as many HEICs as you like.' },
+      { title: 'No Registration Required', desc: 'Start converting immediately without inputting your email address or credit card.' },
+      { title: 'Private & Encrypted', desc: 'All uploaded files are processed securely in memory and deleted instantly after processing.' }
+    ],
+    faqs: [
+      { question: 'Why do I need a HEIC to JPG converter?', answer: 'Windows computers, Android phones, and many web portals do not support the Apple HEIC format. Converting them to JPG ensures compatibility.' },
+      { question: 'Is this HEIC to JPG converter free to use?', answer: 'Yes. All Tool Master provides HEIC conversion completely free of charge with no limits.' },
+      { question: 'Can I convert multiple HEIC files at once?', answer: 'Yes, our batch converter supports uploading up to 20 images at the same time.' },
+      { question: 'Will I lose image quality during conversion?', answer: 'No. Our converter uses advanced compression algorithms to maintain the original image quality.' },
+      { question: 'Does this tool work on iPhones?', answer: 'Yes. You can upload HEIC images directly from your iPhone photo library and download them as JPG.' }
+    ],
+    relatedTools: ['/convert/jpg-to-png', '/convert/png-to-jpg', '/convert/jpg-to-pdf']
+  },
+  '/convert/pdf-to-word': {
+    title: 'PDF to Word Converter Online Free - Convert PDF to DOCX | All Tool Master',
+    description: 'Convert PDF to Word online free without signing up. Use the best pdf to word converter to extract text, tables, and formatting into editable Word DOCX.',
+    h1: 'PDF to Word Converter Online Free',
+    introduction: 'Need to edit a locked PDF contract, report, or resume? All Tool Master\'s free pdf to word converter online extracts text, tables, margins, and document formatting directly into a fully editable Microsoft Word DOCX file. Bypassing account creation and signup fees, you can convert documents safely and privately in seconds.',
+    howTo: [
+      'Upload your PDF document by dragging it into the dropzone or clicking to select.',
+      'Select Word/DOCX as your target output format.',
+      'Click the "Process" button to start the secure document conversion.',
+      'Download your finished editable Word document to your local machine.'
+    ],
+    features: [
+      { title: 'Accurate PDF to Word Conversion', desc: 'Intelligently preserves your document layout, text styling, fonts, and table grids.' },
+      { title: 'Fully Editable DOCX Files', desc: 'Get clean document files that you can edit directly in Microsoft Word, Google Docs, or LibreOffice.' },
+      { title: 'No Registration Required', desc: 'Convert documents immediately without giving away your email or creating an account.' },
+      { title: 'Secure SSL Processing', desc: 'Your document privacy is protected. Files are processed in memory and wiped immediately after download.' }
+    ],
+    benefits: [
+      { title: 'Retains Margins & Grids', desc: 'Bypass manual copy-pasting; get formatting that matches your source PDF.' },
+      { title: 'Completely Free Online', desc: 'No trial periods, premium limits, or watermark stamps added to your documents.' },
+      { title: 'Mobile Device Friendly', desc: 'Convert files directly from your smartphone, tablet, or Chromebook in-browser.' },
+      { title: 'Supports Large Files', desc: 'Upload and convert PDF documents up to 100MB in size.' }
+    ],
+    faqs: [
+      { question: 'How do I use this PDF to Word converter?', answer: 'Simply upload your PDF file, choose Word/DOCX from the options, and click Process to download your editable document.' },
+      { question: 'Will my original PDF formatting be preserved?', answer: 'Yes. Our converter retains margins, tables, headings, and font styles for a seamless editing experience.' },
+      { question: 'Do I need to sign up to download?', answer: 'No. All Tool Master is completely free and does not require registration or credit card details.' },
+      { question: 'Can I convert password-protected PDFs?', answer: 'No. For security and permission reasons, encrypted or password-locked PDF files cannot be converted.' },
+      { question: 'Is my data secure?', answer: 'Yes. All uploads are processed over encrypted SSL and permanently deleted from our transient memory pools immediately.' }
+    ],
+    relatedTools: ['/convert/docx-to-pdf', '/convert/pdf-to-jpg', '/convert/jpg-to-pdf']
+  },
+  '/ai-notes/free-ai-note-taker': {
+    title: 'Free AI Note Taker Online - AI Lecture Note Taker | All Tool Master',
+    description: 'Convert lecture audio, videos, and study texts into structured notes, glossaries, and Q&As instantly online. Try the best free ai note taker today.',
+    h1: 'Free AI Note Taker Online',
+    introduction: 'Welcome to the best free ai note taker online. Built for students, content creators, and learners, All Tool Master automatically converts class lecture recordings, audio files, or dry textbook chapters into organized, high-yield study guides, summaries, glossaries, and practice Q&As using Google Gemini AI. Eliminate manual typing and study smarter.',
+    howTo: [
+      'Upload your lecture audio recording (MP3, WAV, etc.) or paste study text.',
+      'Click the "Process" button to let the AI analyze the content.',
+      'Copy the structured study notes and flashcard questions directly to your clipboard.'
+    ],
+    features: [
+      { title: 'Free AI Note Taker', desc: 'Transcribes and organizes classroom voice logs, tutorials, or lectures automatically.' },
+      { title: 'Automated Study Outlines', desc: 'Creates organized outlines with headings, summaries, and bullet points.' },
+      { title: 'Glossary & Formula Finder', desc: 'Extracts critical vocabulary terms, math equations, and dates into structured glossaries.' },
+      { title: 'Practice Q&A Generator', desc: 'Builds review questions and answers directly from the source material for active recall.' }
+    ],
+    benefits: [
+      { title: 'Eliminate Manual Typing', desc: 'Save hours of transcribing class slides and lecture audios by hand.' },
+      { title: 'Optimized for Active Recall', desc: 'Convert dry information into interactive reviews to study efficiently.' },
+      { title: 'No Subscription Caps', desc: 'Completely free to use with no daily usage limits or premium paywalls.' },
+      { title: 'Private & Secure', desc: 'We do not store or train AI models on your notes. All data is deleted instantly.' }
+    ],
+    faqs: [
+      { question: 'How do I use this free AI note taker?', answer: 'Upload your class audio recording or copy-paste textbook passages, click Process, and let Gemini AI format your notes.' },
+      { question: 'Can it convert YouTube lectures to study notes?', answer: 'Yes! You can paste transcripts or use our YouTube summaries to build study outlines.' },
+      { question: 'Is there a character or file limit?', answer: 'We support text inputs up to 100,000 characters and audio file uploads up to 100MB.' },
+      { question: 'Do I need to create an account?', answer: 'No. Start generating notes instantly without any emails, registration, or hidden fees.' }
+    ],
+    relatedTools: ['/ai-notes/meeting-assistant', '/ai-notes/transcript', '/ai-notes/script-writer']
+  },
+  '/ai-notes/meeting-assistant': {
+    title: 'AI Meeting Assistant Free Online - Meeting Minutes & Actions | All Tool Master',
+    description: 'Document corporate meetings automatically with our free ai meeting assistant. Generate meeting minutes, speaker notes, and action items tables instantly.',
+    h1: 'AI Meeting Assistant & Minutes Generator',
+    introduction: 'Writing corporate meeting summaries, boardroom scrums, and brainstorming sessions manually can consume hours. All Tool Master\'s free ai meeting assistant automates the entire process. Simply upload your meeting recording or paste raw transcripts, and watch our Gemini-powered engine transcribe, summarize topics, outline key speakers, and format a structured Action Items table in seconds.',
+    howTo: [
+      'Upload your Zoom, Meet, or Teams audio recording, or paste meeting transcript text.',
+      'Click the "Process" button to start the analysis.',
+      'Copy your formatted meeting minutes and action items table.'
+    ],
+    features: [
+      { title: 'Automatic Meeting Minutes', desc: 'Summarizes long discussions and scrums into clear, structured bullet points.' },
+      { title: 'AI Action Item Generator', desc: 'Extracts tasks, assignees, and deadlines into a clean, markdown-friendly table.' },
+      { title: 'Speaker Topic Tracking', desc: 'Logs key arguments, arguments, and conclusions for clear compliance archives.' },
+      { title: 'No Software Install', desc: 'Works directly in your browser. Bypasses bulky plugins, integrations, and bots.' }
+    ],
+    benefits: [
+      { title: 'Save Hours of Office Work', desc: 'Convert 1-hour scrums into actionable 1-page summaries in seconds.' },
+      { title: 'Ensure Team Alignment', desc: 'Generate clear checklists of responsibilities that team members can share.' },
+      { title: 'Completely Free Online', desc: 'No monthly fees, subscription caps, or watermark formatting locks.' },
+      { title: 'Enterprise Data Privacy', desc: 'Your audio logs and texts are processed securely in memory and deleted instantly.' }
+    ],
+    faqs: [
+      { question: 'What does this AI meeting assistant do?', answer: 'It converts your meeting recordings or transcripts into structured meeting minutes and action item tables.' },
+      { question: 'Can I upload Zoom or Google Meet audio recordings?', answer: 'Yes! Simply save the session audio and upload the file (up to 100MB) directly.' },
+      { question: 'Are my business meetings private and secure?', answer: 'Absolutely. We do not log, review, or store your files. Everything is cleared from memory immediately.' },
+      { question: 'Is the action items extraction accurate?', answer: 'Yes, our model uses deep contextual understanding to extract tasks, responsibilities, and timelines mentioned.' }
+    ],
+    relatedTools: ['/ai-notes/free-ai-note-taker', '/ai-notes/transcript', '/ai-notes/audio-analyzer']
+  },
+  '/utility/resume-builder': {
+    title: 'Free Resume Builder Online - Build ATS-Friendly CV | All Tool Master',
+    description: 'Build your professional CV in minutes with our free resume builder online. Select ATS-friendly templates, see real-time preview, and download as PDF for free.',
+    h1: 'Free Resume Builder Online',
+    introduction: 'Build a job-winning, professional resume in minutes with All Tool Master\'s free resume builder online. Designed with professional, ATS-friendly layouts, our builder helps your CV pass automated screening software used by top employers. Fill in your career details, watch your resume update in real-time, and download your clean PDF instantly — completely free, with no signup required.',
+    howTo: [
+      'Fill in your personal information, contact info, and professional summary.',
+      'Enter your work history, education achievements, and relevant skills.',
+      'Review your CV in the live preview panel on the right.',
+      'Click the "Download PDF" button to save your formatted resume immediately.'
+    ],
+    features: [
+      { title: 'ATS-Friendly Formats', desc: 'Uses clean styling and standard section headers optimized to pass automated ATS parser screening.' },
+      { title: 'Real-Time Resume Preview', desc: 'Watch your formatting adjust instantly as you type. No layout guessing needed.' },
+      { title: 'Free PDF Download', desc: 'Export your completed resume as a pixel-perfect PDF document instantly.' },
+      { title: 'Zero Signup or Registration', desc: 'Create your CV immediately. No credit cards, email inputs, or hidden paywalls.' }
+    ],
+    benefits: [
+      { title: 'Save Money & Time', desc: 'Avoid expensive resume template websites; get a professional CV in under 5 minutes.' },
+      { title: 'No Branding Watermarks', desc: 'Download a clean, watermark-free PDF ready to send directly to hiring managers.' },
+      { title: 'Secure & Local Processing', desc: 'Your personal information stays safe and is never stored on our servers.' },
+      { title: 'Industry-Standard Margins', desc: 'Clean font sizing and margins ensure your CV looks polished and readable.' }
+    ],
+    faqs: [
+      { question: 'Is this resume builder really free?', answer: 'Yes, 100% free. Create and download unlimited resumes without premium paywalls or charges.' },
+      { question: 'Will my CV pass ATS software screening?', answer: 'Yes. Our template uses a clean format and standard sections designed specifically for ATS compatibility.' },
+      { question: 'Can I save my resume data to edit later?', answer: 'We process data locally. To save, keep your browser tab open or copy your details. Local browser auto-save is coming soon.' },
+      { question: 'What formatting details should I prioritize?', answer: 'Keep it clean: use standard section names, list roles in reverse chronological order, and highlight measurable achievements.' }
+    ],
+    relatedTools: ['/utility/file-compressor', '/convert/pdf-to-docx', '/convert/docx-to-pdf']
+  },
+  '/utility/zip-extractor': {
+    title: 'Zip Extractor Online - Free ZIP File Opener & Unzipper | All Tool Master',
+    description: 'Zip extractor online free. Extract ZIP files without software in your browser. Fast, secure online unzip tool and file compressor free.',
+    h1: 'Zip Extractor Online Free',
+    introduction: 'Decompressing file archives shouldn\'t require installing bulky software like WinRAR or 7-Zip. All Tool Master provides a secure, browser-based zip extractor online. Upload any compressed ZIP archive and our system will decompress and extract the files instantly, letting you download them individually or repackage them safely.',
+    howTo: [
+      'Select a ZIP file from your device and drag it into the extraction zone.',
+      'Click the "Process" button to decompress the archive.',
+      'Download the extracted files individually or download the repackaged files.'
+    ],
+    features: [
+      { title: 'Extract ZIP Online Free', desc: 'Extract files from standard ZIP archives in seconds without installing third-party programs.' },
+      { title: 'Multi-Format Archiver', desc: 'Extract and package files to ZIP or decompress them directly in your browser.' },
+      { title: 'Fast Client Extraction', desc: 'Unzips archives quickly using secure backends with high-speed memory buffers.' },
+      { title: 'Total Privacy Shield', desc: 'No archive content is stored, tracked, or logged. Everything is deleted instantly.' }
+    ],
+    benefits: [
+      { title: 'Saves Device CPU', desc: 'Cloud-based and memory-based extraction keeps your device running cool.' },
+      { title: 'No Software Installs', desc: 'Ideal for Chromebooks and school computers where you cannot install software.' },
+      { title: 'Works on Mobile', desc: 'Extract ZIP archives directly on your iPhone or Android tablet.' },
+      { title: 'Zero Daily Quotas', desc: 'Extract as many archives as you need without premium accounts.' }
+    ],
+    faqs: [
+      { question: 'What is a ZIP extractor?', answer: 'A ZIP extractor is a tool that allows you to open compressed ZIP archives and retrieve the original files contained inside.' },
+      { question: 'How do I unzip files online?', answer: 'Upload your ZIP archive above, set the format to unzip, and click Process to view and download the extracted files.' },
+      { question: 'Do I need to download WinRAR or 7-Zip?', answer: 'No. All Tool Master extracts files directly in the browser, removing the need for third-party programs.' },
+      { question: 'Is there a file size limit for extracting?', answer: 'You can upload and decompress ZIP archives up to 100MB.' },
+      { question: 'Can I extract password-protected ZIPs?', answer: 'No, password-protected or encrypted archives are not supported for safety and processing limits.' },
+      { question: 'Are my files uploaded to a server?', answer: 'Files are uploaded to a secure temporary sandbox to process decompression, and all extracted files are wiped from memory immediately.' }
+    ],
+    relatedTools: ['/utility/file-compressor', '/convert/pdf-to-docx', '/convert/jpg-to-png']
   }
 };

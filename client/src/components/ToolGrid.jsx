@@ -226,7 +226,7 @@ export const TOOLS_DATA = [
     icon: FiBookOpen,
     color: '#f43f5e',
     category: 'AI Tool',
-    routes: ['/ai-notes/lecture-notes', '/ai-notes/study-guide'],
+    routes: ['/ai-notes/free-ai-note-taker', '/ai-notes/lecture-notes', '/ai-notes/study-guide'],
     keywords: [
       'ai lecture note taker', 'lecture notes', 'study notes', 'academic recordings converter', 'notes generator', 
       'audio to notes', 'best free AI lecture note taker', 'ai study notes helper free', 'automated study guide generator', 

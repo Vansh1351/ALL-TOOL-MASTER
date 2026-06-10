@@ -79,6 +79,7 @@ const otherToolPages = [
   '/ai-notes/speech-to-text',
   '/ai-notes/audio-analyzer',
   '/ai-notes/voice-notes',
+  '/ai-notes/free-ai-note-taker',
   '/ai-notes/lecture-notes',
   '/ai-notes/study-guide',
   '/ai-notes/meeting-minutes',
