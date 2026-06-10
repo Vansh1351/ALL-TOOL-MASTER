@@ -52,7 +52,7 @@ All Tool Master is a browser-based, server-backed utility platform. All tools ar
 
 Built for students, professionals, and content creators who need fast, reliable file conversion, media downloading, and AI note-taking without paywalls or watermarks.
 
-Launched: 2025
+Launched: 2026
 Built by: Vansh Shah (Mumbai, India)
 
 ## Contact

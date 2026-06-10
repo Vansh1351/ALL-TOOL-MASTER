@@ -14,8 +14,7 @@ const staticRoutes = [
   '/faqs',
   '/deals',
   '/hosting/namecheap-review',
-  '/deals/namecheap',
-  '/analytics'
+  '/deals/namecheap'
 ];
 
 const blogCategories = [

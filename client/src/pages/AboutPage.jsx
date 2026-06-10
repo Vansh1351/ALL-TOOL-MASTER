@@ -24,7 +24,7 @@ export default function AboutPage() {
     { value: "14+", label: "Free Tools" },
     { value: "100%", label: "Free Forever" },
     { value: "0", label: "Data Stored" },
-    { value: "2025", label: "Year Founded" },
+    { value: "2026", label: "Year Founded" },
   ];
 
   return (
@@ -61,7 +61,7 @@ export default function AboutPage() {
         <div className="glass-panel" style={{ padding: '40px', borderRadius: '24px', marginBottom: '32px' }}>
           <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '16px' }}>Our Story</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '14px', lineHeight: '1.8', marginBottom: '16px' }}>
-            All Tool Master was founded in 2025 by Vansh Shah, a developer and content creator based in Mumbai, India. The idea was simple: there are far too many online tools that demand sign-ups, show aggressive ads, add watermarks to converted files, or lock the most useful features behind paywalls.
+            All Tool Master was founded in 2026 by Vansh Shah, a developer and content creator based in Mumbai, India. The idea was simple: there are far too many online tools that demand sign-ups, show aggressive ads, add watermarks to converted files, or lock the most useful features behind paywalls.
           </p>
           <p style={{ color: 'var(--text-muted)', fontSize: '14px', lineHeight: '1.8', marginBottom: '16px' }}>
             Vansh set out to build a single platform where anyone — students transcribing their lectures, professionals converting meeting recordings into formatted minutes, creators downloading and repurposing social media clips, or freelancers compiling documents — could get the job done in seconds without barriers.

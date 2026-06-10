@@ -381,7 +381,7 @@ export default function App() {
 
     // Noindex control for low-value pages
     const robotsMeta = document.getElementById('robots-meta');
-    const noindexViews = ['privacy', 'terms', 'dmca', 'disclaimer', 'deals'];
+    const noindexViews = ['privacy', 'terms', 'dmca', 'disclaimer', 'deals', 'analytics-dashboard'];
     if (robotsMeta) {
       if (noindexViews.includes(view)) {
         robotsMeta.setAttribute('content', 'noindex, nofollow');
