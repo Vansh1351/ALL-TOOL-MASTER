@@ -69,34 +69,6 @@ export default function App() {
   const [history, setHistory] = useState(JSON.parse(localStorage.getItem('ops_history')) || []);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [geminiKey, setGeminiKey] = useState(localStorage.getItem('gemini_api_key') || '');
-  const [showExitPopup, setShowExitPopup] = useState(false);
-  
-  useEffect(() => {
-    const dismissed = sessionStorage.getItem('exit_popup_dismissed');
-    if (dismissed) return;
-
-    const handleMouseLeave = (e) => {
-      if (e.clientY < 20) {
-        setShowExitPopup(true);
-      }
-    };
-
-    const mobileTimer = setTimeout(() => {
-      setShowExitPopup(true);
-    }, 25000);
-
-    document.addEventListener('mouseleave', handleMouseLeave);
-    
-    return () => {
-      document.removeEventListener('mouseleave', handleMouseLeave);
-      clearTimeout(mobileTimer);
-    };
-  }, []);
-
-  const dismissExitPopup = () => {
-    setShowExitPopup(false);
-    sessionStorage.setItem('exit_popup_dismissed', 'true');
-  };
   
   // Bookmarks, Recently Used, Conversion Counter & Toasts
   const [bookmarks, setBookmarks] = useState(JSON.parse(localStorage.getItem('ops_bookmarks')) || []);
@@ -1287,84 +1259,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Exit Intent Newsletter Popup Modal */}
-      {showExitPopup && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.75)',
-          backdropFilter: 'blur(8px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1002
-        }} className="animate-fade-in">
-          
-          <div className="glass-panel" style={{
-            width: '90%',
-            maxWidth: '500px',
-            padding: '36px',
-            borderRadius: '24px',
-            position: 'relative',
-            textAlign: 'center',
-            background: 'linear-gradient(135deg, rgba(34,211,238,0.05) 0%, rgba(15,23,42,0.95) 100%)',
-            border: '1px solid var(--accent-color)'
-          }}>
-            <button 
-              onClick={dismissExitPopup}
-              style={{
-                position: 'absolute',
-                top: '16px',
-                right: '16px',
-                background: 'none',
-                border: 'none',
-                color: 'var(--text-muted)',
-                fontSize: '20px',
-                cursor: 'pointer'
-              }}
-            >
-              &times;
-            </button>
 
-            <span className="badge" style={{ marginBottom: '12px' }}>Wait! Before You Go</span>
-            <h3 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '12px' }}>Get Free AI &amp; File Tool Updates</h3>
-            <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', marginBottom: '24px', lineHeight: '1.6' }}>
-              Subscribe to the All Tool Master newsletter to receive notifications on new browser utilities, guides, and creator deals!
-            </p>
-
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              const emailInput = e.target.elements.exitNewsletterEmail.value;
-              if (emailInput) {
-                const subs = JSON.parse(localStorage.getItem('newsletter_subs') || '[]');
-                subs.push(emailInput);
-                localStorage.setItem('newsletter_subs', JSON.stringify(subs));
-                alert(`Thank you for subscribing! We've saved ${emailInput} to our newsletter subscriber list.`);
-                dismissExitPopup();
-              }
-            }} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <input
-                name="exitNewsletterEmail"
-                type="email"
-                placeholder="Enter your email address..."
-                required
-                className="input-field"
-                style={{ width: '100%', height: '44px', padding: '0 16px', borderRadius: '10px' }}
-              />
-              <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
-                <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={dismissExitPopup}>No Thanks</button>
-                <button type="submit" className="btn btn-primary" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                  Subscribe Now <FiSend />
-                </button>
-              </div>
-            </form>
-          </div>
-
-        </div>
-      )}
 
       {/* Toast Notification System */}
       <div className="toast-container">
