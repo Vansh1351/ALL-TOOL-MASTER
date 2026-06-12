@@ -3,7 +3,7 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import ToolGrid, { TOOLS_DATA } from './components/ToolGrid';
 import HistoryPanel from './components/HistoryPanel';
-import FAQAccordion from './components/FAQAccordion';
+import FAQAccordion, { FAQ_ITEMS } from './components/FAQAccordion';
 import Footer from './components/Footer';
 
 // Pages (Lazy Loaded)
@@ -634,7 +634,80 @@ export default function App() {
           }
         };
 
-        dynamicSchema.textContent = JSON.stringify([orgSchema, websiteSchema]);
+        const homepageFaqSchema = {
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: [
+            {
+              '@type': 'Question',
+              name: 'What is the best free url to mp4 converter online without watermark?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'All Tool Master is the best free URL to MP4 converter online. It allows you to download videos from YouTube, Shorts, TikTok, Instagram, and Facebook as high-quality watermark-free MP4 files without signup.'
+              }
+            },
+            {
+              '@type': 'Question',
+              name: 'How to convert PDF to editable Word online free?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'You can convert PDF to editable Word online with All Tool Master. Drag and drop your PDF file, choose the DOCX target format, and click process. The tool extracts text layouts and preserves formatting without losing quality.'
+              }
+            },
+            {
+              '@type': 'Question',
+              name: 'Is there a free AI video summarizer to summarize YouTube videos with AI?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'Yes, All Tool Master features a free AI video summarizer and watcher. Paste a YouTube URL or upload a video clip, and Gemini AI will transcribe, analyze, and generate structured study notes or bulleted summaries.'
+              }
+            },
+            {
+              '@type': 'Question',
+              name: 'How do I extract ZIP files online without software?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'Use the browser-based ZIP extractor on All Tool Master. Upload any compressed ZIP archive and our secure tool will extract all nested files instantly, packaging the contents for download without installing heavy desktop software.'
+              }
+            }
+          ]
+        };
+
+        dynamicSchema.textContent = JSON.stringify([orgSchema, websiteSchema, homepageFaqSchema]);
+      } else if (view === 'faqs') {
+        const breadcrumbs = {
+          '@context': 'https://schema.org',
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            {
+              '@type': 'ListItem',
+              position: 1,
+              name: 'Home',
+              item: 'https://alltoolmaster.me'
+            },
+            {
+              '@type': 'ListItem',
+              position: 2,
+              name: 'FAQs',
+              item: 'https://alltoolmaster.me/faqs'
+            }
+          ]
+        };
+
+        const faqSchema = {
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: FAQ_ITEMS.map(f => ({
+            '@type': 'Question',
+            name: f.question,
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: f.answer
+            }
+          }))
+        };
+
+        dynamicSchema.textContent = JSON.stringify([breadcrumbs, faqSchema]);
       } else {
         const breadcrumbs = {
           '@context': 'https://schema.org',

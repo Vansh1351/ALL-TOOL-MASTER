@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 
-const FAQ_ITEMS = [
+export const FAQ_ITEMS = [
   {
     question: "What is All Tool Master?",
     answer: "All Tool Master is an all-in-one free digital toolbox. It offers high-speed file conversion, a universal media URL video downloader, and an automated AI note-taking app to streamline daily online productivity tasks without installing any software."
