@@ -1,6 +1,6 @@
 import React from 'react';
 import { AFFILIATE_LINKS } from '../affiliateLinks';
-import { FiGlobe, FiCheck, FiShoppingBag, FiExternalLink, FiVolume2 } from 'react-icons/fi';
+import { FiGlobe, FiCheck, FiShoppingBag, FiExternalLink, FiVolume2, FiImage, FiEdit, FiLock, FiLayout } from 'react-icons/fi';
 
 export default function DealsPage({ navigate }) {
   const deals = [
@@ -45,6 +45,90 @@ export default function DealsPage({ navigate }) {
       link: AFFILIATE_LINKS.elevenlabs,
       cta: 'Try ElevenLabs Free',
       reviewView: 'elevenlabs-deal'
+    },
+    {
+      id: 'canva',
+      title: 'Canva Graphic Design Pro',
+      tagline: 'Design professional social media posts, presentations, and documents.',
+      discount: '30-Day Pro Trial',
+      price: 'Free Trial Available',
+      bonus: '100M+ Stock Assets',
+      icon: FiImage,
+      color: '#00c4cc',
+      features: [
+        'Intuitive drag-and-drop live editor',
+        'Thousands of professional templates',
+        'AI Magic Studio tools',
+        'Brand kits and team workspaces',
+        'Background remover tool',
+        'Premium animation and scheduling'
+      ],
+      link: AFFILIATE_LINKS.canva,
+      cta: 'Try Canva Pro Free',
+      reviewView: 'canva-deal'
+    },
+    {
+      id: 'grammarly',
+      title: 'Grammarly AI Assistant',
+      tagline: 'Improve spelling, grammar, clarity, and tone in your writing.',
+      discount: 'Improve Writing Free',
+      price: 'Free Plan Available',
+      bonus: 'Real-Time Corrections',
+      icon: FiEdit,
+      color: '#11a683',
+      features: [
+        'Real-time spelling and grammar checks',
+        'Confidence and tone adjustments',
+        'AI generative writer suggestions',
+        'Gmail, Word, and Chrome integrations',
+        'Plagiarism checking capability',
+        'Vocabulary expansion suggestions'
+      ],
+      link: AFFILIATE_LINKS.grammarly,
+      cta: 'Improve Writing Free',
+      reviewView: 'grammarly-deal'
+    },
+    {
+      id: 'nordvpn',
+      title: 'NordVPN Secure Browsing',
+      tagline: 'Safeguard your data on public Wi-Fi and browse anonymously.',
+      discount: 'Special VPN Discount',
+      price: 'Cybersecurity Shield',
+      bonus: '30-Day Money-Back',
+      icon: FiLock,
+      color: '#3b82f6',
+      features: [
+        'Military-grade AES-256 encryption',
+        'Threat protection blocks ads & malware',
+        '6,000+ ultra-fast global servers',
+        'Meshnet secure file sharing',
+        'Strict verified no-logs policy',
+        'Protects up to 10 devices at once'
+      ],
+      link: AFFILIATE_LINKS.nordvpn,
+      cta: 'Get NordVPN Deal',
+      reviewView: 'nordvpn-deal'
+    },
+    {
+      id: 'elementor',
+      title: 'Elementor Pro WordPress Builder',
+      tagline: 'Build custom, high-speed WordPress websites with a drag-and-drop editor.',
+      discount: '#1 WP Page Builder',
+      price: 'Design Pro Sites',
+      bonus: '100+ Responsive Widgets',
+      icon: FiLayout,
+      color: '#8d00c4',
+      features: [
+        'Drag-and-drop live page visual editing',
+        '100+ structural & layout widgets',
+        'Advanced theme header/footer builder',
+        'WooCommerce store layout creator',
+        'Professional template kit imports',
+        'Responsive mobile-friendly styling'
+      ],
+      link: AFFILIATE_LINKS.elementor,
+      cta: 'Get Elementor Pro',
+      reviewView: 'elementor-deal'
     }
   ];
 

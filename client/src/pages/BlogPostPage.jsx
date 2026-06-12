@@ -225,8 +225,11 @@ export default function BlogPostPage({ slug, navigate }) {
             paddingBottom: '20px',
             alignItems: 'center'
           }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <FiUser /> {post.author}
+            <span 
+              onClick={() => navigate('author')} 
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', textDecoration: 'underline', color: 'var(--accent-color)', fontWeight: '600' }}
+            >
+              <FiUser /> Written by {post.author}
             </span>
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <FiCalendar /> {post.date}
@@ -282,6 +285,42 @@ export default function BlogPostPage({ slug, navigate }) {
             <article className="blog-article-content" style={{ fontSize: '15px', color: 'var(--text-muted)' }}>
               {renderMarkdown(post.content)}
             </article>
+
+            {/* Author Bio Box */}
+            <div className="glass-panel" style={{ 
+              marginTop: '40px', 
+              padding: '24px', 
+              borderRadius: '20px', 
+              display: 'flex', 
+              gap: '20px', 
+              alignItems: 'center',
+              border: '1px solid var(--border-color)',
+              background: 'rgba(255,255,255,0.01)'
+            }}>
+              <div style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '50%',
+                background: 'var(--accent-muted)',
+                color: 'var(--accent-color)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '24px',
+                fontWeight: '800',
+                flexShrink: 0
+              }}>
+                VS
+              </div>
+              <div>
+                <h4 style={{ fontSize: '15.5px', fontWeight: '800', margin: '0 0 6px 0' }}>
+                  About the Author: <span onClick={() => navigate('author')} style={{ color: 'var(--accent-color)', cursor: 'pointer', textDecoration: 'underline' }}>Vansh Shah</span>
+                </h4>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0, lineHeight: '1.6' }}>
+                  Vansh Shah is a passionate software developer and creator. He designs free open-source utilities and AI applications to simplify workflows for developers, creators, and students worldwide.
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Table of Contents Sidebar (Desktop Only) */}
@@ -411,6 +450,66 @@ export default function BlogPostPage({ slug, navigate }) {
           </p>
         </div>
 
+        {/* Recommended Tools Section */}
+        <section style={{ marginTop: '50px', borderTop: '1px solid var(--border-color)', paddingTop: '40px' }}>
+          <h3 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '24px' }}>Recommended Free Utilities</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '24px' }}>
+            <div 
+              className="glass-panel card-hover" 
+              style={{ padding: '24px', borderRadius: '18px', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '180px' }}
+              onClick={() => {
+                const tool = TOOLS_DATA.find(t => t.id === 'resume-builder');
+                if (tool) navigate('tool-page', tool);
+              }}
+            >
+              <div>
+                <span className="badge" style={{ marginBottom: '8px' }}>Career</span>
+                <h4 style={{ fontSize: '15.5px', fontWeight: '800', lineHeight: '1.4', marginBottom: '8px' }}>Free ATS Resume Builder</h4>
+                <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', lineHeight: '1.5' }}>Build a professional, recruiter-ready resume online and export to PDF in minutes. No signup required.</p>
+              </div>
+              <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--accent-color)', marginTop: '16px', display: 'inline-block' }}>
+                Open Resume Builder &rarr;
+              </span>
+            </div>
+
+            <div 
+              className="glass-panel card-hover" 
+              style={{ padding: '24px', borderRadius: '18px', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '180px' }}
+              onClick={() => {
+                const tool = TOOLS_DATA.find(t => t.id === 'youtube-downloader');
+                if (tool) navigate('tool-page', tool);
+              }}
+            >
+              <div>
+                <span className="badge" style={{ marginBottom: '8px' }}>Media</span>
+                <h4 style={{ fontSize: '15.5px', fontWeight: '800', lineHeight: '1.4', marginBottom: '8px' }}>Universal Video Downloader</h4>
+                <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', lineHeight: '1.5' }}>Download videos or extract high-quality audio tracks from any public video link in seconds.</p>
+              </div>
+              <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--accent-color)', marginTop: '16px', display: 'inline-block' }}>
+                Open Downloader &rarr;
+              </span>
+            </div>
+
+            <div 
+              className="glass-panel card-hover" 
+              style={{ padding: '24px', borderRadius: '18px', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '180px' }}
+              onClick={() => {
+                const tool = TOOLS_DATA.find(t => t.id === 'file-compressor');
+                if (tool) navigate('tool-page', tool);
+              }}
+            >
+              <div>
+                <span className="badge" style={{ marginBottom: '8px' }}>Optimization</span>
+                <h4 style={{ fontSize: '15.5px', fontWeight: '800', lineHeight: '1.4', marginBottom: '8px' }}>Universal File Compressor</h4>
+                <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', lineHeight: '1.5' }}>Reduce size of PDFs, JPGs, PNGs, and videos directly in your browser without losing quality.</p>
+              </div>
+              <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--accent-color)', marginTop: '16px', display: 'inline-block' }}>
+                Open Compressor &rarr;
+              </span>
+            </div>
+          </div>
+        </section>
+
         {/* Related Articles Footer */}
         <section style={{ marginTop: '60px', borderTop: '1px solid var(--border-color)', paddingTop: '40px' }}>
           <h3 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '24px' }}>Related Tutorials</h3>
@@ -487,7 +586,65 @@ export default function BlogPostPage({ slug, navigate }) {
             flex-direction: column;
           }
         }
+        @media (max-width: 600px) {
+          .sticky-cta-bar {
+            flex-direction: column !important;
+            gap: 8px !important;
+            text-align: center;
+            padding: 10px !important;
+          }
+          .cta-text {
+            font-size: 12px !important;
+            text-align: center;
+          }
+        }
       `}</style>
+
+      {/* Sticky CTA Bar at Bottom of Screen (Blog Page only) */}
+      <div style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        background: 'rgba(15, 23, 42, 0.95)',
+        backdropFilter: 'blur(12px)',
+        borderTop: '1px solid var(--accent-color)',
+        padding: '12px 24px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        zIndex: 99,
+        boxShadow: '0 -4px 20px rgba(0,0,0,0.5)'
+      }} className="sticky-cta-bar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span className="badge" style={{ background: 'rgba(34,211,238,0.15)', color: 'var(--accent-color)', fontWeight: '800' }}>Affiliate Deal</span>
+          <span style={{ fontSize: '13.5px', color: '#ffffff', fontWeight: '700' }} className="cta-text">
+            Special Creator Deal: Get ElevenLabs AI Voice Generator Free
+          </span>
+        </div>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <a 
+            href={AFFILIATE_LINKS.elevenlabs} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="btn btn-primary" 
+            style={{ 
+              height: '34px', 
+              fontSize: '12px', 
+              background: '#d97706', 
+              borderColor: '#d97706',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '4px',
+              padding: '0 16px',
+              textDecoration: 'none'
+            }}
+          >
+            Claim Free Offer <FiExternalLink size={12} />
+          </a>
+        </div>
+      </div>
     </div>
   );
 }

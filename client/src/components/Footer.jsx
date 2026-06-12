@@ -198,6 +198,41 @@ export default function Footer({ setView, navigate }) {
               >
                 DMCA Notice
               </a>
+              <a 
+                href="/editorial-policy" 
+                onClick={(e) => { e.preventDefault(); handleLinkClick('editorial-policy'); }} 
+                style={{ color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'none' }}
+              >
+                Editorial Policy
+              </a>
+              <a 
+                href="/cookie-policy" 
+                onClick={(e) => { e.preventDefault(); handleLinkClick('cookie-policy'); }} 
+                style={{ color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'none' }}
+              >
+                Cookie Policy
+              </a>
+              <a 
+                href="/accessibility" 
+                onClick={(e) => { e.preventDefault(); handleLinkClick('accessibility'); }} 
+                style={{ color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'none' }}
+              >
+                Accessibility
+              </a>
+              <a 
+                href="/affiliate-disclosure" 
+                onClick={(e) => { e.preventDefault(); handleLinkClick('affiliate-disclosure'); }} 
+                style={{ color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'none' }}
+              >
+                Affiliate Disclosure
+              </a>
+              <a 
+                href="/author/vansh-shah" 
+                onClick={(e) => { e.preventDefault(); handleLinkClick('author'); }} 
+                style={{ color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'none' }}
+              >
+                About the Author
+              </a>
             </div>
           </div>
 

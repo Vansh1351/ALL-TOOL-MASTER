@@ -25,13 +25,24 @@ const DealsPage = React.lazy(() => import('./pages/DealsPage'));
 const NamecheapReview = React.lazy(() => import('./pages/NamecheapReview'));
 const AnalyticsDashboard = React.lazy(() => import('./pages/AnalyticsDashboard'));
 const ElevenLabsDeal = React.lazy(() => import('./pages/ElevenLabsDeal'));
+const CanvaDeal = React.lazy(() => import('./pages/CanvaDeal'));
+const GrammarlyDeal = React.lazy(() => import('./pages/GrammarlyDeal'));
+const NordVPNDeal = React.lazy(() => import('./pages/NordVPNDeal'));
+const ElementorDeal = React.lazy(() => import('./pages/ElementorDeal'));
+
+// Trust & E-E-A-T Pages
+const AuthorPage = React.lazy(() => import('./pages/AuthorPage'));
+const EditorialPolicy = React.lazy(() => import('./pages/EditorialPolicy'));
+const CookiePolicy = React.lazy(() => import('./pages/CookiePolicy'));
+const AccessibilityStatement = React.lazy(() => import('./pages/AccessibilityStatement'));
+const AffiliateDisclosure = React.lazy(() => import('./pages/AffiliateDisclosure'));
 
 import { BLOG_POSTS } from './blogData';
 import { SEO_DATA } from './seoData';
 import { AFFILIATE_LINKS } from './affiliateLinks';
 
 
-import { FiShield, FiZap, FiUserCheck, FiCpu, FiStar, FiExternalLink, FiClock } from 'react-icons/fi';
+import { FiShield, FiZap, FiUserCheck, FiCpu, FiStar, FiExternalLink, FiClock, FiSend } from 'react-icons/fi';
 
 function SkeletonLoader() {
   return (
@@ -58,6 +69,34 @@ export default function App() {
   const [history, setHistory] = useState(JSON.parse(localStorage.getItem('ops_history')) || []);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [geminiKey, setGeminiKey] = useState(localStorage.getItem('gemini_api_key') || '');
+  const [showExitPopup, setShowExitPopup] = useState(false);
+  
+  useEffect(() => {
+    const dismissed = sessionStorage.getItem('exit_popup_dismissed');
+    if (dismissed) return;
+
+    const handleMouseLeave = (e) => {
+      if (e.clientY < 20) {
+        setShowExitPopup(true);
+      }
+    };
+
+    const mobileTimer = setTimeout(() => {
+      setShowExitPopup(true);
+    }, 25000);
+
+    document.addEventListener('mouseleave', handleMouseLeave);
+    
+    return () => {
+      document.removeEventListener('mouseleave', handleMouseLeave);
+      clearTimeout(mobileTimer);
+    };
+  }, []);
+
+  const dismissExitPopup = () => {
+    setShowExitPopup(false);
+    sessionStorage.setItem('exit_popup_dismissed', 'true');
+  };
   
   // Bookmarks, Recently Used, Conversion Counter & Toasts
   const [bookmarks, setBookmarks] = useState(JSON.parse(localStorage.getItem('ops_bookmarks')) || []);
@@ -138,8 +177,21 @@ export default function App() {
         '/terms': 'terms',
         '/disclaimer': 'disclaimer',
         '/dmca': 'dmca',
-        '/faqs': 'faqs'
+        '/faqs': 'faqs',
+        '/editorial-policy': 'editorial-policy',
+        '/cookie-policy': 'cookie-policy',
+        '/accessibility': 'accessibility',
+        '/affiliate-disclosure': 'affiliate-disclosure'
       };
+
+      // Author page
+      if (path === '/author/vansh-shah' || path === '/author') {
+        setView('author');
+        setActiveTool(null);
+        setSelectedBlogSlug(null);
+        setSelectedBlogCategory(null);
+        return;
+      }
       
       if (infoPages[path]) {
         setView(infoPages[path]);
@@ -165,6 +217,34 @@ export default function App() {
       }
       if (path === '/deals/elevenlabs' || path === '/deals/eleven-labs') {
         setView('elevenlabs-deal');
+        setActiveTool(null);
+        setSelectedBlogSlug(null);
+        setSelectedBlogCategory(null);
+        return;
+      }
+      if (path === '/deals/canva') {
+        setView('canva-deal');
+        setActiveTool(null);
+        setSelectedBlogSlug(null);
+        setSelectedBlogCategory(null);
+        return;
+      }
+      if (path === '/deals/grammarly') {
+        setView('grammarly-deal');
+        setActiveTool(null);
+        setSelectedBlogSlug(null);
+        setSelectedBlogCategory(null);
+        return;
+      }
+      if (path === '/deals/nordvpn') {
+        setView('nordvpn-deal');
+        setActiveTool(null);
+        setSelectedBlogSlug(null);
+        setSelectedBlogCategory(null);
+        return;
+      }
+      if (path === '/deals/elementor') {
+        setView('elementor-deal');
         setActiveTool(null);
         setSelectedBlogSlug(null);
         setSelectedBlogCategory(null);
@@ -318,7 +398,16 @@ export default function App() {
         deals: '/deals',
         'namecheap-review': '/hosting/namecheap-review',
         'analytics-dashboard': '/analytics',
-        'elevenlabs-deal': '/deals/elevenlabs'
+        'elevenlabs-deal': '/deals/elevenlabs',
+        'canva-deal': '/deals/canva',
+        'grammarly-deal': '/deals/grammarly',
+        'nordvpn-deal': '/deals/nordvpn',
+        'elementor-deal': '/deals/elementor',
+        author: '/author/vansh-shah',
+        'editorial-policy': '/editorial-policy',
+        'cookie-policy': '/cookie-policy',
+        accessibility: '/accessibility',
+        'affiliate-disclosure': '/affiliate-disclosure'
       };
       const titleMap = {
         about: "About Us | All Tool Master",
@@ -331,7 +420,16 @@ export default function App() {
         deals: "Hosting Deals & Domains | All Tool Master",
         'namecheap-review': "Namecheap Review & Student Domain Discounts | All Tool Master",
         'analytics-dashboard': "SaaS Performance & Tool Traffic Analytics | All Tool Master",
-        'elevenlabs-deal': "Get Started With ElevenLabs AI Voice Generator | All Tool Master"
+        'elevenlabs-deal': "Get Started With ElevenLabs AI Voice Generator | All Tool Master",
+        'canva-deal': "Get Started With Canva Graphic Design & Pro Trials | All Tool Master",
+        'grammarly-deal': "Perfect Your Writing With Grammarly AI Assistant | All Tool Master",
+        'nordvpn-deal': "Secure Your Digital Footprint With NordVPN | All Tool Master",
+        'elementor-deal': "Build Websites With Elementor WordPress Builder | All Tool Master",
+        author: "About the Author: Vansh Shah | All Tool Master",
+        'editorial-policy': "Editorial Policy & Editorial Standards | All Tool Master",
+        'cookie-policy': "Cookie Policy & Cookie Consent | All Tool Master",
+        accessibility: "Accessibility Statement & Web Standards | All Tool Master",
+        'affiliate-disclosure': "FTC Affiliate Disclosure & Partnerships | All Tool Master"
       };
       const descMap = {
         about: "Learn about All Tool Master, our mission to build secure, browser-based file conversion and AI productivity tools.",
@@ -344,7 +442,16 @@ export default function App() {
         deals: "Domain registration discounts with our affiliate promo tools via Namecheap.",
         'namecheap-review': "Read our comprehensive Namecheap review. Compare pricing vs GoDaddy, free domain privacy protection, and claim special student discounts.",
         'analytics-dashboard': "View real-time traffic statistics, top active digital converter utilities, and affiliate conversion rates on All Tool Master.",
-        'elevenlabs-deal': "Create realistic AI voices, voiceovers, dubbing, podcasts, and audiobooks using ElevenLabs. Start free with our affiliate partner registration."
+        'elevenlabs-deal': "Create realistic AI voices, voiceovers, dubbing, podcasts, and audiobooks using ElevenLabs. Start free with our affiliate partner registration.",
+        'canva-deal': "Design professional social media posts, presentations, posters, logo ideas, and marketing documents with Canva Pro free trial.",
+        'grammarly-deal': "Elevate your writing. Grammarly AI corrects grammar, improves clarity, and fine-tunes your writing tone in real-time.",
+        'nordvpn-deal': "Protect your online privacy, secure public Wi-Fi traffic, block malware, and browse securely with NordVPN affiliate discounts.",
+        'elementor-deal': "Build responsive WordPress websites using the #1 visual page builder. Get Elementor Pro discount codes and details.",
+        author: "Learn more about Vansh Shah, founder and lead developer of All Tool Master. Software engineer from Mumbai, India.",
+        'editorial-policy': "Review our editorial guidelines, fact-checking process, and quality standards for all content on All Tool Master.",
+        'cookie-policy': "Understand how All Tool Master uses cookies to manage user settings and web preferences safely.",
+        accessibility: "Read our commitment to WCAG 2.1 AA web accessibility standards and user features.",
+        'affiliate-disclosure': "Read our transparent affiliate link disclosure complying with FTC requirements."
       };
       
       path = pathMap[view] || '/';
@@ -768,6 +875,103 @@ export default function App() {
               </div>
             </section>
 
+            {/* Why Trust AllToolMaster? Section */}
+            <section style={{ padding: '50px 0', borderTop: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.02)' }}>
+              <div className="container">
+                <div style={{ textAlign: 'center', marginBottom: '36px' }}>
+                  <span className="badge">E-E-A-T Authority</span>
+                  <h2 style={{ fontSize: '28px', fontWeight: '800', marginTop: '8px' }}>Why Trust <span className="text-gradient">AllToolMaster</span>?</h2>
+                  <p style={{ color: 'var(--text-muted)', marginTop: '8px', fontSize: '14.5px' }}>We are committed to transparency, safety, and expert-reviewed content.</p>
+                </div>
+                
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                  gap: '24px'
+                }}>
+                  <div className="glass-panel" style={{ padding: '24px', borderRadius: '18px' }}>
+                    <div style={{ fontSize: '24px', color: 'var(--accent-color)', marginBottom: '12px' }}><FiUserCheck /></div>
+                    <h3 style={{ fontSize: '16px', fontWeight: '800', marginBottom: '8px' }}>Real Founder</h3>
+                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+                      AllToolMaster was built by <span onClick={() => navigate('author')} style={{ color: 'var(--accent-color)', cursor: 'pointer', textDecoration: 'underline', fontWeight: '600' }}>Vansh Shah</span>, a software engineer dedicated to building clean, ad-free web utilities.
+                    </p>
+                  </div>
+                  
+                  <div className="glass-panel" style={{ padding: '24px', borderRadius: '18px' }}>
+                    <div style={{ fontSize: '24px', color: 'var(--accent-color)', marginBottom: '12px' }}><FiShield /></div>
+                    <h3 style={{ fontSize: '16px', fontWeight: '800', marginBottom: '8px' }}>Secure Processing</h3>
+                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+                      All files are converted directly in your browser or secure RAM pools and immediately deleted. We never sell or inspect your files.
+                    </p>
+                  </div>
+
+                  <div className="glass-panel" style={{ padding: '24px', borderRadius: '18px' }}>
+                    <div style={{ fontSize: '24px', color: 'var(--accent-color)', marginBottom: '12px' }}><FiZap /></div>
+                    <h3 style={{ fontSize: '16px', fontWeight: '800', marginBottom: '8px' }}>No Signup Required</h3>
+                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+                      Start using our tools instantly. There are no registration flows, credit card requirements, or email paywalls.
+                    </p>
+                  </div>
+
+                  <div className="glass-panel" style={{ padding: '24px', borderRadius: '18px' }}>
+                    <div style={{ fontSize: '24px', color: 'var(--accent-color)', marginBottom: '12px' }}><FiStar /></div>
+                    <h3 style={{ fontSize: '16px', fontWeight: '800', marginBottom: '8px' }}>Expertly Researched</h3>
+                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+                      Our guides and tool explanations are vetted for technical accuracy under our rigorous <span onClick={() => navigate('editorial-policy')} style={{ color: 'var(--accent-color)', cursor: 'pointer', textDecoration: 'underline', fontWeight: '600' }}>Editorial Policy</span>.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Popular Guides Section */}
+            <section style={{ padding: '50px 0', borderTop: '1px solid var(--border-color)' }}>
+              <div className="container">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '36px', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <span className="badge">Knowledge Hub</span>
+                    <h2 style={{ fontSize: '28px', fontWeight: '800', marginTop: '8px' }}>Popular <span className="text-gradient">Guides &amp; Tutorials</span></h2>
+                    <p style={{ color: 'var(--text-muted)', marginTop: '6px', fontSize: '14.5px' }}>Learn how to solve file conversion and productivity problems in seconds.</p>
+                  </div>
+                  <button onClick={() => navigate('blog-list')} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    View All Articles <FiSend />
+                  </button>
+                </div>
+
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                  gap: '24px'
+                }}>
+                  {BLOG_POSTS.slice(0, 6).map((post, idx) => (
+                    <div key={idx} className="glass-panel card-hover" style={{ 
+                      padding: '24px', 
+                      borderRadius: '18px', 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      justifyContent: 'space-between',
+                      minHeight: '220px',
+                      cursor: 'pointer'
+                    }} onClick={() => navigate('blog-post', null, post.slug)}>
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '12px' }}>
+                          <span>{post.date}</span>
+                          <span>{post.readTime}</span>
+                        </div>
+                        <h3 style={{ fontSize: '16.5px', fontWeight: '800', marginBottom: '10px', lineHeight: '1.4' }}>{post.title}</h3>
+                        <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                          {post.excerpt}
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: 'var(--accent-color)', marginTop: '16px' }}>
+                        Read Guide <FiSend size={12} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
             {/* Testimonials */}
             <section style={{ padding: '50px 0' }}>
               <div className="container">
@@ -801,38 +1005,92 @@ export default function App() {
               </div>
             </section>
 
-            {/* Domain Affiliate Showcase */}
+            {/* Featured AI Resources */}
             <section style={{ padding: '50px 0', borderTop: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.02)' }}>
               <div className="container">
                 <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-                  <span className="badge">Verified Partner Deal</span>
-                  <h2 style={{ fontSize: '28px', fontWeight: '800', marginTop: '8px' }}>Secure Your <span className="text-gradient">Domain Name</span></h2>
-                  <p style={{ color: 'var(--text-muted)', marginTop: '8px', fontSize: '14.5px' }}>Need a domain name for your new project? Get started with our verified partner and save big.</p>
+                  <span className="badge">Featured Deals &amp; Discounts</span>
+                  <h2 style={{ fontSize: '28px', fontWeight: '800', marginTop: '8px' }}>Recommended <span className="text-gradient">Creator &amp; AI Tools</span></h2>
+                  <p style={{ color: 'var(--text-muted)', marginTop: '8px', fontSize: '14.5px' }}>Exclusive partner offers for leading AI platforms, domain hosting, and creative software.</p>
                 </div>
 
                 <div style={{
-                  maxWidth: '500px',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                  gap: '24px',
+                  maxWidth: '1200px',
                   margin: '0 auto'
                 }}>
-                  {/* Namecheap Promo Card */}
-                  <div className="glass-panel" style={{ padding: '24px', borderRadius: '18px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'rgba(0, 0, 0, 0.05)' }}>
+                  {/* Namecheap Card */}
+                  <div className="glass-panel" style={{ padding: '24px', borderRadius: '18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'rgba(0, 0, 0, 0.03)' }}>
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                        <span style={{ fontSize: '11px', fontWeight: '800', color: '#de4b1a', background: 'rgba(222, 75, 26, 0.1)', padding: '4px 10px', borderRadius: '6px' }}>Namecheap Partner</span>
-                        <span style={{ fontSize: '12px', fontWeight: '800', color: '#10b981' }}>Domains from $0.99</span>
+                        <span style={{ fontSize: '11px', fontWeight: '800', color: '#de4b1a', background: 'rgba(222, 75, 26, 0.1)', padding: '4px 10px', borderRadius: '6px' }}>Domain Deal</span>
+                        <span style={{ fontSize: '11.5px', fontWeight: '800', color: '#10b981' }}>Domains from $0.99</span>
                       </div>
-                      <h3 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '8px' }}>Domain Registration &amp; Security</h3>
+                      <h3 style={{ fontSize: '17px', fontWeight: '800', marginBottom: '8px' }}>Namecheap Domains</h3>
                       <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5', marginBottom: '16px' }}>
-                        Secure your custom domain name with lifetime free privacy protection, premium DNS resolution, and 1-click integrations with Vercel and GitHub.
+                        Get cheap domain registration with free lifetime privacy protection, DNSSEC security, and premium 24/7 support.
                       </p>
                     </div>
                     <a href={AFFILIATE_LINKS.namecheap} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ background: '#de4b1a', borderColor: '#de4b1a', width: '100%', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', textDecoration: 'none' }}>
-                      Claim Namecheap Discount <FiExternalLink size={14} />
+                      Claim Discount <FiExternalLink size={14} />
+                    </a>
+                  </div>
+
+                  {/* ElevenLabs Card */}
+                  <div className="glass-panel" style={{ padding: '24px', borderRadius: '18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'rgba(0, 0, 0, 0.03)' }}>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: '800', color: '#6366f1', background: 'rgba(99, 102, 241, 0.1)', padding: '4px 10px', borderRadius: '6px' }}>AI Voice</span>
+                        <span style={{ fontSize: '11.5px', fontWeight: '800', color: '#10b981' }}>Free Plan Available</span>
+                      </div>
+                      <h3 style={{ fontSize: '17px', fontWeight: '800', marginBottom: '8px' }}>ElevenLabs AI Voices</h3>
+                      <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5', marginBottom: '16px' }}>
+                        Generate hyper-realistic human-like speech in any language, clone your voice, and create professional audio dubs.
+                      </p>
+                    </div>
+                    <a href={AFFILIATE_LINKS.elevenlabs} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ background: '#6366f1', borderColor: '#6366f1', width: '100%', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', textDecoration: 'none' }}>
+                      Try ElevenLabs Free <FiExternalLink size={14} />
+                    </a>
+                  </div>
+
+                  {/* Canva Card */}
+                  <div className="glass-panel" style={{ padding: '24px', borderRadius: '18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'rgba(0, 0, 0, 0.03)' }}>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: '800', color: '#00c4cc', background: 'rgba(0, 196, 204, 0.1)', padding: '4px 10px', borderRadius: '6px' }}>Design</span>
+                        <span style={{ fontSize: '11.5px', fontWeight: '800', color: '#10b981' }}>30-Day Pro Trial</span>
+                      </div>
+                      <h3 style={{ fontSize: '17px', fontWeight: '800', marginBottom: '8px' }}>Canva Graphic Design</h3>
+                      <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5', marginBottom: '16px' }}>
+                        Create stunning social media posts, presentations, and documents with Canva's simple drag-and-drop platform.
+                      </p>
+                    </div>
+                    <a href={AFFILIATE_LINKS.canva || "#affiliate"} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ background: '#00c4cc', borderColor: '#00c4cc', width: '100%', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', textDecoration: 'none' }}>
+                      Try Canva Pro Free <FiExternalLink size={14} />
+                    </a>
+                  </div>
+
+                  {/* Grammarly Card */}
+                  <div className="glass-panel" style={{ padding: '24px', borderRadius: '18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'rgba(0, 0, 0, 0.03)' }}>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: '800', color: '#11a683', background: 'rgba(17, 166, 131, 0.1)', padding: '4px 10px', borderRadius: '6px' }}>AI Writing</span>
+                        <span style={{ fontSize: '11.5px', fontWeight: '800', color: '#10b981' }}>Improve Writing Free</span>
+                      </div>
+                      <h3 style={{ fontSize: '17px', fontWeight: '800', marginBottom: '8px' }}>Grammarly Assistant</h3>
+                      <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5', marginBottom: '16px' }}>
+                        Perfect your emails, essays, and articles with advanced AI suggestions for grammar, tone, clarity, and style.
+                      </p>
+                    </div>
+                    <a href={AFFILIATE_LINKS.grammarly || "#affiliate"} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ background: '#11a683', borderColor: '#11a683', width: '100%', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', textDecoration: 'none' }}>
+                      Improve Writing Free <FiExternalLink size={14} />
                     </a>
                   </div>
                 </div>
 
-                <div style={{ textAlign: 'center', marginTop: '24px' }}>
+                <div style={{ textAlign: 'center', marginTop: '30px' }}>
                   <span onClick={() => navigate('deals')} style={{ color: 'var(--accent-color)', cursor: 'pointer', fontSize: '14.5px', fontWeight: '700', textDecoration: 'underline' }}>
                     View All Promotional Resource Deals
                   </span>
@@ -842,6 +1100,55 @@ export default function App() {
 
             {/* FAQs */}
             <FAQAccordion />
+
+            {/* Newsletter Subscription Banner */}
+            <section style={{ padding: '60px 0', borderTop: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.01)' }}>
+              <div className="container" style={{ maxWidth: '800px' }}>
+                <div className="glass-panel" style={{
+                  padding: '40px',
+                  borderRadius: '24px',
+                  textAlign: 'center',
+                  background: 'linear-gradient(135deg, rgba(34,211,238,0.05) 0%, rgba(0,0,0,0.05) 100%)',
+                  border: '1px solid var(--border-color)'
+                }}>
+                  <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px' }}>Join the All Tool Master Newsletter</h2>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '24px', lineHeight: '1.6' }}>
+                    Subscribe to receive product updates, new file conversion tools, AI productivity tips, and exclusive partner deal alerts direct to your inbox.
+                  </p>
+                  
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    const emailInput = e.target.elements.newsletterEmail.value;
+                    if (emailInput) {
+                      const subs = JSON.parse(localStorage.getItem('newsletter_subs') || '[]');
+                      subs.push(emailInput);
+                      localStorage.setItem('newsletter_subs', JSON.stringify(subs));
+                      alert(`Thank you for subscribing! We've saved ${emailInput} to our newsletter subscriber list.`);
+                      e.target.reset();
+                    }
+                  }} style={{
+                    display: 'flex',
+                    gap: '12px',
+                    maxWidth: '500px',
+                    margin: '0 auto',
+                    flexWrap: 'wrap',
+                    justifyContent: 'center'
+                  }}>
+                    <input
+                      name="newsletterEmail"
+                      type="email"
+                      placeholder="Enter your email address..."
+                      required
+                      className="input-field"
+                      style={{ flex: 1, minWidth: '240px', height: '44px', padding: '0 16px', borderRadius: '10px' }}
+                    />
+                    <button type="submit" className="btn btn-primary" style={{ height: '44px', padding: '0 24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      Subscribe Now <FiSend />
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </section>
 
             {/* SEO Content Section */}
             <section style={{ padding: '40px 0 60px 0', borderTop: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.03)' }}>
@@ -890,6 +1197,15 @@ export default function App() {
           {view === 'namecheap-review' && <NamecheapReview navigate={navigate} />}
           {view === 'analytics-dashboard' && <AnalyticsDashboard navigate={navigate} />}
           {view === 'elevenlabs-deal' && <ElevenLabsDeal />}
+          {view === 'canva-deal' && <CanvaDeal />}
+          {view === 'grammarly-deal' && <GrammarlyDeal />}
+          {view === 'nordvpn-deal' && <NordVPNDeal />}
+          {view === 'elementor-deal' && <ElementorDeal />}
+          {view === 'author' && <AuthorPage navigate={navigate} />}
+          {view === 'editorial-policy' && <EditorialPolicy />}
+          {view === 'cookie-policy' && <CookiePolicy />}
+          {view === 'accessibility' && <AccessibilityStatement />}
+          {view === 'affiliate-disclosure' && <AffiliateDisclosure />}
           {view === 'tool-page' && activeTool && (
             activeTool.id === 'file-compressor' ? (
               <FileCompressor tool={activeTool} setView={setView} setActiveTool={setActiveTool} addToHistory={addToHistory} navigate={navigate} addToast={addToast} incrementConversion={incrementConversion} />
@@ -964,6 +1280,85 @@ export default function App() {
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '10px' }}>
                 <button type="button" className="btn btn-secondary" onClick={closeSettings}>Cancel</button>
                 <button type="submit" className="btn btn-primary">Save Key</button>
+              </div>
+            </form>
+          </div>
+
+        </div>
+      )}
+
+      {/* Exit Intent Newsletter Popup Modal */}
+      {showExitPopup && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1002
+        }} className="animate-fade-in">
+          
+          <div className="glass-panel" style={{
+            width: '90%',
+            maxWidth: '500px',
+            padding: '36px',
+            borderRadius: '24px',
+            position: 'relative',
+            textAlign: 'center',
+            background: 'linear-gradient(135deg, rgba(34,211,238,0.05) 0%, rgba(15,23,42,0.95) 100%)',
+            border: '1px solid var(--accent-color)'
+          }}>
+            <button 
+              onClick={dismissExitPopup}
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-muted)',
+                fontSize: '20px',
+                cursor: 'pointer'
+              }}
+            >
+              &times;
+            </button>
+
+            <span className="badge" style={{ marginBottom: '12px' }}>Wait! Before You Go</span>
+            <h3 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '12px' }}>Get Free AI &amp; File Tool Updates</h3>
+            <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', marginBottom: '24px', lineHeight: '1.6' }}>
+              Subscribe to the All Tool Master newsletter to receive notifications on new browser utilities, guides, and creator deals!
+            </p>
+
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const emailInput = e.target.elements.exitNewsletterEmail.value;
+              if (emailInput) {
+                const subs = JSON.parse(localStorage.getItem('newsletter_subs') || '[]');
+                subs.push(emailInput);
+                localStorage.setItem('newsletter_subs', JSON.stringify(subs));
+                alert(`Thank you for subscribing! We've saved ${emailInput} to our newsletter subscriber list.`);
+                dismissExitPopup();
+              }
+            }} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <input
+                name="exitNewsletterEmail"
+                type="email"
+                placeholder="Enter your email address..."
+                required
+                className="input-field"
+                style={{ width: '100%', height: '44px', padding: '0 16px', borderRadius: '10px' }}
+              />
+              <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={dismissExitPopup}>No Thanks</button>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                  Subscribe Now <FiSend />
+                </button>
               </div>
             </form>
           </div>

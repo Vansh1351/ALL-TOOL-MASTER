@@ -1,4 +1,6 @@
-export const BLOG_POSTS = [
+import { NEW_BLOG_POSTS } from './blogDataNew';
+
+const ORIGINAL_BLOG_POSTS = [
   {
     slug: 'free-url-to-mp4-converter-saved-hours',
     title: 'This FREE URL to MP4 Converter Just Saved Me Hours (And It\'ll Save You Too!)',
@@ -2659,3 +2661,5 @@ Prepare your files and assets using our free utility tools:
 `
   }
 ];
+
+export const BLOG_POSTS = [...ORIGINAL_BLOG_POSTS, ...NEW_BLOG_POSTS];

@@ -124,6 +124,12 @@ FORMATTING RULES (STRICTLY FOLLOW):
 
 BEGIN with "ENHANCED TITLE:" then write the full script immediately. Do not add meta-commentary about what you are going to write. Just write the script.`;
       break;
+    case 'ai-resume-enhance-summary':
+      prompt = "You are an expert resume writer and career coach. Your task is to rewrite, polish, and professionally enhance the provided professional summary. Make it punchy, high-impact, professional, and tailored for a modern resume. Keep it to 2-4 sentences maximum. Do not include any introductory text, greeting, or markdown formatting like quotes. Just return the enhanced summary directly.";
+      break;
+    case 'ai-resume-enhance-experience':
+      prompt = "You are an expert resume writer. Enhance and polish the following work experience description or bullet points. Use active verb phrase format (e.g. 'Led cross-functional teams...', 'Optimized pipeline speed...'), quantify achievements where possible, and ensure the tone is professional, clear, and action-oriented. Keep the structure as a list of bullet points if the input is in that format, or write 2-3 strong bullet points. Start directly with the enhanced text, do not add introductory phrases, conversational comments, or explanations.";
+      break;
     default:
       prompt = `Provide a comprehensive summary and analysis of the attached content. Highlight all main topics and present them clearly in markdown.`;
   }

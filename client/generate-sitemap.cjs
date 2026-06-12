@@ -15,7 +15,16 @@ const staticRoutes = [
   '/deals',
   '/hosting/namecheap-review',
   '/deals/namecheap',
-  '/deals/elevenlabs'
+  '/deals/elevenlabs',
+  '/deals/canva',
+  '/deals/grammarly',
+  '/deals/nordvpn',
+  '/deals/elementor',
+  '/author/vansh-shah',
+  '/editorial-policy',
+  '/cookie-policy',
+  '/accessibility',
+  '/affiliate-disclosure'
 ];
 
 const blogCategories = [
@@ -24,7 +33,10 @@ const blogCategories = [
   '/blog/category/downloader',
   '/blog/category/ai-tools',
   '/blog/category/productivity',
-  '/blog/category/web-hosting'
+  '/blog/category/web-hosting',
+  '/blog/category/tutorials',
+  '/blog/category/comparisons',
+  '/blog/category/file-conversion'
 ];
 
 const blogPosts = [
@@ -40,7 +52,37 @@ const blogPosts = [
   '/blog/best-ai-voice-generator-2026',
   '/blog/how-to-create-voiceovers-with-elevenlabs',
   '/blog/elevenlabs-vs-murf-vs-playht',
-  '/blog/top-ai-tools-for-content-creators-2026'
+  '/blog/top-ai-tools-for-content-creators-2026',
+  '/blog/best-pdf-to-word-converter-2026',
+  '/blog/how-to-convert-mp4-to-mp3-guide',
+  '/blog/heic-to-jpg-conversion-guide',
+  '/blog/mov-to-mp4-converter-guide',
+  '/blog/png-to-jpg-converter-guide',
+  '/blog/zip-extraction-guide-2026',
+  '/blog/best-ai-note-takers-2026',
+  '/blog/ai-meeting-assistant-complete-guide',
+  '/blog/ai-transcript-generator-guide',
+  '/blog/ai-resume-builder-guide-2026',
+  '/blog/best-ai-study-tools-students-2026',
+  '/blog/canva-vs-adobe-express-2026',
+  '/blog/grammarly-vs-quillbot-comparison',
+  '/blog/notion-ai-vs-chatgpt-comparison',
+  '/blog/google-gemini-vs-chatgpt-2026',
+  '/blog/elevenlabs-review-2026',
+  '/blog/how-to-build-resume-from-scratch',
+  '/blog/how-to-compress-files-guide',
+  '/blog/how-to-download-videos-safely',
+  '/blog/best-productivity-tools-students-2026',
+  '/blog/best-tools-bca-students-2026',
+  '/blog/free-youtube-to-mp3-converter-guide',
+  '/blog/youtube-to-mp4-converter-2026',
+  '/blog/url-to-mp4-converter-guide',
+  '/blog/heic-to-jpg-converter-free',
+  '/blog/pdf-to-word-converter-free-online',
+  '/blog/free-ai-note-taker-online',
+  '/blog/ai-meeting-assistant-free-2026',
+  '/blog/free-resume-builder-guide-2026',
+  '/blog/zip-extractor-online-free-guide'
 ];
 
 const seoToolPages = [
