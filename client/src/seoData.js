@@ -1227,5 +1227,161 @@ Simply provide a title, select your script type and genre, and write a brief pre
       { question: 'Are my files uploaded to a server?', answer: 'Files are uploaded to a secure temporary sandbox to process decompression, and all extracted files are wiped from memory immediately.' }
     ],
     relatedTools: ['/utility/file-compressor', '/convert/pdf-to-docx', '/convert/jpg-to-png']
+  },
+  '/': {
+    title: 'All Tool Master — Free Online File Converter, Downloader & AI Notes',
+    description: 'Free online tools to convert PDF, Word, images and videos. Download videos from YouTube, Instagram & TikTok. AI-powered notes and transcription. No signup needed.'
+  },
+  '/blog': {
+    title: 'Blog — File Conversion Tips, Video Download Guides | All Tool Master',
+    description: 'Guides, tutorials and tips on file conversion, video downloading, AI note-taking and online productivity tools. Updated regularly.'
+  },
+  '/converter': {
+    title: 'Free File Converters Online — PDF, Word, Image, Video | All Tool Master',
+    description: 'Convert PDF to Word, Word to PDF, JPG to PNG, MP4 to MP3 and more. All converters are free, browser-based and require no account.'
+  },
+  '/downloader': {
+    title: 'Free Video Downloader — YouTube, Instagram, TikTok & More | All Tool Master',
+    description: 'Download videos from YouTube, Instagram, TikTok, Facebook, Twitter and Vimeo for free. No watermark, no signup required.'
+  },
+  '/ai-notes': {
+    title: 'Free AI Notes Tools — Lecture Notes, Transcripts & Summaries | All Tool Master',
+    description: 'AI-powered tools to generate lecture notes, meeting minutes, transcripts, study guides and video summaries. Free, no account needed.'
+  },
+  '/convert/pdf-to-word': {
+    title: 'Free PDF to Word Converter Online — No Signup | All Tool Master',
+    description: 'Convert any PDF to an editable Word document instantly. Preserves formatting. No email, no watermark, completely free.'
+  },
+  '/convert/pdf-to-docx': {
+    title: 'Free PDF to DOCX Converter Online | All Tool Master',
+    description: 'Convert PDF files to DOCX format for free. Works on any browser, no installation needed.'
+  },
+  '/convert/word-to-pdf': {
+    title: 'Free Word to PDF Converter Online | All Tool Master',
+    description: 'Convert Word documents to PDF instantly. High quality, free, no signup required.'
+  },
+  '/convert/docx-to-pdf': {
+    title: 'Free DOCX to PDF Converter | All Tool Master',
+    description: 'Convert DOCX files to PDF for free online. Fast, secure, no account needed.'
+  },
+  '/convert/jpg-to-png': {
+    title: 'Free JPG to PNG Converter Online | All Tool Master',
+    description: 'Convert JPG images to PNG format instantly online. Free, no signup, works on mobile.'
+  },
+  '/convert/png-to-jpg': {
+    title: 'Free PNG to JPG Converter Online | All Tool Master',
+    description: 'Convert PNG images to JPG format for free. Fast browser-based tool, no login needed.'
+  },
+  '/convert/webp-to-png': {
+    title: 'Free WebP to PNG Converter Online | All Tool Master',
+    description: 'Convert WebP images to PNG format free online. No software needed, works instantly.'
+  },
+  '/convert/mp4-to-mp3': {
+    title: 'Free MP4 to MP3 Converter Online | All Tool Master',
+    description: 'Extract audio from MP4 videos and save as MP3. Free, fast, no signup required.'
+  },
+  '/convert/video-to-audio': {
+    title: 'Free Video to Audio Converter Online | All Tool Master',
+    description: 'Extract audio from any video file online for free. Supports MP4, MOV, AVI and more.'
+  },
+  '/convert/mov-to-mp4': {
+    title: 'Free MOV to MP4 Converter Online | All Tool Master',
+    description: 'Convert MOV files to MP4 format free online. Fast conversion, no account needed.'
+  },
+  '/convert/excel-to-pdf': {
+    title: 'Free Excel to PDF Converter Online | All Tool Master',
+    description: 'Convert Excel spreadsheets to PDF format online for free. No signup required.'
+  },
+  '/convert/heic-to-jpg': {
+    title: 'Free HEIC to JPG Converter Online | All Tool Master',
+    description: 'Convert iPhone HEIC photos to JPG format free online. Fast, simple, no login needed.'
+  },
+  '/downloader/youtube': {
+    title: 'Free YouTube Video Downloader — MP4, HD, 4K | All Tool Master',
+    description: 'Download YouTube videos free in MP4, HD and 4K quality. No watermark, no account needed. Paste URL and download instantly.'
+  },
+  '/downloader/instagram': {
+    title: 'Free Instagram Video & Reels Downloader | All Tool Master',
+    description: 'Download Instagram videos, Reels and Stories for free. No login required, no watermark, works instantly.'
+  },
+  '/downloader/tiktok': {
+    title: 'Free TikTok Video Downloader — No Watermark | All Tool Master',
+    description: 'Download TikTok videos without watermark for free. Just paste the URL and download in seconds.'
+  },
+  '/downloader/facebook': {
+    title: 'Free Facebook Video Downloader | All Tool Master',
+    description: 'Download Facebook videos free online in HD quality. No account required, works on public posts.'
+  },
+  '/downloader/twitter': {
+    title: 'Free Twitter & X Video Downloader | All Tool Master',
+    description: 'Download videos from Twitter and X for free. Fast, no signup, works on mobile and desktop.'
+  },
+  '/downloader/vimeo': {
+    title: 'Free Vimeo Video Downloader | All Tool Master',
+    description: 'Download Vimeo videos for free online. No account needed, multiple quality options available.'
+  },
+  '/downloader/shorts': {
+    title: 'Free YouTube Shorts Downloader | All Tool Master',
+    description: 'Download YouTube Shorts videos for free. No watermark, no login required, instant download.'
+  },
+  '/ai-notes/lecture-notes': {
+    title: 'Free AI Lecture Notes Generator Online | All Tool Master',
+    description: 'Generate structured, detailed lecture notes from audio, video or text using AI. Free, no signup required.'
+  },
+  '/ai-notes/meeting-assistant': {
+    title: 'Free AI Meeting Assistant & Minutes Generator | All Tool Master',
+    description: 'Automatically generate accurate meeting notes and action items using AI. Free online tool, no account needed.'
+  },
+  '/ai-notes/transcript': {
+    title: 'Free AI Transcript Generator Online | All Tool Master',
+    description: 'Transcribe audio and video files to accurate text using AI. Free, fast, supports multiple languages.'
+  },
+  '/ai-notes/audio-analyzer': {
+    title: 'Free AI Audio Analyzer Online | All Tool Master',
+    description: 'Analyze audio files using AI to extract key insights, summaries and information. Completely free.'
+  },
+  '/ai-notes/video-summarizer': {
+    title: 'Free AI Video Summarizer — Get Key Points Instantly | All Tool Master',
+    description: 'Summarize any video using AI in seconds. Get key points, timestamps and takeaways for free.'
+  },
+  '/ai-notes/speech-to-text': {
+    title: 'Free AI Speech to Text Online Converter | All Tool Master',
+    description: 'Convert speech and audio recordings to text using AI. Free, highly accurate, works on any device.'
+  },
+  '/ai-notes/study-guide': {
+    title: 'Free AI Study Guide Generator | All Tool Master',
+    description: 'Generate comprehensive study guides from any content using AI. Free, fast, no signup needed.'
+  },
+  '/ai-notes/voice-notes': {
+    title: 'Free AI Voice Notes Tool Online | All Tool Master',
+    description: 'Record and automatically transcribe voice notes using AI. Free, browser-based, no account needed.'
+  },
+  '/ai-notes/brainrot': {
+    title: 'Free Brainrot Text Translator Online | All Tool Master',
+    description: 'Translate normal text into brainrot language and internet slang using AI. Free, fun, instant results.'
+  },
+  '/ai-notes/meeting-minutes': {
+    title: 'Free AI Meeting Minutes Generator | All Tool Master',
+    description: 'Generate professional meeting minutes from recordings or notes automatically using AI. Free online.'
+  },
+  '/ai-notes/video-watcher': {
+    title: 'Free AI Video Watcher & Summarizer | All Tool Master',
+    description: 'Let AI watch and summarize videos for you. Get key takeaways without watching the full video. Free.'
+  },
+  '/utility/zip-extractor': {
+    title: 'Free Online ZIP File Extractor | All Tool Master',
+    description: 'Extract ZIP archives online for free. No software download needed, works on any device instantly.'
+  },
+  '/utility/unzip': {
+    title: 'Free Online Unzip Tool | All Tool Master',
+    description: 'Unzip compressed files online for free. Fast, secure, supports ZIP and more formats, no signup.'
+  },
+  '/utility/file-compressor': {
+    title: 'Free Online File Compressor | All Tool Master',
+    description: 'Compress files online for free. Reduce file size without losing quality. No account needed.'
+  },
+  '/utility/resume-builder': {
+    title: 'Free Online Resume Builder | All Tool Master',
+    description: 'Build a professional resume online for free. Easy templates, instant download, no signup required.'
   }
 };

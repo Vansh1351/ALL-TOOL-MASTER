@@ -1,4 +1,5 @@
 {
+  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/((?!assets/|public/|favicon.ico|robots.txt|sitemap.xml|ads.txt|BingSiteAuth.xml|icons.svg|googleb3cb58dd0aa48fe7.html).*)",

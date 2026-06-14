@@ -1,9 +1,11 @@
-import { NEW_BLOG_POSTS } from './blogDataNew';
+import { NEW_BLOG_POSTS } from './blogDataNew.js';
 
 const ORIGINAL_BLOG_POSTS = [
   {
     slug: 'free-url-to-mp4-converter-saved-hours',
     title: 'This FREE URL to MP4 Converter Just Saved Me Hours (And It\'ll Save You Too!)',
+    seoTitle: 'This Free URL to MP4 Converter Saved Me Hours Every Week | All Tool Master',
+    metaDescription: 'Stop downloading sketchy apps. This free browser-based tool converts any video URL to MP4 instantly. No watermark, no signup, works on all platforms.',
     date: 'May 26, 2026',
     author: 'Vansh Shah',
     readTime: '6 min read',
@@ -108,6 +110,8 @@ Bookmark [alltoolmaster.me](https://alltoolmaster.me/) and add it to your produc
   {
     slug: 'i-tested-15-youtube-to-mp4-converters',
     title: 'I Tested 15 YouTube to MP4 Converters - Here\'s The Only One That Actually Works',
+    seoTitle: 'I Tested 15 YouTube to MP4 Converters — Here\'s the Honest Winner | All Tool Master',
+    metaDescription: 'After testing 15 different tools for speed, quality and safety, here are the results. One free tool came out clearly on top. Full comparison inside.',
     date: 'May 24, 2026',
     author: 'Vansh Shah',
     readTime: '8 min read',
@@ -196,6 +200,8 @@ Visit [alltoolmaster.me/downloader/youtube](https://alltoolmaster.me/downloader/
   {
     slug: 'convert-heic-to-jpg-in-seconds',
     title: 'Convert HEIC to JPG in Seconds: 5 Lightning-Fast Tools That Actually Work',
+    seoTitle: 'How to Convert HEIC to JPG in Seconds — Free, No App Needed | All Tool Master',
+    metaDescription: 'iPhone saves photos as HEIC and most platforms won\'t accept them. Here\'s how to convert HEIC to JPG instantly online, completely free, no app download.',
     date: 'May 20, 2026',
     author: 'Vansh Shah',
     readTime: '5 min read',
@@ -296,6 +302,8 @@ Convert your first HEIC photo for free at [alltoolmaster.me/convert/heic-to-jpg]
   {
     slug: 'pdf-to-word-converter-preserves-formatting',
     title: 'The Ultimate PDF to Word Converter That Actually Preserves Your Formatting',
+    seoTitle: 'PDF to Word Converter That Actually Preserves Formatting | All Tool Master',
+    metaDescription: 'Discover why most PDF converters break your formatting — and how to convert PDFs while keeping your layout, fonts, tables and spacing perfectly intact.',
     date: 'May 18, 2026',
     author: 'Vansh Shah',
     readTime: '7 min read',

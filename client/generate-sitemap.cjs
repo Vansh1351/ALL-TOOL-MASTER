@@ -2,157 +2,92 @@ const fs = require('fs');
 const path = require('path');
 
 const domain = 'https://alltoolmaster.me';
+const dateStr = '2026-06-15';
 
-const staticRoutes = [
-  '/',
-  '/about',
-  '/contact',
-  '/privacy',
-  '/terms',
-  '/disclaimer',
-  '/dmca',
-  '/faqs',
-  '/deals',
-  '/hosting/namecheap-review',
-  '/deals/namecheap',
-  '/deals/elevenlabs',
-  '/deals/canva',
-  '/deals/grammarly',
-  '/deals/nordvpn',
-  '/deals/elementor',
-  '/author/vansh-shah',
-  '/editorial-policy',
-  '/cookie-policy',
-  '/accessibility',
-  '/affiliate-disclosure'
-];
+function getBlogSlugs() {
+  const blogDataPath = path.join(__dirname, 'src', 'blogData.js');
+  const blogDataNewPath = path.join(__dirname, 'src', 'blogDataNew.js');
+  
+  let content = '';
+  if (fs.existsSync(blogDataPath)) content += fs.readFileSync(blogDataPath, 'utf8');
+  if (fs.existsSync(blogDataNewPath)) content += fs.readFileSync(blogDataNewPath, 'utf8');
+  
+  const slugs = [];
+  const regex = /slug:\s*['"]([^'"]+)['"]/g;
+  let match;
+  while ((match = regex.exec(content)) !== null) {
+    if (!slugs.includes(match[1])) {
+      slugs.push(match[1]);
+    }
+  }
+  return slugs;
+}
 
-const blogCategories = [
-  '/blog',
-  '/blog/category/converter',
-  '/blog/category/downloader',
-  '/blog/category/ai-tools',
-  '/blog/category/productivity',
-  '/blog/category/web-hosting',
-  '/blog/category/tutorials',
-  '/blog/category/comparisons',
-  '/blog/category/file-conversion'
-];
-
-const blogPosts = [
-  '/blog/free-url-to-mp4-converter-saved-hours',
-  '/blog/compress-files-online-free-no-signup',
-  '/blog/free-resume-builder-no-signup-2026',
-  '/blog/best-ai-script-writer-free-online',
-  '/blog/youtube-to-mp3-converter-safe-free',
-  '/blog/namecheap-review-domain-hosting-deals',
-  '/blog/canva-vs-photoshop',
-  '/blog/how-to-create-social-media-posts-with-canva',
-  '/blog/best-free-canva-templates-for-students',
-  '/blog/best-ai-voice-generator-2026',
-  '/blog/how-to-create-voiceovers-with-elevenlabs',
-  '/blog/elevenlabs-vs-murf-vs-playht',
-  '/blog/top-ai-tools-for-content-creators-2026',
-  '/blog/best-pdf-to-word-converter-2026',
-  '/blog/how-to-convert-mp4-to-mp3-guide',
-  '/blog/heic-to-jpg-conversion-guide',
-  '/blog/mov-to-mp4-converter-guide',
-  '/blog/png-to-jpg-converter-guide',
-  '/blog/zip-extraction-guide-2026',
-  '/blog/best-ai-note-takers-2026',
-  '/blog/ai-meeting-assistant-complete-guide',
-  '/blog/ai-transcript-generator-guide',
-  '/blog/ai-resume-builder-guide-2026',
-  '/blog/best-ai-study-tools-students-2026',
-  '/blog/canva-vs-adobe-express-2026',
-  '/blog/grammarly-vs-quillbot-comparison',
-  '/blog/notion-ai-vs-chatgpt-comparison',
-  '/blog/google-gemini-vs-chatgpt-2026',
-  '/blog/elevenlabs-review-2026',
-  '/blog/how-to-build-resume-from-scratch',
-  '/blog/how-to-compress-files-guide',
-  '/blog/how-to-download-videos-safely',
-  '/blog/best-productivity-tools-students-2026',
-  '/blog/best-tools-bca-students-2026',
-  '/blog/free-youtube-to-mp3-converter-guide',
-  '/blog/youtube-to-mp4-converter-2026',
-  '/blog/url-to-mp4-converter-guide',
-  '/blog/heic-to-jpg-converter-free',
-  '/blog/pdf-to-word-converter-free-online',
-  '/blog/free-ai-note-taker-online',
-  '/blog/ai-meeting-assistant-free-2026',
-  '/blog/free-resume-builder-guide-2026',
-  '/blog/zip-extractor-online-free-guide'
-];
-
-const seoToolPages = [
-  '/convert/mp4-to-mp3',
-  '/convert/mp4-to-wav',
-  '/convert/mov-to-mp4',
-  '/convert/mp3-to-wav',
-  '/convert/jpg-to-png',
-  '/convert/png-to-jpg',
-  '/convert/jpg-to-pdf',
-  '/convert/png-to-pdf',
-  '/convert/pdf-to-docx',
-  '/convert/docx-to-pdf',
-  '/convert/pdf-to-jpg',
-  '/convert/zip-extractor'
-];
-
-const otherToolPages = [
-  '/downloader/youtube',
-  '/downloader/vimeo',
-  '/downloader/shorts',
-  '/downloader/facebook',
-  '/downloader/instagram',
-  '/downloader/tiktok',
-  '/downloader/twitter',
-  '/convert/heic-to-jpg',
-  '/convert/webp-to-png',
-  '/convert/pdf-to-word',
-  '/convert/word-to-pdf',
-  '/convert/excel-to-pdf',
-  '/utility/zip-extractor',
-  '/utility/unzip',
-  '/ai-notes/video-summarizer',
-  '/ai-notes/video-watcher',
-  '/ai-notes/transcript',
-  '/ai-notes/speech-to-text',
-  '/ai-notes/audio-analyzer',
-  '/ai-notes/voice-notes',
-  '/ai-notes/free-ai-note-taker',
-  '/ai-notes/lecture-notes',
-  '/ai-notes/study-guide',
-  '/ai-notes/meeting-minutes',
-  '/ai-notes/meeting-assistant',
-  '/ai-notes/brainrot-translator',
-  '/ai-notes/brainrot',
-  '/utility/file-compressor',
-  '/utility/compress',
-  '/utility/resume-builder',
-  '/utility/cv-builder',
-  '/ai-notes/script-writer',
-  '/ai-notes/screenplay-writer'
-];
-
-const allRoutes = [
-  ...staticRoutes,
-  ...blogCategories,
-  ...blogPosts,
-  ...seoToolPages,
-  ...otherToolPages
-];
+function getToolRoutes() {
+  const toolGridPath = path.join(__dirname, 'src', 'components', 'ToolGrid.jsx');
+  if (!fs.existsSync(toolGridPath)) return [];
+  
+  const content = fs.readFileSync(toolGridPath, 'utf8');
+  const routes = [];
+  const regex = /routes:\s*\[([^\]]+)\]/g;
+  let match;
+  while ((match = regex.exec(content)) !== null) {
+    const routeStrings = match[1].split(',').map(s => s.trim().replace(/['"]/g, ''));
+    routeStrings.forEach(r => {
+      if (r && !routes.includes(r)) {
+        routes.push(r);
+      }
+    });
+  }
+  return routes;
+}
 
 const generateSitemap = () => {
-  const dateStr = new Date().toISOString().split('T')[0];
+  const slugs = getBlogSlugs();
+  const toolRoutes = getToolRoutes();
+  
+  const staticRoutes = [
+    '/',
+    '/about',
+    '/contact',
+    '/faqs',
+    '/editorial-policy',
+    '/cookie-policy',
+    '/accessibility',
+    '/affiliate-disclosure',
+    '/author/vansh-shah'
+  ];
+  
+  const hubRoutes = [
+    '/converter',
+    '/downloader',
+    '/ai-notes',
+    '/blog'
+  ];
+  
+  const excludeRoutes = [
+    '/deals',
+    '/privacy',
+    '/terms',
+    '/dmca',
+    '/disclaimer'
+  ];
   
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
   xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
   
-  allRoutes.forEach((route) => {
-    const priority = route === '/' ? '1.0' : (route.startsWith('/convert/') ? '0.9' : '0.7');
-    const freq = route === '/' ? 'daily' : 'weekly';
+  const processedRoutes = new Set();
+  
+  function addRoute(route, priority, freq) {
+    // Check if route is excluded or already processed
+    if (processedRoutes.has(route)) return;
+    
+    // Explicitly exclude requested pages and any deals/hosting routes
+    if (excludeRoutes.includes(route) || route.startsWith('/deals') || route.startsWith('/hosting')) {
+      return;
+    }
+    
+    processedRoutes.add(route);
     
     xml += '  <url>\n';
     xml += `    <loc>${domain}${route}</loc>\n`;
@@ -160,7 +95,22 @@ const generateSitemap = () => {
     xml += `    <changefreq>${freq}</changefreq>\n`;
     xml += `    <priority>${priority}</priority>\n`;
     xml += '  </url>\n';
-  });
+  }
+  
+  // 1. Homepage
+  addRoute('/', '1.0', 'daily');
+  
+  // 2. Hub pages
+  hubRoutes.forEach(r => addRoute(r, '0.9', 'weekly'));
+  
+  // 3. Tool pages
+  toolRoutes.forEach(r => addRoute(r, '0.8', 'monthly'));
+  
+  // 4. Blog posts
+  slugs.forEach(slug => addRoute(`/blog/${slug}`, '0.7', 'monthly'));
+  
+  // 5. Info pages
+  staticRoutes.forEach(r => addRoute(r, '0.5', 'monthly'));
   
   xml += '</urlset>\n';
   
@@ -171,7 +121,7 @@ const generateSitemap = () => {
   
   const destPath = path.join(destDir, 'sitemap.xml');
   fs.writeFileSync(destPath, xml, 'utf8');
-  console.log(`Successfully generated sitemap.xml with ${allRoutes.length} pages at ${destPath}`);
+  console.log(`Successfully generated sitemap.xml with ${processedRoutes.size} pages at ${destPath}`);
 };
 
 generateSitemap();

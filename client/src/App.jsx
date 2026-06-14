@@ -312,15 +312,15 @@ export default function App() {
   // Consolidated URL state, metadata and analytics sync
   useEffect(() => {
     let path = '/';
-    let title = "All Tool Master | Free Online File Converter, Downloader & AI Notes";
-    let desc = "Access free online file tools. Fast PDF and media converter, universal web video downloader from URL, and smart AI note-taker online. No registration required.";
+    let title = "All Tool Master — Free Online File Converter, Downloader & AI Notes";
+    let desc = "Free online tools to convert PDF, Word, images and videos. Download videos from YouTube, Instagram & TikTok. AI-powered notes and transcription. No signup needed.";
     let ogTitleVal = "";
     let ogDescVal = "";
     
     if (view === 'tool-page' && activeTool) {
       const currentPath = window.location.pathname;
       path = activeTool.routes && activeTool.routes.includes(currentPath) ? currentPath : (activeTool.routes ? activeTool.routes[0] : '/');
-      const seoInfo = SEO_DATA[path] || SEO_DATA[activeTool.id];
+      const seoInfo = { ...SEO_DATA[activeTool.id], ...SEO_DATA[path] };
       title = seoInfo?.title || `${activeTool.title} | Free Online Converter & AI Notes | All Tool Master`;
       desc = seoInfo?.description || `${activeTool.desc} Safe, fast, and browser-based format utilities by All Tool Master.`;
       
@@ -382,13 +382,13 @@ export default function App() {
         'affiliate-disclosure': '/affiliate-disclosure'
       };
       const titleMap = {
-        about: "About Us | All Tool Master",
-        contact: "Contact Us | All Tool Master",
+        about: "About All Tool Master — Free Online Tools for Everyone",
+        contact: "Contact All Tool Master — Get in Touch",
         privacy: "Privacy Policy | All Tool Master",
         terms: "Terms & Conditions | All Tool Master",
         disclaimer: "Disclaimer | All Tool Master",
         dmca: "DMCA Policy | All Tool Master",
-        faqs: "Frequently Asked Questions | All Tool Master",
+        faqs: "FAQs — Frequently Asked Questions | All Tool Master",
         deals: "Hosting Deals & Domains | All Tool Master",
         'namecheap-review': "Namecheap Review & Student Domain Discounts | All Tool Master",
         'analytics-dashboard': "SaaS Performance & Tool Traffic Analytics | All Tool Master",
@@ -404,13 +404,13 @@ export default function App() {
         'affiliate-disclosure': "FTC Affiliate Disclosure & Partnerships | All Tool Master"
       };
       const descMap = {
-        about: "Learn about All Tool Master, our mission to build secure, browser-based file conversion and AI productivity tools.",
-        contact: "Get in touch with the All Tool Master team. Support, feedback, and business inquiries.",
+        about: "All Tool Master is a free platform built for students, professionals and content creators who need fast, reliable online tools with no signup.",
+        contact: "Have a question or suggestion? Contact the All Tool Master team. We respond to all inquiries.",
         privacy: "Read our privacy policy. We respect your security; no files are logged or stored on our servers.",
         terms: "Review the terms and conditions for using All Tool Master utilities.",
         disclaimer: "Legal disclaimers for the All Tool Master toolset and conversions.",
         dmca: "DMCA copyright policy and takedown instructions for All Tool Master.",
-        faqs: "Find answers to frequently asked questions about All Tool Master conversions, safety, and tools.",
+        faqs: "Answers to common questions about All Tool Master's free file converters, video downloaders and AI note-taking tools.",
         deals: "Domain registration discounts with our affiliate promo tools via Namecheap.",
         'namecheap-review': "Read our comprehensive Namecheap review. Compare pricing vs GoDaddy, free domain privacy protection, and claim special student discounts.",
         'analytics-dashboard': "View real-time traffic statistics, top active digital converter utilities, and affiliate conversion rates on All Tool Master.",
@@ -434,8 +434,17 @@ export default function App() {
         window.gtag('event', 'screen_view', { screen_name: view });
       }
     } else {
+      const currentPath = window.location.pathname;
+      if (['/downloader', '/converter', '/ai-notes'].includes(currentPath)) {
+        path = currentPath;
+        const seoInfo = SEO_DATA[currentPath];
+        title = seoInfo?.title || title;
+        desc = seoInfo?.description || desc;
+      } else {
+        path = '/';
+      }
       if (window.gtag) {
-        window.gtag('event', 'screen_view', { screen_name: 'home' });
+        window.gtag('event', 'screen_view', { screen_name: path === '/' ? 'home' : path.substring(1) });
       }
     }
     
@@ -485,7 +494,7 @@ export default function App() {
     if (dynamicSchema) {
       if (view === 'tool-page' && activeTool) {
         const currentPath = window.location.pathname;
-        const seoInfo = SEO_DATA[currentPath] || SEO_DATA[activeTool.id];
+        const seoInfo = { ...SEO_DATA[activeTool.id], ...SEO_DATA[currentPath] };
         const toolUrl = `https://alltoolmaster.me${currentPath}`;
         
         const mainSchema = {
