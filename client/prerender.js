@@ -123,6 +123,7 @@ function prerender() {
     path: '/',
     title: 'All Tool Master — Free Online File Converter, Downloader & AI Notes',
     desc: 'Free online tools to convert PDF, Word, images and videos. Download videos from YouTube, Instagram & TikTok. AI-powered notes and transcription. No signup needed.',
+    h1: 'Convert Files, Download Videos, & Create AI Notes Instantly',
     noindex: false,
     schemas: [
       {
@@ -156,6 +157,7 @@ function prerender() {
       path: route.path,
       title: route.title,
       desc: route.desc,
+      h1: route.title.split(' — ')[0].split(' | ')[0],
       noindex: false,
       schemas: [
         {
@@ -188,6 +190,7 @@ function prerender() {
       path: route.path,
       title,
       desc,
+      h1: title.split(' — ')[0].split(' | ')[0],
       noindex: false,
       schemas: [
         {
@@ -218,6 +221,7 @@ function prerender() {
       path: route.path,
       title: route.title,
       desc: route.desc,
+      h1: route.title.split(' | ')[0],
       noindex: true,
       schemas: []
     });
@@ -230,6 +234,7 @@ function prerender() {
       const seoInfo = { ...SEO_DATA[tool.id], ...SEO_DATA[route] };
       const title = seoInfo?.title || `${tool.title} | Free Online Converter & AI Notes | All Tool Master`;
       const desc = seoInfo?.description || `${tool.desc} Safe, fast, and browser-based format utilities by All Tool Master.`;
+      const h1 = seoInfo?.h1 || tool.title;
       
       const appCategoryMap = {
         'Converter': 'Converters',
@@ -308,6 +313,7 @@ function prerender() {
         path: route,
         title,
         desc,
+        h1,
         noindex: false,
         schemas
       });
@@ -318,6 +324,7 @@ function prerender() {
   BLOG_POSTS.forEach(post => {
     const title = post.seoTitle || `${post.title} | All Tool Master Blog`;
     const desc = post.metaDescription || post.excerpt;
+    const h1 = post.title;
     const url = `${DOMAIN}/blog/${post.slug}`;
     const isoDate = parseDateToISO(post.date);
 
@@ -377,6 +384,7 @@ function prerender() {
       path: `/blog/${post.slug}`,
       title,
       desc,
+      h1,
       noindex: false,
       schemas
     });
@@ -395,6 +403,12 @@ function prerender() {
     html = html.replace(
       /<meta name="description" content="[^"]*" \/>/g,
       `<meta name="description" content="${page.desc}" />`
+    );
+
+    // Inject fallback H1 and description in body for crawlers
+    html = html.replace(
+      /<div id="root"><\/div>/g,
+      `<div id="root"><h1>${page.h1}</h1><p>${page.desc}</p></div>`
     );
     
     // Replace canonical URL
