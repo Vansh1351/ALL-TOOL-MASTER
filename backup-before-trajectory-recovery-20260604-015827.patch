@@ -1,0 +1,1295 @@
+diff --git a/client/index.html b/client/index.html
+index 4fbec96..bc7b9d6 100644
+--- a/client/index.html
++++ b/client/index.html
+@@ -22,12 +22,9 @@
+     <meta property="og:title" content="All Tool Master | Free Online File Converter, Downloader & AI Notes" />
+     <meta property="og:description" content="Access free online file tools. Fast PDF and media converter, universal web video downloader from URL, and smart AI note-taker online. No registration required." />
+     <meta property="og:type" content="website" />
+-    <meta property="og:url" content="https://alltoolmaster.me/" />
+     <meta property="og:image" content="https://alltoolmaster.me/logo.png" />
+-    <meta property="og:site_name" content="All Tool Master" />
+     <meta name="twitter:image" content="https://alltoolmaster.me/logo.png" />
+     <meta name="twitter:card" content="summary_large_image" />
+-    <link rel="canonical" href="https://alltoolmaster.me/" id="canonical-url" />
+ 
+     <!-- FAQ JSON-LD Schema Markup -->
+     <script type="application/ld+json">
+@@ -79,63 +76,6 @@
+       gtag('js', new Date());
+       gtag('config', 'G-XPWTVNLBN6');
+     </script>
+-
+-    <!-- WebSite JSON-LD Schema (Sitelinks Search Box) -->
+-    <script type="application/ld+json">
+-    {
+-      "@context": "https://schema.org",
+-      "@type": "WebSite",
+-      "name": "All Tool Master",
+-      "url": "https://alltoolmaster.me/",
+-      "description": "Free online file converter, video downloader from URL, and AI note-taker. Convert MP4 to MP3, download YouTube videos, compress files, and generate AI meeting notes.",
+-      "potentialAction": {
+-        "@type": "SearchAction",
+-        "target": "https://alltoolmaster.me/?q={search_term_string}",
+-        "query-input": "required name=search_term_string"
+-      }
+-    }
+-    </script>
+-
+-    <!-- Organization JSON-LD Schema -->
+-    <script type="application/ld+json">
+-    {
+-      "@context": "https://schema.org",
+-      "@type": "Organization",
+-      "name": "All Tool Master",
+-      "url": "https://alltoolmaster.me/",
+-      "logo": "https://alltoolmaster.me/logo.png",
+-      "sameAs": [],
+-      "contactPoint": {
+-        "@type": "ContactPoint",
+-        "contactType": "customer support",
+-        "url": "https://alltoolmaster.me/contact"
+-      }
+-    }
+-    </script>
+-
+-    <!-- SoftwareApplication JSON-LD Schema -->
+-    <script type="application/ld+json">
+-    {
+-      "@context": "https://schema.org",
+-      "@type": "SoftwareApplication",
+-      "name": "All Tool Master",
+-      "operatingSystem": "Web",
+-      "applicationCategory": "UtilitiesApplication",
+-      "offers": {
+-        "@type": "Offer",
+-        "price": "0",
+-        "priceCurrency": "USD"
+-      },
+-      "description": "Free online file converter, URL to MP4/MP3 downloader, AI meeting assistant, resume builder, and file compressor. No signup required.",
+-      "url": "https://alltoolmaster.me/",
+-      "aggregateRating": {
+-        "@type": "AggregateRating",
+-        "ratingValue": "4.8",
+-        "ratingCount": "1250",
+-        "bestRating": "5"
+-      }
+-    }
+-    </script>
+     <!-- Google AdSense -->
+     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2798272748666200"
+          crossorigin="anonymous"></script>
+diff --git a/client/public/sitemap.xml b/client/public/sitemap.xml
+index d70518f..4848377 100644
+--- a/client/public/sitemap.xml
++++ b/client/public/sitemap.xml
+@@ -3,7 +3,7 @@
+   <!-- Homepage -->
+   <url>
+     <loc>https://alltoolmaster.me/</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>daily</changefreq>
+     <priority>1.0</priority>
+   </url>
+@@ -11,19 +11,19 @@
+   <!-- Category Landing Pages -->
+   <url>
+     <loc>https://alltoolmaster.me/downloader</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.9</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/converter</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.9</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/ai-notes</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.9</priority>
+   </url>
+@@ -31,43 +31,43 @@
+   <!-- Downloader Tools Deep Links -->
+   <url>
+     <loc>https://alltoolmaster.me/downloader/youtube</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/downloader/vimeo</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/downloader/shorts</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/downloader/facebook</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/downloader/instagram</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/downloader/tiktok</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/downloader/twitter</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+@@ -75,73 +75,73 @@
+   <!-- Converter Tools Deep Links -->
+   <url>
+     <loc>https://alltoolmaster.me/convert/mp4-to-mp3</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/convert/mov-to-mp4</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/convert/video-to-audio</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/convert/heic-to-jpg</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/convert/webp-to-png</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/convert/jpg-to-png</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/convert/png-to-jpg</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/convert/pdf-to-word</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/convert/pdf-to-docx</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/convert/docx-to-pdf</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/convert/word-to-pdf</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/convert/excel-to-pdf</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+@@ -149,37 +149,13 @@
+   <!-- Utility Tools Deep Links -->
+   <url>
+     <loc>https://alltoolmaster.me/utility/zip-extractor</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/utility/unzip</loc>
+-    <lastmod>2026-06-03</lastmod>
+-    <changefreq>weekly</changefreq>
+-    <priority>0.8</priority>
+-  </url>
+-  <url>
+-    <loc>https://alltoolmaster.me/utility/file-compressor</loc>
+-    <lastmod>2026-06-03</lastmod>
+-    <changefreq>weekly</changefreq>
+-    <priority>0.8</priority>
+-  </url>
+-  <url>
+-    <loc>https://alltoolmaster.me/utility/compress</loc>
+-    <lastmod>2026-06-03</lastmod>
+-    <changefreq>weekly</changefreq>
+-    <priority>0.8</priority>
+-  </url>
+-  <url>
+-    <loc>https://alltoolmaster.me/utility/resume-builder</loc>
+-    <lastmod>2026-06-03</lastmod>
+-    <changefreq>weekly</changefreq>
+-    <priority>0.8</priority>
+-  </url>
+-  <url>
+-    <loc>https://alltoolmaster.me/utility/cv-builder</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+@@ -187,85 +163,73 @@
+   <!-- AI Tools Deep Links -->
+   <url>
+     <loc>https://alltoolmaster.me/ai-notes/video-summarizer</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/ai-notes/video-watcher</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/ai-notes/transcript</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/ai-notes/speech-to-text</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/ai-notes/audio-analyzer</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/ai-notes/voice-notes</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/ai-notes/lecture-notes</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/ai-notes/study-guide</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/ai-notes/meeting-minutes</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/ai-notes/meeting-assistant</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/ai-notes/brainrot-translator</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/ai-notes/brainrot</loc>
+-    <lastmod>2026-06-03</lastmod>
+-    <changefreq>weekly</changefreq>
+-    <priority>0.8</priority>
+-  </url>
+-  <url>
+-    <loc>https://alltoolmaster.me/ai-notes/script-writer</loc>
+-    <lastmod>2026-06-03</lastmod>
+-    <changefreq>weekly</changefreq>
+-    <priority>0.8</priority>
+-  </url>
+-  <url>
+-    <loc>https://alltoolmaster.me/ai-notes/screenplay-writer</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+@@ -273,7 +237,7 @@
+   <!-- Blog Pages & Articles -->
+   <url>
+     <loc>https://alltoolmaster.me/blog</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.7</priority>
+   </url>
+@@ -301,41 +265,11 @@
+     <changefreq>monthly</changefreq>
+     <priority>0.6</priority>
+   </url>
+-  <url>
+-    <loc>https://alltoolmaster.me/blog/best-free-ai-meeting-note-taker-2026</loc>
+-    <lastmod>2026-06-03</lastmod>
+-    <changefreq>monthly</changefreq>
+-    <priority>0.6</priority>
+-  </url>
+-  <url>
+-    <loc>https://alltoolmaster.me/blog/compress-files-online-free-no-signup</loc>
+-    <lastmod>2026-06-03</lastmod>
+-    <changefreq>monthly</changefreq>
+-    <priority>0.6</priority>
+-  </url>
+-  <url>
+-    <loc>https://alltoolmaster.me/blog/free-resume-builder-no-signup-2026</loc>
+-    <lastmod>2026-06-03</lastmod>
+-    <changefreq>monthly</changefreq>
+-    <priority>0.6</priority>
+-  </url>
+-  <url>
+-    <loc>https://alltoolmaster.me/blog/best-ai-script-writer-free-online</loc>
+-    <lastmod>2026-06-03</lastmod>
+-    <changefreq>monthly</changefreq>
+-    <priority>0.6</priority>
+-  </url>
+-  <url>
+-    <loc>https://alltoolmaster.me/blog/youtube-to-mp3-converter-safe-free</loc>
+-    <lastmod>2026-06-03</lastmod>
+-    <changefreq>monthly</changefreq>
+-    <priority>0.6</priority>
+-  </url>
+ 
+   <!-- Deals Page -->
+   <url>
+     <loc>https://alltoolmaster.me/deals</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-30</lastmod>
+     <changefreq>weekly</changefreq>
+     <priority>0.8</priority>
+   </url>
+@@ -343,44 +277,38 @@
+   <!-- Static Informational Pages -->
+   <url>
+     <loc>https://alltoolmaster.me/about</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>monthly</changefreq>
+     <priority>0.3</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/contact</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>monthly</changefreq>
+     <priority>0.3</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/privacy</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>monthly</changefreq>
+     <priority>0.2</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/terms</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>monthly</changefreq>
+     <priority>0.2</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/disclaimer</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>monthly</changefreq>
+     <priority>0.2</priority>
+   </url>
+   <url>
+     <loc>https://alltoolmaster.me/dmca</loc>
+-    <lastmod>2026-06-03</lastmod>
++    <lastmod>2026-05-26</lastmod>
+     <changefreq>monthly</changefreq>
+     <priority>0.2</priority>
+   </url>
+-  <url>
+-    <loc>https://alltoolmaster.me/faqs</loc>
+-    <lastmod>2026-06-03</lastmod>
+-    <changefreq>monthly</changefreq>
+-    <priority>0.3</priority>
+-  </url>
+ </urlset>
+diff --git a/client/src/App.jsx b/client/src/App.jsx
+index dd1a6f7..0c5d7a1 100644
+--- a/client/src/App.jsx
++++ b/client/src/App.jsx
+@@ -247,28 +247,6 @@ export default function App() {
+     if (descMeta) {
+       descMeta.setAttribute('content', desc);
+     }
+-    
+-    // Update canonical URL
+-    const canonicalLink = document.getElementById('canonical-url');
+-    if (canonicalLink) {
+-      canonicalLink.setAttribute('href', `https://alltoolmaster.me${path}`);
+-    }
+-    
+-    // Update og:url
+-    const ogUrl = document.querySelector('meta[property="og:url"]');
+-    if (ogUrl) {
+-      ogUrl.setAttribute('content', `https://alltoolmaster.me${path}`);
+-    }
+-    
+-    // Update og:title and og:description
+-    const ogTitle = document.querySelector('meta[property="og:title"]');
+-    if (ogTitle) {
+-      ogTitle.setAttribute('content', title);
+-    }
+-    const ogDesc = document.querySelector('meta[property="og:description"]');
+-    if (ogDesc) {
+-      ogDesc.setAttribute('content', desc);
+-    }
+   }, [view, activeTool, selectedBlogSlug]);
+ 
+   const toggleTheme = () => {
+diff --git a/client/src/blogData.js b/client/src/blogData.js
+index 3cd4aed..9917790 100644
+--- a/client/src/blogData.js
++++ b/client/src/blogData.js
+@@ -509,208 +509,6 @@ This isn't just random slang generation. Our AI translates the *actual meaning*
+ 4. Copy the brainrot translation and share it anywhere.
+ 
+ No cap, this tool is genuinely sigma-level useful. Try it now, bestie. 🗿
+-`
+-  },
+-  {
+-    slug: 'best-free-ai-meeting-note-taker-2026',
+-    title: 'The Best Free AI Meeting Note Taker in 2026 — No Signup, No Limits',
+-    date: 'June 3, 2026',
+-    author: 'Vansh Shah',
+-    readTime: '7 min read',
+-    excerpt: 'Stop scrambling to write meeting notes manually. Discover the best free AI meeting assistant that transcribes, summarizes, and generates action items instantly.',
+-    targetKeyword: 'best free ai meeting note taker',
+-    relatedToolId: 'ai-meeting-minutes',
+-    content: `
+-Meetings are where decisions happen — but they're also where information gets lost. Between juggling speaking turns, sharing screens, and keeping up with rapid discussions, manually taking notes is nearly impossible.
+-
+-### The Problem with Manual Meeting Notes
+-Every professional has experienced this: you leave a 45-minute meeting and realize you only captured half the key points. Important action items get forgotten, deadlines slip, and accountability becomes unclear. Traditional note-taking apps help, but they still require you to type while listening — a frustrating cognitive split.
+-
+-### Enter AI Meeting Assistants
+-AI-powered meeting note takers solve this by automating the entire process. You upload the meeting recording (audio or video), and the AI handles everything:
+-* **Full Transcription:** Every word spoken is captured verbatim.
+-* **Smart Summarization:** Key decisions, topics, and discussions are distilled into concise summaries.
+-* **Action Item Extraction:** The AI identifies who was assigned what and creates structured action item tables.
+-
+-### Why All Tool Master's AI Meeting Assistant Stands Out
+-Unlike paid tools like Otter.ai or Fireflies.ai that charge $16-30/month, our **AI Meeting Assistant** is completely free:
+-1. **Zero Cost:** No subscription, no trial period, no credit card required.
+-2. **No Signup:** Upload your recording and get results instantly.
+-3. **Privacy First:** Your recordings are processed and immediately deleted. Nothing is stored.
+-4. **Multi-Format Support:** Upload MP3, MP4, WAV, or any common audio/video format.
+-
+-### How to Use It
+-1. Navigate to the **AI Meeting Assistant & Minutes** tool on All Tool Master.
+-2. Upload your meeting recording or paste text from a live transcript.
+-3. Click **Process** — the AI generates structured minutes with action items.
+-4. Copy or download your meeting summary.
+-
+-Whether you're a project manager, team lead, or freelancer, this tool saves hours every week. Stop paying for meeting note software and try the free alternative.
+-`
+-  },
+-  {
+-    slug: 'compress-files-online-free-no-signup',
+-    title: 'How to Compress Files Online Free — Images, Videos & PDFs in Seconds',
+-    date: 'June 3, 2026',
+-    author: 'Vansh Shah',
+-    readTime: '5 min read',
+-    excerpt: 'Learn how to compress images, videos, and PDFs online for free. Reduce file sizes by up to 80% without losing quality using All Tool Master\'s batch file compressor.',
+-    targetKeyword: 'compress files online free',
+-    relatedToolId: 'file-compressor',
+-    content: `
+-File sizes are growing faster than ever. 4K videos, high-resolution photos, and multi-page PDF reports can quickly eat through storage limits and make email attachments impossible.
+-
+-### Why File Compression Matters
+-* **Email Limits:** Gmail caps attachments at 25MB. Outlook caps at 20MB. One uncompressed video file and you're stuck.
+-* **Website Speed:** Large images slow down page load times, hurting SEO and user experience.
+-* **Storage Costs:** Cloud storage isn't free. Compressing files before archiving saves real money.
+-* **Upload Speed:** Smaller files upload faster to social media, file sharing services, and cloud drives.
+-
+-### The Best Free File Compressor Online
+-All Tool Master's **File Compressor** handles real compression — not just zipping files into an archive. Here's what makes it different:
+-
+-1. **True Compression:** Images are optimized with smart algorithms. Videos are re-encoded with lower bitrates. PDFs have embedded images optimized.
+-2. **Batch Processing:** Upload up to 20 files at once. All results are packaged into a single download.
+-3. **Adjustable Levels:** Choose Fast (minimal reduction), Balanced (recommended), or Maximum (smallest possible size).
+-4. **Multi-Format:** Supports JPG, PNG, WebP, MP4, MOV, AVI, MP3, WAV, PDF, and more.
+-
+-### How to Compress Files in 30 Seconds
+-1. Open the **File Compressor** tool on All Tool Master.
+-2. Drag and drop your files (or click to browse).
+-3. Select your compression level.
+-4. Click **Compress** and download the results.
+-
+-No signup, no watermarks, no file size limits (up to 500MB per file). Your files are processed securely and deleted immediately after download.
+-`
+-  },
+-  {
+-    slug: 'free-resume-builder-no-signup-2026',
+-    title: 'Free Resume Builder 2026: Build an ATS-Friendly Resume in 5 Minutes (No Signup)',
+-    date: 'June 3, 2026',
+-    author: 'Vansh Shah',
+-    readTime: '6 min read',
+-    excerpt: 'Create a professional, ATS-optimized resume online for free in 5 minutes. No signup, no templates to buy. Fill in your details, preview live, and download as PDF.',
+-    targetKeyword: 'free resume builder no signup',
+-    relatedToolId: 'resume-builder',
+-    content: `
+-Job hunting in 2026 is competitive enough without spending hours formatting a resume or paying $30/month for resume builder subscriptions.
+-
+-### The Resume Builder Problem
+-Most "free" resume builders online have a catch:
+-* **Freemium Trap:** Build your resume for free, but pay $15-30 to actually download it.
+-* **Watermarks:** Free tier adds ugly branding to your professional document.
+-* **Account Required:** Sign up with email, verify, create password — just to start.
+-* **Template Lock-in:** The good templates are always behind the paywall.
+-
+-### A Genuinely Free Alternative
+-All Tool Master's **Resume Builder** is different because there is no catch:
+-* **100% Free Download:** Generate and download PDFs unlimited times. No payment ever.
+-* **Zero Registration:** No email, no account, no phone number. Just start typing.
+-* **ATS-Optimized:** Our template passes Applicant Tracking Systems used by 99% of Fortune 500 companies.
+-* **Live Preview:** See your resume update in real-time as you fill in each section.
+-
+-### What Makes a Resume ATS-Friendly?
+-Applicant Tracking Systems (ATS) parse your resume for keywords, section headers, and structured data. Our template ensures:
+-1. **Standard Headers:** "Work Experience," "Education," "Skills" — exactly what ATS expects.
+-2. **Clean Formatting:** No complex tables, graphics, or multi-column layouts that break parsers.
+-3. **Keyword Optimization:** Your skills and job titles are prominently placed for keyword matching.
+-
+-### How to Build Your Resume in 5 Minutes
+-1. Open the **Resume Builder** on All Tool Master.
+-2. Fill in your name, contact details, and professional summary.
+-3. Add work experience, education, and skills.
+-4. Preview on the right panel — adjust as needed.
+-5. Click **Download PDF** — done!
+-
+-Stop paying for resume builders. Start building for free, right now.
+-`
+-  },
+-  {
+-    slug: 'best-ai-script-writer-free-online',
+-    title: 'Best Free AI Script Writer Online — Generate Movie, YouTube & Podcast Scripts',
+-    date: 'June 3, 2026',
+-    author: 'Vansh Shah',
+-    readTime: '6 min read',
+-    excerpt: 'Generate professional scripts for movies, YouTube videos, podcasts, and ads using free AI. Just enter a title and premise — get a full formatted script in seconds.',
+-    targetKeyword: 'ai script writer free online',
+-    relatedToolId: 'ai-script-writer',
+-    content: `
+-Every great video, film, or podcast starts with a script. But writing one from scratch takes hours — even for experienced writers. AI script generators are changing the game.
+-
+-### Why Use an AI Script Writer?
+-* **Speed:** Generate a complete script in 30 seconds instead of 3 hours.
+-* **Inspiration:** Beat writer's block with AI-suggested dialogue and plot points.
+-* **Formatting:** Get properly formatted screenplays without learning industry conventions.
+-* **Iteration:** Generate multiple versions quickly and pick the best one.
+-
+-### All Tool Master's AI Script Writer
+-Our **AI Script Writer** is powered by Google Gemini and generates professional scripts for:
+-
+-1. **Movie & Short Film Screenplays:** Complete with scene headings (INT./EXT.), action descriptions, character names, and natural dialogue.
+-2. **YouTube Video Scripts:** Hook-driven intros, structured segments, and engagement-optimized call-to-actions.
+-3. **Podcast Scripts:** Episode outlines with talking points, transition cues, and interview questions.
+-4. **Ad & Promo Scripts:** Persuasive copy for social media ads, radio spots, and product demos.
+-
+-### How It Works
+-1. Open the **AI Script Writer** on All Tool Master.
+-2. Enter your script title and select the type (movie, YouTube, podcast, ad).
+-3. Choose a genre (comedy, drama, thriller, educational, etc.).
+-4. Write a brief premise — even one sentence works.
+-5. Click **Generate** and get your full script.
+-
+-The generated script is properly formatted and ready to use. Copy it into your favorite editor, refine the dialogue, and start producing.
+-
+-### No Signup, No Cost
+-Unlike paid AI writing tools that charge $20-50/month, All Tool Master's script writer is completely free. Generate unlimited scripts, experiment with genres, and iterate on ideas without spending a penny.
+-`
+-  },
+-  {
+-    slug: 'youtube-to-mp3-converter-safe-free',
+-    title: 'YouTube to MP3 Converter Online Free: The Safe Way to Extract Audio in 2026',
+-    date: 'June 3, 2026',
+-    author: 'Vansh Shah',
+-    readTime: '7 min read',
+-    excerpt: 'Looking for a safe, ad-free YouTube to MP3 converter? Learn how to extract audio from YouTube videos online without virus risks, popups, or watermarks.',
+-    targetKeyword: 'youtube to mp3 converter online free safe',
+-    relatedToolId: 'youtube-downloader',
+-    content: `
+-Extracting audio from YouTube videos is one of the most searched tasks online. Whether you want to save a podcast episode, extract background music from a tutorial, or archive a lecture for offline study, you need a reliable MP3 converter.
+-
+-### The Problem with Most YouTube to MP3 Sites
+-We tested dozens of popular YouTube to MP3 converters and found consistent issues:
+-* **Malware Risks:** 7 out of 10 sites triggered browser security warnings.
+-* **Popup Bombardment:** Multiple redirect chains before reaching the download.
+-* **Fake Download Buttons:** Designed to trick you into clicking ads instead of downloading.
+-* **Low Quality:** Many converters output 128kbps audio when the source is 320kbps.
+-* **Broken Links:** Sites frequently go down or stop working after YouTube updates.
+-
+-### A Safe Alternative: All Tool Master
+-Our **YouTube Downloader** solves every one of these problems:
+-
+-1. **Zero Popups:** Clean, ad-free interface. No redirects, no fake buttons.
+-2. **High Quality:** Extract audio at the highest available bitrate (up to 320kbps MP3).
+-3. **Always Working:** Our backend uses multiple extraction methods with automatic fallbacks.
+-4. **Multi-Platform:** Works with YouTube videos, Shorts, and even Vimeo clips.
+-5. **No Software:** Runs entirely in your browser. Nothing to install.
+-
+-### How to Convert YouTube to MP3 Safely
+-1. Copy the YouTube video URL from your browser.
+-2. Open the **YouTube Downloader** on All Tool Master.
+-3. Paste the URL and select **MP3** as your output format.
+-4. Click **Process** and wait for extraction to complete.
+-5. Click **Download** to save the MP3 to your device.
+-
+-### Is Downloading YouTube Audio Legal?
+-Downloading copyrighted content without permission violates YouTube's Terms of Service. We recommend using this tool for:
+-* Public domain content and Creative Commons videos
+-* Your own uploaded videos
+-* Educational lectures and conference talks you have permission to archive
+-* Personal use and fair use scenarios
+-
+-### URL to MP3 — Not Just YouTube
+-All Tool Master's converter also works as a universal **URL to MP3** tool. Paste links from Facebook, Instagram, TikTok, and Twitter to extract audio from any public video. The tool automatically detects the platform and extracts the audio stream.
+-
+-Stay safe, skip the sketchy converters, and use All Tool Master for clean, reliable MP3 extraction.
+ `
+   }
+ ];
+diff --git a/client/src/seoData.js b/client/src/seoData.js
+index 6069450..0c25e3c 100644
+--- a/client/src/seoData.js
++++ b/client/src/seoData.js
+@@ -434,117 +434,5 @@ Have fun with your files. All Tool Master processes document translations secure
+       { question: 'What is Gen-Z brainrot?', answer: 'It is a humorous slang vocabulary popular on TikTok, YouTube, and Twitch.' },
+       { question: 'Is this tool free?', answer: 'Yes! All Tool Master is completely free, unlimited, and requires no registration.' }
+     ]
+-  },
+-  'file-compressor': {
+-    title: 'Free Online File Compressor - Compress Images, Videos, PDFs | All Tool Master',
+-    description: 'Compress files online free without losing quality. Reduce image, video, audio, and PDF file sizes instantly. No signup required. Supports batch compression.',
+-    h1: 'Free Online File Compressor',
+-    introduction: 'Need to shrink large files for email attachments, faster uploads, or saving storage space? All Tool Master\'s File Compressor supports real compression of images (JPG, PNG, WebP), videos (MP4, MOV), audio (MP3, WAV), and documents (PDF) — all directly in your browser. Choose your compression level from fast to maximum, upload up to 20 files at once, and download compressed results instantly. No registration, no watermarks, and files are deleted immediately after processing.',
+-    howTo: [
+-      'Click the upload area or drag and drop one or more files (images, videos, audio, PDFs, etc.) into the compressor.',
+-      'Select your preferred compression level: Fast (minimal reduction), Balanced (recommended), or Maximum (smallest size).',
+-      'Click the "Compress Files" button to start processing.',
+-      'Once complete, click "Download" to save the compressed file(s). Multiple files are packaged into a single ZIP.'
+-    ],
+-    features: [
+-      { title: 'Multi-Format Compression', desc: 'Compress images, videos, audio files, and PDFs all in one tool. Supports JPG, PNG, WebP, MP4, MOV, MP3, WAV, and more.' },
+-      { title: 'Batch Processing', desc: 'Upload and compress up to 20 files simultaneously. All compressed files are packaged into a single ZIP download.' },
+-      { title: 'Adjustable Compression Levels', desc: 'Choose from three compression levels (1-9) to balance between file size reduction and quality preservation.' },
+-      { title: 'No Quality Loss', desc: 'Our smart compression algorithms minimize visible quality degradation while maximizing file size reduction.' }
+-    ],
+-    article: `
+-### Compress Files Online Free — Fast & Secure
+-Large files slow down everything: email attachments bounce, uploads take forever, and storage fills up quickly. All Tool Master's **free online file compressor** solves this by reducing file sizes directly in your browser.
+-
+-### Supported File Types
+-We support real compression across multiple formats:
+-* **Image Compression:** Reduce JPG, PNG, and WebP file sizes by up to 80% while maintaining visual quality. Perfect for web optimization.
+-* **Video Compression:** Shrink MP4, MOV, and AVI files using intelligent bitrate reduction. Ideal for sharing on social media or email.
+-* **Audio Compression:** Compress MP3, WAV, and FLAC files without noticeable audio degradation.
+-* **PDF Compression:** Reduce PDF document sizes by compressing embedded images and optimizing internal structures.
+-
+-### How File Compression Works
+-Our backend uses ffmpeg for media files and sharp/pngquant for images, applying format-specific optimizations. Video files are re-encoded with optimized CRF values, while images undergo lossy or lossless compression depending on the level you choose.
+-`,
+-    faqs: [
+-      { question: 'Will compression reduce the quality of my files?', answer: 'Our tool uses smart compression algorithms that minimize quality loss. For images, you typically won\'t notice any visual difference. For videos, slight quality reduction may occur at maximum compression levels.' },
+-      { question: 'How many files can I compress at once?', answer: 'You can upload and compress up to 20 files simultaneously. All compressed files are downloaded as a single ZIP archive.' },
+-      { question: 'What is the maximum file size I can upload?', answer: 'We support file uploads up to 500MB per file. For very large video files, consider splitting them first.' }
+-    ]
+-  },
+-  'resume-builder': {
+-    title: 'Free Resume Builder Online - ATS-Friendly Templates | All Tool Master',
+-    description: 'Build a professional ATS-friendly resume online free. No signup required. Fill your details, preview in real-time, and download as PDF instantly.',
+-    h1: 'Free Resume Builder Online — No Signup Required',
+-    introduction: 'Creating a professional resume shouldn\'t cost money or require complex software. All Tool Master\'s Resume Builder lets you create an ATS-optimized, professionally formatted resume directly in your browser. Simply fill in your personal details, work experience, education, and skills, preview the result in real-time, and download a pixel-perfect PDF. No accounts, no templates to buy, no watermarks — completely free.',
+-    howTo: [
+-      'Fill in your personal information: name, email, phone, location, and professional summary.',
+-      'Add your work experience entries with company name, role, dates, and key responsibilities.',
+-      'Enter your education history including institution, degree, and graduation year.',
+-      'List your technical and soft skills.',
+-      'Preview your resume in real-time on the right panel, then click "Download PDF" to save.'
+-    ],
+-    features: [
+-      { title: 'ATS-Friendly Format', desc: 'Our resume template is designed to pass Applicant Tracking System (ATS) scans used by 99% of Fortune 500 companies.' },
+-      { title: 'Live Preview', desc: 'See your resume update in real-time as you type. No guessing what the final result will look like.' },
+-      { title: 'Instant PDF Download', desc: 'Generate a clean, professionally formatted PDF with one click. No watermarks or branding added.' },
+-      { title: 'Zero Registration', desc: 'No email, no account, no credit card. Start building your resume immediately.' }
+-    ],
+-    article: `
+-### Build Your Resume Online Free in 5 Minutes
+-Job hunting is stressful enough without paying for resume builders. All Tool Master's **free resume builder** gives you a professional, ATS-friendly template with live preview and instant PDF download.
+-
+-### Why ATS-Friendly Matters
+-Most large companies use Applicant Tracking Systems (ATS) to filter resumes before a human ever sees them. Our template uses:
+-* **Clean HTML Structure:** No tables, columns, or graphics that confuse ATS parsers.
+-* **Standard Section Headers:** Work Experience, Education, Skills — exactly what ATS software expects.
+-* **Readable Font Stack:** Professional typography that renders well in both digital and print formats.
+-
+-### Professional Resume in Minutes
+-Simply fill in the form fields, watch your resume come together in the live preview, and download your PDF. It's that simple. No signup, no upsells, no hidden fees.
+-`,
+-    faqs: [
+-      { question: 'Is this resume builder really free?', answer: 'Yes, 100% free. No signup, no credit card, no premium tiers. Download unlimited resumes as PDFs.' },
+-      { question: 'Will my resume pass ATS screening?', answer: 'Our template is specifically designed to be ATS-compatible. It uses clean formatting, standard section headers, and avoids graphical elements that confuse ATS parsers.' },
+-      { question: 'Can I customize the design?', answer: 'The current version uses a proven professional template. Future updates will include multiple template options and color themes.' }
+-    ]
+-  },
+-  'ai-script-writer': {
+-    title: 'Free AI Script Writer Online - Movie, YouTube & Podcast Scripts | All Tool Master',
+-    description: 'Generate professional scripts with AI for free. Create movie screenplays, YouTube video scripts, podcast scripts, and ad copy from a title and premise. No signup.',
+-    h1: 'Free AI Script Writer — Generate Professional Scripts Instantly',
+-    introduction: 'Writing scripts from scratch is time-consuming and often requires expensive software or hiring professionals. All Tool Master\'s AI Script Writer generates full professional scripts — movie screenplays, YouTube video scripts, podcast outlines, and advertising copy — from just a title, genre, and brief premise. Powered by Google Gemini AI, it produces industry-standard formatted scripts in seconds. Completely free, no signup required.',
+-    howTo: [
+-      'Enter your script title and select the type (movie, YouTube, podcast, advertisement, etc.).',
+-      'Choose a genre or tone (comedy, drama, horror, educational, promotional, etc.).',
+-      'Write a brief premise or description of what your script should cover.',
+-      'Optionally add character names or specific instructions.',
+-      'Click "Generate Script" and receive a full, formatted script ready for production.'
+-    ],
+-    features: [
+-      { title: 'Multiple Script Types', desc: 'Generate scripts for movies, short films, YouTube videos, podcasts, advertisements, and social media content.' },
+-      { title: 'Industry-Standard Formatting', desc: 'Scripts follow proper screenplay formatting with scene headings, action lines, character names, and dialogue.' },
+-      { title: 'AI-Powered Creativity', desc: 'Powered by Google Gemini AI for natural dialogue, compelling plot structure, and genre-appropriate tone.' },
+-      { title: 'Instant Generation', desc: 'Get a complete script in seconds. Edit, refine, and regenerate as many times as you want.' }
+-    ],
+-    article: `
+-### Generate Professional Scripts with AI — Free Online
+-Whether you're a filmmaker, YouTuber, podcaster, or content creator, having a solid script is the foundation of great content. All Tool Master's **AI script writer** generates complete, professionally formatted scripts from minimal input.
+-
+-### Script Types We Support
+-Our AI can generate scripts for various formats:
+-* **Movie & Short Film Scripts:** Full screenplays with proper formatting, scene descriptions, and natural dialogue.
+-* **YouTube Video Scripts:** Engaging video scripts with hooks, transitions, and call-to-actions optimized for audience retention.
+-* **Podcast Scripts:** Structured outlines with talking points, segues, and interview questions.
+-* **Ad Copy & Promotional Scripts:** Persuasive advertising scripts for social media, radio, or TV spots.
+-
+-### How Our AI Script Writer Works
+-Simply provide a title, select your script type and genre, and write a brief premise. Our Gemini-powered AI analyzes your input and generates a complete, formatted script. You can refine the output, adjust the tone, or regenerate entirely — all for free.
+-`,
+-    faqs: [
+-      { question: 'How long are the generated scripts?', answer: 'Script length varies by type. Movie scripts can be 5-15 pages, YouTube scripts 1-3 pages, and ad scripts 1 page. You can request specific lengths in your premise.' },
+-      { question: 'Can I edit the generated script?', answer: 'Yes! Copy the generated script and edit it in any text editor or screenwriting software. The output is plain text that can be pasted anywhere.' },
+-      { question: 'Do I need a Gemini API key?', answer: 'For optimal results, you can add your own free Gemini API key in Settings. The tool also works with the platform\'s shared key for basic requests.' }
+-    ]
+   }
+ };
+diff --git a/server/services/downloader.js b/server/services/downloader.js
+index 36b4b45..28d79c0 100644
+--- a/server/services/downloader.js
++++ b/server/services/downloader.js
+@@ -4,7 +4,6 @@ import { execFile } from 'child_process';
+ import { fileURLToPath } from 'url';
+ import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
+ import ffprobeInstaller from '@ffprobe-installer/ffprobe';
+-import { Readable } from 'stream';
+ 
+ const __filename = fileURLToPath(import.meta.url);
+ const __dirname = path.dirname(__filename);
+@@ -186,8 +185,7 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
+     '--no-warnings',
+     '--restrict-filenames',
+     '--no-check-certificate',
+-    '-4',
+-    '--socket-timeout', '30'
++    '-4'
+   ];
+ 
+   // Check if the binary supports the requested browser impersonation target.
+@@ -241,6 +239,8 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
+   }
+ 
+   return new Promise((resolve, reject) => {
++    const attempts = [];
++
+     // Base command structure
+     const baseArgs = [...args];
+ 
+@@ -276,89 +276,106 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
+       return argList;
+     };
+ 
+-    // Define a list of attempts
+-    const attemptsList = [];
+-    
+-    // Add all configurations
+-    const addAttempt = (name, attemptArgs, priorityOnServer = false) => {
+-      attemptsList.push({ name, args: attemptArgs, priorityOnServer });
+-    };
+-
+     // 1. Default player client, with cookies
+-    addAttempt("Default player client (with cookies)", addCookies([...baseArgs]), false);
++    attempts.push({
++      name: "Default player client (with cookies)",
++      args: addCookies([...baseArgs])
++    });
+ 
+     // 2. Default player client, without cookies
+-    addAttempt("Default player client (without cookies)", [...baseArgs], false);
++    attempts.push({
++      name: "Default player client (without cookies)",
++      args: [...baseArgs]
++    });
+ 
+     // 3. Fallback format (no -f/-S restrictions), with cookies
+-    addAttempt("Fallback format selection (with cookies)", addCookies(filterArgs([...baseArgs], ['-f', '-S'])), false);
++    attempts.push({
++      name: "Fallback format selection (with cookies)",
++      args: addCookies(filterArgs([...baseArgs], ['-f', '-S']))
++    });
+ 
+     // 4. Fallback format (no -f/-S restrictions), without cookies
+-    addAttempt("Fallback format selection (without cookies)", filterArgs([...baseArgs], ['-f', '-S']), false);
++    attempts.push({
++      name: "Fallback format selection (without cookies)",
++      args: filterArgs([...baseArgs], ['-f', '-S'])
++    });
+ 
+     // 5. TV client fallback, without cookies
+-    addAttempt("TV player client fallback (without cookies)", [
+-      ...filterArgs([...baseArgs], ['-f', '-S']),
+-      '--extractor-args', 'youtube:player_client=tv_simply,default,-tv'
+-    ], true);
++    attempts.push({
++      name: "TV player client fallback (without cookies)",
++      args: [
++        ...filterArgs([...baseArgs], ['-f', '-S']),
++        '--extractor-args', 'youtube:player_client=tv_simply,default,-tv'
++      ]
++    });
+ 
+     // 6. Web Embedded client fallback, without cookies
+-    addAttempt("Web Embedded player client fallback (without cookies)", [
+-      ...filterArgs([...baseArgs], ['-f', '-S']),
+-      '--extractor-args', 'youtube:player_client=web_embedded,web_safari,default'
+-    ], false);
++    attempts.push({
++      name: "Web Embedded player client fallback (without cookies)",
++      args: [
++        ...filterArgs([...baseArgs], ['-f', '-S']),
++        '--extractor-args', 'youtube:player_client=web_embedded,web_safari,default'
++      ]
++    });
+ 
+     // 7. Android/iOS client fallback, with cookies
+-    addAttempt("Android/iOS player client fallback (with cookies)", addCookies([
+-      ...filterArgs([...baseArgs], ['-f', '-S']),
+-      '--extractor-args', 'youtube:player_client=android,ios'
+-    ]), false);
++    attempts.push({
++      name: "Android/iOS player client fallback (with cookies)",
++      args: addCookies([
++        ...filterArgs([...baseArgs], ['-f', '-S']),
++        '--extractor-args', 'youtube:player_client=android,ios'
++      ])
++    });
+ 
+     // 8. Android/iOS client fallback, without cookies
+-    addAttempt("Android/iOS player client fallback (without cookies)", [
+-      ...filterArgs([...baseArgs], ['-f', '-S']),
+-      '--extractor-args', 'youtube:player_client=android,ios'
+-    ], true);
++    attempts.push({
++      name: "Android/iOS player client fallback (without cookies)",
++      args: [
++        ...filterArgs([...baseArgs], ['-f', '-S']),
++        '--extractor-args', 'youtube:player_client=android,ios'
++      ]
++    });
+ 
+     // 9. Android/iOS client legacy format fallback, with cookies
+-    addAttempt("Android/iOS legacy format fallback (with cookies)", addCookies([
+-      ...filterArgs([...baseArgs], ['-f', '-S']),
+-      '-f', format === 'mp3' ? 'ba/b' : 'best',
+-      '--extractor-args', 'youtube:player_client=android,ios'
+-    ]), false);
++    attempts.push({
++      name: "Android/iOS legacy format fallback (with cookies)",
++      args: addCookies([
++        ...filterArgs([...baseArgs], ['-f', '-S']),
++        '-f', format === 'mp3' ? 'ba/b' : 'best',
++        '--extractor-args', 'youtube:player_client=android,ios'
++      ])
++    });
+ 
+     // 10. Android/iOS client legacy format fallback, without cookies (high success rate on datacenters)
+-    addAttempt("Android/iOS legacy format fallback (without cookies)", [
+-      ...filterArgs([...baseArgs], ['-f', '-S']),
+-      '-f', format === 'mp3' ? 'ba/b' : 'best',
+-      '--extractor-args', 'youtube:player_client=android,ios'
+-    ], true);
++    attempts.push({
++      name: "Android/iOS legacy format fallback (without cookies)",
++      args: [
++        ...filterArgs([...baseArgs], ['-f', '-S']),
++        '-f', format === 'mp3' ? 'ba/b' : 'best',
++        '--extractor-args', 'youtube:player_client=android,ios'
++      ]
++    });
+ 
+     // 11. TV player client legacy format fallback, without cookies
+-    addAttempt("TV legacy format fallback (without cookies)", [
+-      ...filterArgs([...baseArgs], ['-f', '-S']),
+-      '-f', format === 'mp3' ? 'ba/b' : 'best',
+-      '--extractor-args', 'youtube:player_client=tv_simply,default,-tv'
+-    ], true);
++    attempts.push({
++      name: "TV legacy format fallback (without cookies)",
++      args: [
++        ...filterArgs([...baseArgs], ['-f', '-S']),
++        '-f', format === 'mp3' ? 'ba/b' : 'best',
++        '--extractor-args', 'youtube:player_client=tv_simply,default,-tv'
++      ]
++    });
+ 
+     // 12. Web Embedded player client legacy format fallback, without cookies
+-    addAttempt("Web Embedded legacy format fallback (without cookies)", [
+-      ...filterArgs([...baseArgs], ['-f', '-S']),
+-      '-f', format === 'mp3' ? 'ba/b' : 'best',
+-      '--extractor-args', 'youtube:player_client=web_embedded,web_safari,default'
+-    ], false);
++    attempts.push({
++      name: "Web Embedded legacy format fallback (without cookies)",
++      args: [
++        ...filterArgs([...baseArgs], ['-f', '-S']),
++        '-f', format === 'mp3' ? 'ba/b' : 'best',
++        '--extractor-args', 'youtube:player_client=web_embedded,web_safari,default'
++      ]
++    });
+ 
+-    // Now sort/reorder them based on isLocalDesktopRuntime()
+-    const attempts = [];
+-    if (!isLocalDesktopRuntime()) {
+-      console.log("Datacenter/production runtime detected. Prioritizing TV and Android/iOS fallback configs to prevent bot blocks...");
+-      // First, put all attempts marked as priorityOnServer
+-      attempts.push(...attemptsList.filter(a => a.priorityOnServer));
+-      // Then, the remaining ones
+-      attempts.push(...attemptsList.filter(a => !a.priorityOnServer));
+-    } else {
+-      attempts.push(...attemptsList);
+-    }
+ 
+     // Filter duplicates to optimize runs (e.g. if resolvedCookiesPath is null, with/without cookies are identical)
+     const uniqueAttempts = [];
+@@ -460,141 +477,120 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
+ }
+ 
+ async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
+-  const activeInstances = [
+-    'https://dog.kittycat.boo',
+-    'https://fox.kittycat.boo',
+-    'https://cobaltapi.kittycat.boo'
++  // List of public cobalt instances to cycle through
++  const instances = [
++    'https://api.cobalt.tools',
++    'https://co.wuk.sh',
++    'https://cobalt.api.ryzetech.live',
++    'https://cobalt.kudo.lol',
++    'https://cobalt-api.lule.rocks'
+   ];
+ 
+-  const COBALT_TIMEOUT_MS = 10000; // 10 second timeout per request for the metadata phase
+-  
+-  // 1. Resolve media URL using the fastest working instance in parallel
+-  const promises = activeInstances.map(async (instance) => {
+-    const endpoint = `${instance.replace(/\/+$/, '')}/`;
+-    const body = {
+-      url: videoUrl,
+-      videoQuality: quality === 'best' ? '1080' : quality.replace('p', ''),
+-      downloadMode: format === 'mp3' ? 'audio' : 'auto',
+-      audioFormat: format === 'mp3' ? 'mp3' : undefined,
+-      filenameStyle: 'classic'
+-    };
+-
+-    const controller = new AbortController();
+-    const timeout = setTimeout(() => controller.abort(), COBALT_TIMEOUT_MS);
+-
+-    try {
+-      const res = await fetch(endpoint, {
+-        method: 'POST',
+-        headers: {
+-          'Accept': 'application/json',
+-          'Content-Type': 'application/json'
+-        },
+-        body: JSON.stringify(body),
+-        signal: controller.signal
+-      });
+-      clearTimeout(timeout);
+-
+-      if (!res.ok) {
+-        throw new Error(`HTTP error ${res.status} from ${instance}`);
+-      }
+-
+-      const json = await res.json();
+-      if (json.status === 'error') {
+-        throw new Error(json.error?.code || json.error || `Error from ${instance}`);
++  let lastError = null;
++
++  for (const instance of instances) {
++    // We try v10 endpoint (root '/') first, then legacy endpoint ('/api/json')
++    const endpointsToTry = [
++      {
++        url: `${instance.replace(/\/+$/, '')}/`,
++        body: {
++          url: videoUrl,
++          videoQuality: quality === 'best' ? '1080' : quality.replace('p', ''),
++          downloadMode: format === 'mp3' ? 'audio' : 'auto',
++          audioFormat: format === 'mp3' ? 'mp3' : undefined,
++          filenameStyle: 'classic'
++        }
++      },
++      {
++        url: `${instance.replace(/\/+$/, '')}/api/json`,
++        body: {
++          url: videoUrl,
++          vQuality: quality === 'best' ? '1080' : quality.replace('p', ''),
++          isAudioOnly: format === 'mp3',
++          filenameStyle: 'classic'
++        }
+       }
++    ];
+ 
+-      const mediaUrl = json.url;
+-      if (!mediaUrl) {
+-        throw new Error(`No direct URL from ${instance}`);
+-      }
++    for (const endpoint of endpointsToTry) {
++      try {
++        console.log(`Attempting Cobalt request to: ${endpoint.url}`);
++        const res = await fetch(endpoint.url, {
++          method: 'POST',
++          headers: {
++            'Accept': 'application/json',
++            'Content-Type': 'application/json'
++          },
++          body: JSON.stringify(endpoint.body)
++        });
+ 
+-      return { mediaUrl, instance };
+-    } catch (err) {
+-      clearTimeout(timeout);
+-      throw err;
+-    }
+-  });
++        if (!res.ok) {
++          throw new Error(`HTTP error ${res.status}: ${res.statusText}`);
++        }
+ 
+-  let mediaUrl;
+-  let chosenInstance;
+-  try {
+-    const result = await Promise.any(promises);
+-    mediaUrl = result.mediaUrl;
+-    chosenInstance = result.instance;
+-    console.log(`Cobalt resolved media URL via ${chosenInstance}: ${mediaUrl}`);
+-  } catch (err) {
+-    throw new Error(`All parallel Cobalt instances failed. Errors: ${err.errors?.map(e => e.message).join(', ') || err.message}`);
+-  }
++        const json = await res.json();
++        if (json.status === 'error') {
++          throw new Error(json.error?.code || json.error || 'Unknown cobalt error');
++        }
+ 
+-  // 2. Fetch the file from the returned media URL and stream it to outputDir
+-  try {
+-    const dlController = new AbortController();
+-    const dlTimeout = setTimeout(() => dlController.abort(), 120000); // 2 min timeout for downloading
++        const mediaUrl = json.url;
++        if (!mediaUrl) {
++          throw new Error('No direct download URL returned from cobalt');
++        }
+ 
+-    const fileRes = await fetch(mediaUrl, { signal: dlController.signal });
+-    clearTimeout(dlTimeout);
++        console.log(`Cobalt returned download URL: ${mediaUrl}`);
+ 
+-    if (!fileRes.ok) {
+-      throw new Error(`Failed to fetch media file: ${fileRes.statusText}`);
+-    }
++        // Fetch the file from Cobalt URL and save it to outputDir
++        const fileRes = await fetch(mediaUrl);
++        if (!fileRes.ok) {
++          throw new Error(`Failed to fetch media file: ${fileRes.statusText}`);
++        }
+ 
+-    // Try to extract extension from content-disposition
+-    const cd = fileRes.headers.get('content-disposition');
+-    let ext = format === 'mp3' ? '.mp3' : '.mp4';
+-    if (cd) {
+-      const match = cd.match(/filename=["']?([^"';]+)["']?/);
+-      if (match) {
+-        const fname = match[1];
+-        const lastDot = fname.lastIndexOf('.');
+-        if (lastDot !== -1) {
+-          ext = fname.substring(lastDot);
++        // Try to extract extension from content-disposition
++        const cd = fileRes.headers.get('content-disposition');
++        let ext = format === 'mp3' ? '.mp3' : '.mp4';
++        if (cd) {
++          const match = cd.match(/filename=["']?([^"';]+)["']?/);
++          if (match) {
++            const fname = match[1];
++            const lastDot = fname.lastIndexOf('.');
++            if (lastDot !== -1) {
++              ext = fname.substring(lastDot);
++            }
++          }
+         }
++
++        // Save locally to outputDir
++        const finalPath = path.join(outputDir, `download_${Date.now()}_video${ext}`);
++        
++        const buffer = await fileRes.arrayBuffer();
++        fs.writeFileSync(finalPath, Buffer.from(buffer));
++
++        console.log(`Successfully saved Cobalt download to ${finalPath}`);
++        return finalPath;
++      } catch (err) {
++        console.warn(`Cobalt endpoint ${endpoint.url} failed:`, err.message);
++        lastError = err;
+       }
+     }
+-
+-    const finalPath = path.join(outputDir, `download_${Date.now()}_video${ext}`);
+-    const fileStream = fs.createWriteStream(finalPath);
+-    
+-    await new Promise((resolve, reject) => {
+-      const readable = Readable.fromWeb(fileRes.body);
+-      readable.pipe(fileStream);
+-      readable.on('error', (err) => {
+-        fileStream.close();
+-        try { fs.unlinkSync(finalPath); } catch {}
+-        reject(err);
+-      });
+-      fileStream.on('finish', () => {
+-        resolve();
+-      });
+-      fileStream.on('error', (err) => {
+-        try { fs.unlinkSync(finalPath); } catch {}
+-        reject(err);
+-      });
+-    });
+-
+-    console.log(`Successfully saved Cobalt download from ${chosenInstance} to ${finalPath}`);
+-    return finalPath;
+-  } catch (err) {
+-    console.error(`Cobalt download step failed:`, err.message);
+-    throw err;
+   }
++
++  throw new Error(`All Cobalt fallback instances failed. Last error: ${lastError ? lastError.message : 'Unknown'}`);
+ }
+ 
+ export async function downloadMedia(url, format, quality, outputDir) {
+-  // Strategy: Try Cobalt API first (faster, uses external CDN infrastructure)
+-  // then fall back to local yt-dlp binary (slower on datacenter IPs but more compatible)
+   try {
+-    console.log('Attempting download via Cobalt API (priority)...');
+-    const filePath = await downloadWithCobalt(url, format, quality, outputDir);
++    // Try yt-dlp first
++    const filePath = await downloadMediaWithYtdlp(url, format, quality, outputDir);
+     return filePath;
+-  } catch (cobaltError) {
+-    console.warn(`Cobalt API failed (${cobaltError.message}). Falling back to yt-dlp...`);
++  } catch (ytdlpError) {
++    console.warn(`yt-dlp download failed (${ytdlpError.message}). Trying Cobalt API fallback...`);
+     try {
+-      const filePath = await downloadMediaWithYtdlp(url, format, quality, outputDir);
++      const filePath = await downloadWithCobalt(url, format, quality, outputDir);
+       return filePath;
+-    } catch (ytdlpError) {
+-      console.error(`yt-dlp fallback also failed: ${ytdlpError.message}`);
+-      // Throw yt-dlp error as it has more detailed diagnostics
++    } catch (cobaltError) {
++      console.error(`Cobalt download fallback also failed: ${cobaltError.message}`);
++      // Throw the original yt-dlp error so they see the detailed yt-dlp issue if both fail
+       throw ytdlpError;
+     }
+   }

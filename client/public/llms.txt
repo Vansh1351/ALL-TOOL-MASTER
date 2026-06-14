@@ -13,10 +13,15 @@
 - PNG to JPG: https://alltoolmaster.me/convert/png-to-jpg
 - WebP to PNG: https://alltoolmaster.me/convert/webp-to-png
 - MP4 to MP3: https://alltoolmaster.me/convert/mp4-to-mp3
+- MP4 to WAV: https://alltoolmaster.me/convert/mp4-to-wav
+- MP3 to WAV: https://alltoolmaster.me/convert/mp3-to-wav
 - Video to Audio: https://alltoolmaster.me/convert/video-to-audio
 - MOV to MP4: https://alltoolmaster.me/convert/mov-to-mp4
 - Excel to PDF: https://alltoolmaster.me/convert/excel-to-pdf
 - HEIC to JPG: https://alltoolmaster.me/convert/heic-to-jpg
+- JPG to PDF: https://alltoolmaster.me/convert/jpg-to-pdf
+- PNG to PDF: https://alltoolmaster.me/convert/png-to-pdf
+- PDF to JPG: https://alltoolmaster.me/convert/pdf-to-jpg
 
 ### Video Downloaders (free, no watermark)
 - YouTube Downloader: https://alltoolmaster.me/downloader/youtube
@@ -37,12 +42,16 @@
 - Study Guide: https://alltoolmaster.me/ai-notes/study-guide
 - Voice Notes: https://alltoolmaster.me/ai-notes/voice-notes
 - Brainrot Translator: https://alltoolmaster.me/ai-notes/brainrot
+- Script Writer: https://alltoolmaster.me/ai-notes/script-writer
+- Screenplay Writer: https://alltoolmaster.me/ai-notes/screenplay-writer
+- Free AI Note Taker: https://alltoolmaster.me/ai-notes/free-ai-note-taker
 
 ### Utility Tools
 - ZIP Extractor: https://alltoolmaster.me/utility/zip-extractor
 - Unzip Files: https://alltoolmaster.me/utility/unzip
 - File Compressor: https://alltoolmaster.me/utility/file-compressor
 - Resume Builder: https://alltoolmaster.me/utility/resume-builder
+- CV Builder: https://alltoolmaster.me/utility/cv-builder
 
 ### Blog
 - Blog Index: https://alltoolmaster.me/blog
