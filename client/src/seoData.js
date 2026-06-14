@@ -1383,5 +1383,10 @@ Simply provide a title, select your script type and genre, and write a brief pre
   '/utility/resume-builder': {
     title: 'Free Online Resume Builder | All Tool Master',
     description: 'Build a professional resume online for free. Easy templates, instant download, no signup required.'
+  },
+  '/blog': {
+    title: 'Blog — File Conversion Tips & Video Download Guides | All Tool Master',
+    description: 'Guides and tutorials on file conversion, video downloading, AI note-taking and online productivity tools. Free tips, updated regularly.'
   }
 };
+

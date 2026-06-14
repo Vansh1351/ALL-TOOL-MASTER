@@ -58,14 +58,109 @@ function SkeletonLoader() {
     </div>
   );
 }
+function getInitialRouteState() {
+  if (typeof window === 'undefined') {
+    return { view: 'dashboard', activeTool: null, selectedBlogSlug: null, selectedBlogCategory: null, searchVal: '' };
+  }
+  const path = window.location.pathname;
+
+  // Informational pages
+  const infoPages = {
+    '/about': 'about',
+    '/contact': 'contact',
+    '/privacy': 'privacy',
+    '/terms': 'terms',
+    '/disclaimer': 'disclaimer',
+    '/dmca': 'dmca',
+    '/faqs': 'faqs',
+    '/editorial-policy': 'editorial-policy',
+    '/cookie-policy': 'cookie-policy',
+    '/accessibility': 'accessibility',
+    '/affiliate-disclosure': 'affiliate-disclosure'
+  };
+
+  // Author page
+  if (path === '/author/vansh-shah' || path === '/author') {
+    return { view: 'author', activeTool: null, selectedBlogSlug: null, selectedBlogCategory: null, searchVal: '' };
+  }
+  
+  if (infoPages[path]) {
+    return { view: infoPages[path], activeTool: null, selectedBlogSlug: null, selectedBlogCategory: null, searchVal: '' };
+  }
+
+  // Deals page & Namecheap Reviews
+  if (path === '/hosting/namecheap-review' || path === '/deals/namecheap') {
+    return { view: 'namecheap-review', activeTool: null, selectedBlogSlug: null, selectedBlogCategory: null, searchVal: '' };
+  }
+  if (path === '/deals') {
+    return { view: 'deals', activeTool: null, selectedBlogSlug: null, selectedBlogCategory: null, searchVal: '' };
+  }
+  if (path === '/deals/elevenlabs' || path === '/deals/eleven-labs') {
+    return { view: 'elevenlabs-deal', activeTool: null, selectedBlogSlug: null, selectedBlogCategory: null, searchVal: '' };
+  }
+  if (path === '/deals/canva' || path === '/deals/canva-pro') {
+    return { view: 'canva-deal', activeTool: null, selectedBlogSlug: null, selectedBlogCategory: null, searchVal: '' };
+  }
+  if (path === '/deals/grammarly') {
+    return { view: 'grammarly-deal', activeTool: null, selectedBlogSlug: null, selectedBlogCategory: null, searchVal: '' };
+  }
+  if (path === '/deals/nordvpn') {
+    return { view: 'nordvpn-deal', activeTool: null, selectedBlogSlug: null, selectedBlogCategory: null, searchVal: '' };
+  }
+  if (path === '/deals/elementor') {
+    return { view: 'elementor-deal', activeTool: null, selectedBlogSlug: null, selectedBlogCategory: null, searchVal: '' };
+  }
+
+  // Analytics Dashboard
+  if (path === '/analytics' || path === '/admin-analytics') {
+    return { view: 'analytics-dashboard', activeTool: null, selectedBlogSlug: null, selectedBlogCategory: null, searchVal: '' };
+  }
+  
+  // Blog pages
+  if (path === '/blog') {
+    return { view: 'blog-list', activeTool: null, selectedBlogSlug: null, selectedBlogCategory: null, searchVal: '' };
+  }
+  
+  if (path.startsWith('/blog/category/')) {
+    const cat = path.substring(15);
+    return { view: 'blog-list', activeTool: null, selectedBlogSlug: null, selectedBlogCategory: cat, searchVal: '' };
+  }
+  
+  if (path.startsWith('/blog/')) {
+    const slug = path.substring(6);
+    return { view: 'blog-post', activeTool: null, selectedBlogSlug: slug, selectedBlogCategory: null, searchVal: '' };
+  }
+  
+  // Main sections
+  if (path === '/downloader') {
+    return { view: 'dashboard', activeTool: null, selectedBlogSlug: null, selectedBlogCategory: null, searchVal: 'downloader' };
+  }
+  if (path === '/converter') {
+    return { view: 'dashboard', activeTool: null, selectedBlogSlug: null, selectedBlogCategory: null, searchVal: 'converter' };
+  }
+  if (path === '/ai-notes') {
+    return { view: 'dashboard', activeTool: null, selectedBlogSlug: null, selectedBlogCategory: null, searchVal: 'AI Tool' };
+  }
+  
+  // Specific tools
+  const matchedTool = TOOLS_DATA.find(tool => 
+    tool.routes && tool.routes.includes(path)
+  );
+  if (matchedTool) {
+    return { view: 'tool-page', activeTool: matchedTool, selectedBlogSlug: null, selectedBlogCategory: null, searchVal: '' };
+  }
+  
+  return { view: 'dashboard', activeTool: null, selectedBlogSlug: null, selectedBlogCategory: null, searchVal: '' };
+}
 
 export default function App() {
+  const initialRoute = getInitialRouteState();
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
-  const [view, setView] = useState('dashboard');
-  const [searchVal, setSearchVal] = useState('');
-  const [activeTool, setActiveTool] = useState(null);
-  const [selectedBlogSlug, setSelectedBlogSlug] = useState(null);
-  const [selectedBlogCategory, setSelectedBlogCategory] = useState(null);
+  const [view, setView] = useState(initialRoute.view);
+  const [searchVal, setSearchVal] = useState(initialRoute.searchVal);
+  const [activeTool, setActiveTool] = useState(initialRoute.activeTool);
+  const [selectedBlogSlug, setSelectedBlogSlug] = useState(initialRoute.selectedBlogSlug);
+  const [selectedBlogCategory, setSelectedBlogCategory] = useState(initialRoute.selectedBlogCategory);
   const [history, setHistory] = useState(JSON.parse(localStorage.getItem('ops_history')) || []);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [geminiKey, setGeminiKey] = useState(localStorage.getItem('gemini_api_key') || '');
@@ -351,8 +446,9 @@ export default function App() {
         desc = `Browse high-quality educational guides, tool reviews, and productivity tutorials in the ${selectedBlogCategory} category.`;
       } else {
         path = '/blog';
-        title = "All Tool Master Blog | Free Online Guides & Video Converter Tutorials";
-        desc = "Learn how to convert MP4 to MP3, download YouTube videos, convert HEIC to JPG online, and transcribe meeting transcripts with AI tools.";
+        const seoInfo = SEO_DATA['/blog'];
+        title = seoInfo?.title || "Blog — File Conversion Tips & Video Download Guides | All Tool Master";
+        desc = seoInfo?.description || "Guides and tutorials on file conversion, video downloading, AI note-taking and online productivity tools. Free tips, updated regularly.";
       }
       
       if (window.gtag) {
