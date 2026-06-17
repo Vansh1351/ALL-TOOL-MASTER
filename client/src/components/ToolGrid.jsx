@@ -152,8 +152,8 @@ export const TOOLS_DATA = [
   },
   {
     id: 'zip-extractor',
-    title: 'ZIP Extractor / Archiver',
-    desc: 'Decompress uploaded ZIP archives or bundle multiple assets into a zipped download.',
+    title: 'ZIP, RAR & 7Z Archive Extractor',
+    desc: 'Decompress uploaded ZIP, RAR, 7Z, TAR, or GZ archives, or bundle multiple assets into a zipped download.',
     icon: FiFolderPlus,
     color: '#f59e0b',
     category: 'Utility',
@@ -164,7 +164,9 @@ export const TOOLS_DATA = [
       'compress files into zip online', 'free file archiver tool', 'batch zip extractor online', 'secure zip file opener', 
       'unzip large files online', 'browser based zip extractor', 'fast zip compressor tool', 'unzip files', 
       'zip converter', 'file compressor', 'archive extractor', 'zip opener', 'online unzip tool', 
-      'zip file converter', 'extract zip online', 'compress files online'
+      'zip file converter', 'extract zip online', 'compress files online', 'rar extractor', '7z extractor', 
+      'extract rar', 'extract 7z', 'extract tar', 'tar extractor', 'gz extractor', 'unrar online', 'unzip 7z', 
+      'rar reader', '7z opener', 'tar.gz extractor', 'tar.gz online unzip'
     ]
   },
   {

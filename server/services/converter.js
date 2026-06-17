@@ -10,6 +10,7 @@ import { Document, Packer, Paragraph, TextRun, ImageRun } from 'docx';
 import archiver from 'archiver';
 import unzipper from 'unzipper';
 import XLSX from 'xlsx';
+import { exec } from 'child_process';
 
 // Configure Ffmpeg binaries path
 // On Linux (Hugging Face / cloud), system ffmpeg is installed via apt and preferred.
@@ -606,14 +607,48 @@ export async function extractTextFromDocx(docxPath) {
 }
 
 /**
- * Unzips an archive.
+ * Extracts multiple archive formats (ZIP, RAR, 7Z, TAR, GZ).
  */
-export function extractZip(zipPath, outputDir) {
+export function extractArchive(archivePath, outputDir) {
+  const ext = path.extname(archivePath).toLowerCase();
+  
   return new Promise((resolve, reject) => {
-    fs.createReadStream(zipPath)
-      .pipe(unzipper.Extract({ path: outputDir }))
-      .on('close', () => resolve(outputDir))
-      .on('error', (err) => reject(err));
+    if (ext === '.zip') {
+      // Fallback to pure JS unzipper first for local development compatibility
+      fs.createReadStream(archivePath)
+        .pipe(unzipper.Extract({ path: outputDir }))
+        .on('close', () => resolve(outputDir))
+        .on('error', (err) => {
+          console.warn(`Pure JS unzipper failed for ${archivePath}, falling back to 7z CLI:`, err.message);
+          exec(`7z x "${archivePath}" "-o${outputDir}" -y`, (err7z) => {
+            if (err7z) reject(err);
+            else resolve(outputDir);
+          });
+        });
+    } else if (ext === '.tar' || ext === '.gz' || ext === '.tgz') {
+      const tarCmd = ext === '.tar' ? 'xf' : 'xzf';
+      exec(`tar -${tarCmd} "${archivePath}" -C "${outputDir}"`, (err) => {
+        if (err) {
+          console.warn(`tar extraction failed, attempting 7z fallback:`, err.message);
+          exec(`7z x "${archivePath}" "-o${outputDir}" -y`, (err7z) => {
+            if (err7z) reject(new Error(`Failed to extract tar archive: ${err.message}`));
+            else resolve(outputDir);
+          });
+        } else {
+          resolve(outputDir);
+        }
+      });
+    } else if (ext === '.7z' || ext === '.rar') {
+      exec(`7z x "${archivePath}" "-o${outputDir}" -y`, (err) => {
+        if (err) {
+          reject(new Error(`Failed to extract ${ext} archive. Make sure p7zip/7-Zip is installed. Error: ${err.message}`));
+        } else {
+          resolve(outputDir);
+        }
+      });
+    } else {
+      reject(new Error(`Unsupported archive extension: ${ext}`));
+    }
   });
 }
 
@@ -829,15 +864,9 @@ export async function performConversion(inputPath, inputMime, targetFormat, uplo
     if (target === 'unzip' || target === 'extract') {
       const extractDir = path.join(uploadsDir, `extracted_${Date.now()}`);
       fs.mkdirSync(extractDir, { recursive: true });
-      if (inputExt === '.zip') {
-        await extractZip(inputPath, extractDir);
-      } else {
-        // Return a zip enclosing a readme explaining RAR/7z format support details
-        fs.writeFileSync(
-          path.join(extractDir, 'unsupported_archive_format.txt'),
-          `Extraction for ${inputExt} archives is not natively supported by the server. Only standard .zip compression is extracted.`
-        );
-      }
+      
+      // Use extractArchive for all extensions (.zip, .rar, .7z, .tar, .gz, .tgz)
+      await extractArchive(inputPath, extractDir);
       
       const files = fs.readdirSync(extractDir).map(file => path.join(extractDir, file));
       const zipPath = path.join(uploadsDir, `extracted_archive_${Date.now()}.zip`);

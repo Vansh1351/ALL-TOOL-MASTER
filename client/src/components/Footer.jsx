@@ -113,34 +113,16 @@ export default function Footer({ setView, navigate }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <h4 style={{ fontSize: '14px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Utilities</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
-              <a 
-                href="/downloader/youtube" 
-                onClick={(e) => { e.preventDefault(); handleToolClick('youtube-downloader'); }} 
-                style={{ color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'none' }}
-              >
-                URL Downloader
-              </a>
-              <a 
-                href="/convert/mp4-to-mp3" 
-                onClick={(e) => { e.preventDefault(); handleToolClick('mp4-to-mp3'); }} 
-                style={{ color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'none' }}
-              >
-                MP4 to MP3
-              </a>
-              <a 
-                href="/convert/heic-to-jpg" 
-                onClick={(e) => { e.preventDefault(); handleToolClick('image-converter'); }} 
-                style={{ color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'none' }}
-              >
-                Universal Image Converter
-              </a>
-              <a 
-                href="/ai-notes/meeting-minutes" 
-                onClick={(e) => { e.preventDefault(); handleToolClick('ai-meeting-minutes'); }} 
-                style={{ color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'none' }}
-              >
-                AI Meeting Assistant
-              </a>
+              {TOOLS_DATA.map(tool => (
+                <a 
+                  key={tool.id}
+                  href={tool.routes[0]} 
+                  onClick={(e) => { e.preventDefault(); handleToolClick(tool.id); }} 
+                  style={{ color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'none' }}
+                >
+                  {tool.title}
+                </a>
+              ))}
             </div>
           </div>
 

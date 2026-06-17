@@ -202,7 +202,7 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
     const sheetExts = ['.xlsx', '.xls', '.ods', '.csv', '.tsv'];
     const presentationExts = ['.pptx', '.ppt'];
     const docExts = ['.docx', '.doc', '.pdf', '.odt', '.txt', '.rtf', '.html', '.epub', '.md'];
-    const zipExts = ['.zip', '.rar', '.7z', '.tar', '.gz'];
+    const zipExts = ['.zip', '.rar', '.7z', '.tar', '.gz', '.tgz'];
 
     if (videoExts.includes(ext) || audioExts.includes(ext)) {
       return [

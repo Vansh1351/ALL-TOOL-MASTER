@@ -6,6 +6,8 @@ RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     curl \
+    p7zip-full \
+    unrar-free \
     && rm -rf /var/lib/apt/lists/*
 
 # Install yt-dlp – use pipx-style override to bypass PEP 668 "externally managed environment"
