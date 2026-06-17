@@ -42,7 +42,10 @@ import { SEO_DATA } from './seoData';
 import { AFFILIATE_LINKS } from './affiliateLinks';
 
 
-import { FiShield, FiZap, FiUserCheck, FiCpu, FiStar, FiExternalLink, FiClock, FiSend } from 'react-icons/fi';
+import { FiShield, FiZap, FiUserCheck, FiCpu, FiStar, FiExternalLink, FiClock, FiSend, FiAlertTriangle } from 'react-icons/fi';
+
+const rawBackendUrl = import.meta.env.VITE_API_URL || 'https://vansh135-all-tool-master-backend.hf.space';
+
 
 function SkeletonLoader() {
   return (
@@ -170,6 +173,7 @@ export default function App() {
   const [recentlyUsed, setRecentlyUsed] = useState(JSON.parse(localStorage.getItem('ops_recently_used')) || []);
   const [conversionCount, setConversionCount] = useState(parseInt(localStorage.getItem('ops_conversion_count')) || 14205);
   const [toasts, setToasts] = useState([]);
+  const [isBackendHealthy, setIsBackendHealthy] = useState(true);
 
   const addToast = (message, type = 'success') => {
     const id = Date.now();
@@ -212,6 +216,39 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
   }, [theme]);
+
+  // Backend health check
+  useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s timeout
+        
+        const res = await fetch(`${rawBackendUrl}/health`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        
+        if (!res.ok) {
+          throw new Error('Non-200 response');
+        }
+        const data = await res.json();
+        if (data.status === 'ok') {
+          setIsBackendHealthy(true);
+        } else {
+          throw new Error('Status not ok');
+        }
+      } catch (err) {
+        console.warn("Backend health check failed:", err);
+        setIsBackendHealthy(false);
+      }
+    };
+
+    // Run health check initially
+    checkHealth();
+
+    // Check health every 60 seconds
+    const interval = setInterval(checkHealth, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Navigate helper function
   const navigate = (viewId, tool = null, slug = null, category = null) => {
@@ -909,6 +946,74 @@ export default function App() {
         navigate={navigate}
         openSettings={openSettings} 
       />
+
+      {/* Backend Offline Banner */}
+      {!isBackendHealthy && (
+        <div className="animate-fade-in" style={{
+          background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(245, 158, 11, 0.12) 100%)',
+          backdropFilter: 'blur(16px)',
+          borderBottom: '1px solid rgba(245, 158, 11, 0.25)',
+          padding: '12px 24px',
+          color: 'var(--text-main)',
+          fontSize: '13.5px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '14px',
+          zIndex: 999,
+          position: 'relative',
+          flexWrap: 'wrap',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FiAlertTriangle style={{ color: '#f59e0b', fontSize: '16px', flexShrink: 0 }} />
+            <span style={{ fontWeight: '700', color: '#f59e0b', letterSpacing: '-0.01em' }}>
+              Service Alert:
+            </span>
+            <span style={{ color: 'var(--text-muted)', lineHeight: '1.4' }}>
+              The backend server is taking time to wake up or unreachable. File downloads/conversions may fail.
+            </span>
+          </div>
+          <button 
+            onClick={async () => {
+              addToast('Rechecking server status...', 'info');
+              try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 6000);
+                const res = await fetch(`${rawBackendUrl}/health`, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                
+                if (res.ok) {
+                  const data = await res.json();
+                  if (data.status === 'ok') {
+                    setIsBackendHealthy(true);
+                    addToast('Backend connected successfully!', 'success');
+                    return;
+                  }
+                }
+                addToast('Backend remains offline. Waking it up might take a minute.', 'warning');
+              } catch (e) {
+                addToast('Backend is still unreachable. Please try again in a moment.', 'error');
+              }
+            }} 
+            className="btn btn-secondary" 
+            style={{ 
+              padding: '5px 12px', 
+              fontSize: '12px', 
+              height: '28px', 
+              borderRadius: '6px',
+              border: '1px solid rgba(245, 158, 11, 0.4)',
+              color: '#f59e0b',
+              background: 'rgba(245, 158, 11, 0.05)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              fontWeight: '600'
+            }}
+          >
+            Retry Connection
+          </button>
+        </div>
+      )}
 
       {/* Main Content Area */}
       <main style={{ flex: '1 0 auto' }}>
