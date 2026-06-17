@@ -87,15 +87,18 @@ app.post('/api/convert', upload.single('file'), async (req, res) => {
 
   const inputPath = req.file.path;
   const inputMime = req.file.mimetype;
+  const originalName = req.file.originalname;
 
-  console.log(`Starting conversion: ${req.file.originalname} (${inputMime}) to ${targetFormat}`);
+  console.log(`Starting conversion: ${originalName} (${inputMime}) to ${targetFormat}`);
 
   try {
-    const outputPath = await performConversion(inputPath, inputMime, targetFormat, uploadsDir);
+    const outputPath = await performConversion(inputPath, inputMime, targetFormat, uploadsDir, originalName);
     
-    // Check if the result is a folder path or file path
-    // In our converter, we always return a file path. Let's send the file for download.
-    const downloadFilename = `converted_${path.basename(outputPath)}`;
+    // Build download filename from the ORIGINAL uploaded file name + new extension
+    const origBaseName = path.parse(originalName).name;
+    // Sanitize for filesystem safety
+    const safeName = origBaseName.replace(/[<>:"\/\\|?*\x00-\x1F]/g, '_').trim() || 'converted_file';
+    const downloadFilename = `${safeName}.${targetFormat}`;
     
     res.download(outputPath, downloadFilename, (err) => {
       // Clean up files after sending
@@ -145,7 +148,14 @@ app.post('/api/download', async (req, res) => {
   try {
     const outputPath = await downloadMedia(url, targetFormat, targetQuality, uploadsDir);
     
-    const downloadFilename = path.basename(outputPath).replace(/^download_\d+_/, '');
+    // Extract a meaningful filename: strip the download_ timestamp prefix
+    let downloadFilename = path.basename(outputPath).replace(/^download_\d+_/, '');
+    // If still generic (e.g. "video.mp4"), try to keep it but ensure it has an extension
+    if (!downloadFilename || downloadFilename === `video.${targetFormat}`) {
+      downloadFilename = `downloaded_video.${targetFormat}`;
+    }
+    // Sanitize for safe Content-Disposition header
+    downloadFilename = downloadFilename.replace(/[<>:"\/\\|?*\x00-\x1F]/g, '_').trim();
     
     res.download(outputPath, downloadFilename, (err) => {
       // Clean up file after download

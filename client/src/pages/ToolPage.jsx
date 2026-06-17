@@ -355,6 +355,56 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
     else alert('Copied to clipboard!');
   };
 
+  // Validate blob responses — catches 0-byte files and JSON error responses disguised as blobs
+  const validateBlobResponse = async (response, fallbackName) => {
+    const blob = response.data;
+    const contentType = response.headers['content-type'] || '';
+    
+    // If server returned JSON error instead of a file (common when backend fails)
+    if (contentType.includes('application/json')) {
+      const text = await blob.text();
+      try {
+        const parsed = JSON.parse(text);
+        throw new Error(parsed.error || 'Server returned an error instead of a file.');
+      } catch (e) {
+        if (e instanceof SyntaxError) {
+          throw new Error(text || 'Server returned an unexpected response.');
+        }
+        throw e;
+      }
+    }
+    
+    // Check for empty/zero-byte responses
+    if (!blob || blob.size === 0) {
+      throw new Error(
+        'Download produced an empty file (0 bytes). This can happen when:\n' +
+        '• The video is private, age-restricted, or region-locked\n' +
+        '• The download service is temporarily unavailable\n' +
+        '• The backend server timed out during processing\n\n' +
+        'Please try again in a few minutes, or try a different video.'
+      );
+    }
+    
+    // Warn if file is suspiciously small (under 1KB) — might be an HTML error page
+    if (blob.size < 1024) {
+      const text = await blob.text();
+      // Check if it looks like an error message rather than actual file content
+      if (text.includes('error') || text.includes('Error') || text.includes('<html')) {
+        try {
+          const parsed = JSON.parse(text);
+          throw new Error(parsed.error || 'Server returned an error instead of a file.');
+        } catch (e) {
+          if (e instanceof SyntaxError) {
+            throw new Error(`Download failed: ${text.substring(0, 200)}`);
+          }
+          throw e;
+        }
+      }
+    }
+    
+    return blob;
+  };
+
   const handleProcess = async () => {
     setStatus('processing');
     setProgress(20);
@@ -404,19 +454,26 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
           }
         });
 
+        // CRITICAL: Validate the blob BEFORE creating download URL
+        const validatedBlob = await validateBlobResponse(response, `downloaded_file.${targetFormat}`);
+
         const contentDisposition = response.headers['content-disposition'];
         let filename = `downloaded_file.${targetFormat}`;
         if (contentDisposition) {
-          const match = contentDisposition.match(/filename=["']?([^"';]+)["']?/);
-          if (match) filename = match[1];
+          const match = contentDisposition.match(/filename[*]?=["']?(?:UTF-8'')?([^"';\n]+)["']?/i);
+          if (match) {
+            filename = decodeURIComponent(match[1]).trim();
+          }
         }
+        // Sanitize filename for browser download
+        filename = filename.replace(/[<>:"\/\\|?*]/g, '_').trim() || `downloaded_file.${targetFormat}`;
 
-        const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+        const blobUrl = window.URL.createObjectURL(validatedBlob);
         setDownloadBlobUrl(blobUrl);
         setDownloadFilename(filename);
         setStatus('success');
         setProgress(100);
-        if (addToast) addToast('Video downloaded successfully!', 'success');
+        if (addToast) addToast(`Video downloaded successfully! (${(validatedBlob.size / 1024 / 1024).toFixed(1)} MB)`, 'success');
         if (incrementConversion) incrementConversion();
         addToHistory({
           toolTitle: tool.title,
@@ -446,14 +503,28 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
           }
         });
 
-        const contentDisposition = response.headers['content-disposition'];
-        let filename = `converted_file.${targetFormat}`;
-        if (contentDisposition) {
-          const match = contentDisposition.match(/filename=["']?([^"';]+)["']?/);
-          if (match) filename = match[1];
-        }
+        // CRITICAL: Validate the blob BEFORE creating download URL
+        const validatedBlob = await validateBlobResponse(response, `converted_file.${targetFormat}`);
 
-        const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+        // Use original upload filename with new extension (e.g., "my-resume.pdf" → "my-resume.docx")
+        const origBaseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+        let filename = `${origBaseName}.${targetFormat}`;
+        
+        // Override with server-provided name if available
+        const contentDisposition = response.headers['content-disposition'];
+        if (contentDisposition) {
+          const match = contentDisposition.match(/filename[*]?=["']?(?:UTF-8'')?([^"';\n]+)["']?/i);
+          if (match) {
+            const serverName = decodeURIComponent(match[1]).trim();
+            if (serverName && !serverName.startsWith('converted_')) {
+              filename = serverName;
+            }
+          }
+        }
+        // Sanitize filename
+        filename = filename.replace(/[<>:"\/\\|?*]/g, '_').trim() || `converted_file.${targetFormat}`;
+
+        const blobUrl = window.URL.createObjectURL(validatedBlob);
         setDownloadBlobUrl(blobUrl);
         setDownloadFilename(filename);
         setStatus('success');

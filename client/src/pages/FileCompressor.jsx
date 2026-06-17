@@ -110,6 +110,21 @@ export default function FileCompressor({ tool, setView, setActiveTool, addToHist
       }
 
       const blob = response.data;
+
+      // Validate the response - check for 0-byte or JSON error disguised as blob
+      const contentType = response.headers['content-type'] || '';
+      if (contentType.includes('application/json') || blob.size === 0) {
+        let errMsg = 'Compression failed — server returned an empty or invalid response.';
+        if (blob.size > 0) {
+          try {
+            const text = await blob.text();
+            const parsed = JSON.parse(text);
+            errMsg = parsed.error || errMsg;
+          } catch {}
+        }
+        throw new Error(errMsg);
+      }
+
       setCompressedSize(blob.size);
       const cd = response.headers['content-disposition'];
       let filename = files.length === 1 ? files[0].name : 'compressed_files.zip';

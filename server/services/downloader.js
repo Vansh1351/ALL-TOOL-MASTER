@@ -441,6 +441,7 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
     };
 
     const resolveFile = () => {
+      // Find the most recently modified file starting with 'download_'
       const files = fs.readdirSync(outputDir);
       const matches = files.filter(f => f.startsWith(`download_`));
       
@@ -452,7 +453,18 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
         .map(f => ({ name: f, time: fs.statSync(path.join(outputDir, f)).mtimeMs }))
         .sort((a, b) => b.time - a.time)[0].name;
 
-      resolve(path.join(outputDir, latestFile));
+      const fullPath = path.join(outputDir, latestFile);
+      
+      // Verify the file is not empty (0 bytes)
+      const stats = fs.statSync(fullPath);
+      if (stats.size === 0) {
+        console.error(`yt-dlp produced a 0-byte file: ${fullPath}`);
+        try { fs.unlinkSync(fullPath); } catch {}
+        return reject(new Error('Download produced a 0-byte file. The video may be unavailable, private, or region-restricted.'));
+      }
+      
+      console.log(`yt-dlp resolved output file: ${latestFile} (${(stats.size / 1024 / 1024).toFixed(2)} MB)`);
+      resolve(fullPath);
     };
 
     runNextAttempt();
@@ -538,21 +550,31 @@ async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
       throw new Error(`Failed to fetch media file: ${fileRes.statusText}`);
     }
 
-    // Try to extract extension from content-disposition
+    // Try to extract the real filename from Content-Disposition header
     const cd = fileRes.headers.get('content-disposition');
+    let filename = null;
     let ext = format === 'mp3' ? '.mp3' : '.mp4';
     if (cd) {
-      const match = cd.match(/filename=["']?([^"';]+)["']?/);
+      const match = cd.match(/filename[*]?=["']?(?:UTF-8'')?([^"';\n]+)["']?/i);
       if (match) {
-        const fname = match[1];
-        const lastDot = fname.lastIndexOf('.');
-        if (lastDot !== -1) {
-          ext = fname.substring(lastDot);
+        let fname = decodeURIComponent(match[1]).trim();
+        // Remove any path components for safety
+        fname = fname.replace(/^.*[\/\\]/, '');
+        if (fname) {
+          filename = fname;
+          const lastDot = fname.lastIndexOf('.');
+          if (lastDot !== -1) {
+            ext = fname.substring(lastDot);
+          }
         }
       }
     }
 
-    const finalPath = path.join(outputDir, `download_${Date.now()}_video${ext}`);
+    // Use the real filename from the platform, or fall back to generic
+    const safeFilename = filename 
+      ? filename.replace(/[<>:"\/\\|?*\x00-\x1F]/g, '_').trim()
+      : `video${ext}`;
+    const finalPath = path.join(outputDir, `download_${Date.now()}_${safeFilename}`);
     const fileStream = fs.createWriteStream(finalPath);
     
     await new Promise((resolve, reject) => {
@@ -572,7 +594,16 @@ async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
       });
     });
 
-    console.log(`Successfully saved Cobalt download from ${chosenInstance} to ${finalPath}`);
+    console.log(`Successfully saved Cobalt download from ${chosenInstance} to ${finalPath} (${safeFilename})`);
+
+    // Verify the downloaded file is not 0 bytes
+    const stats = fs.statSync(finalPath);
+    if (stats.size === 0) {
+      console.error(`Cobalt download produced a 0-byte file: ${finalPath}`);
+      try { fs.unlinkSync(finalPath); } catch {}
+      throw new Error('Download produced a 0-byte file. The media may be unavailable or the download service timed out.');
+    }
+    console.log(`Cobalt download verified: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
     return finalPath;
   } catch (err) {
     console.error(`Cobalt download step failed:`, err.message);

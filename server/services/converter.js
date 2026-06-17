@@ -654,10 +654,21 @@ export function extractTextFromSpreadsheet(inputPath) {
 }
 
 
-export async function performConversion(inputPath, inputMime, targetFormat, uploadsDir) {
+export async function performConversion(inputPath, inputMime, targetFormat, uploadsDir, originalName = '') {
   const inputExt = path.extname(inputPath).toLowerCase();
   const target = targetFormat.toLowerCase();
-  const outputFilename = `converted_${Date.now()}.${target}`;
+  
+  // Build output filename from the original upload name (preserving user's filename)
+  let baseName = 'converted_file';
+  if (originalName) {
+    baseName = path.parse(originalName).name;
+  } else {
+    // Fallback: strip multer timestamp prefix from the input path
+    baseName = path.parse(path.basename(inputPath)).name.replace(/^\d+_/, '');
+  }
+  // Sanitize for filesystem safety
+  baseName = baseName.replace(/[<>:"\/\\|?*\x00-\x1F]/g, '_').trim() || 'converted_file';
+  const outputFilename = `${baseName}_${Date.now()}.${target}`;
   const outputPath = path.join(uploadsDir, outputFilename);
 
   // Group conversions by input types
