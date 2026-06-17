@@ -609,6 +609,15 @@ async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
       try { fs.unlinkSync(finalPath); } catch {}
       throw new Error('Download produced a 0-byte file. The media may be unavailable or the download service timed out.');
     }
+
+    // If a video format was requested (not mp3), but Cobalt returned a static image (e.g. cover photo/thumbnail), reject it to trigger yt-dlp fallback
+    const isImage = /\.(jpg|jpeg|png|webp|gif|heic)$/i.test(finalPath);
+    if (format !== 'mp3' && isImage) {
+      console.warn(`Cobalt returned an image (${safeFilename}) instead of a video. Rejecting Cobalt result to trigger yt-dlp fallback.`);
+      try { fs.unlinkSync(finalPath); } catch {}
+      throw new Error('Cobalt returned an image instead of a video.');
+    }
+
     console.log(`Cobalt download verified: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
     return finalPath;
   } catch (err) {
