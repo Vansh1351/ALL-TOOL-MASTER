@@ -348,9 +348,15 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
       '--extractor-args', 'youtube:player_client=web_embedded,web_safari,default'
     ], false);
 
-    // Now sort/reorder them based on isLocalDesktopRuntime()
+    // Now sort/reorder them based on isLocalDesktopRuntime() and cookie availability
     const attempts = [];
-    if (!isLocalDesktopRuntime()) {
+    if (resolvedCookiesPath) {
+      console.log("Cookies are available. Prioritizing cookie-based player configurations...");
+      // First, attempts that use cookies
+      attempts.push(...attemptsList.filter(a => a.name.includes('with cookies')));
+      // Then, the remaining non-cookie attempts
+      attempts.push(...attemptsList.filter(a => !a.name.includes('with cookies')));
+    } else if (!isLocalDesktopRuntime()) {
       console.log("Datacenter/production runtime detected. Prioritizing TV and Android/iOS fallback configs to prevent bot blocks...");
       // First, put all attempts marked as priorityOnServer
       attempts.push(...attemptsList.filter(a => a.priorityOnServer));

@@ -578,7 +578,8 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
       console.error(err);
       let errMsg = 'Something went wrong during processing. Please try again.';
       if (err.message && err.message.toLowerCase().includes('network error')) {
-        errMsg = `Network Connection Error.
+        if (BACKEND_URL.includes('localhost') || BACKEND_URL.includes('127.0.0.1')) {
+          errMsg = `Network Connection Error.
 This happens because your React frontend is unable to reach the local backend server (running at http://localhost:5000).
 
 If you are running the project locally:
@@ -590,6 +591,17 @@ If you are running the project locally:
 If you have deployed this site to production (e.g. Vercel):
 Vercel only hosts static frontend pages. You must deploy the "server" backend to a platform like Render, Railway, or a VPS. After deploying, add the hosted backend URL to your Vercel project environment variables as:
 VITE_API_URL=https://your-backend-server.com`;
+        } else {
+          errMsg = `Network Connection Error.
+Unable to reach the backend server at ${BACKEND_URL}.
+
+This can happen because:
+1. The remote server is sleeping/inactive and still waking up (which is common for free hosting tiers).
+2. The server is temporarily offline due to rate limits or heavy load.
+3. Your network connection is unstable or blocking requests.
+
+Please verify the server status above or try again in a few seconds.`;
+        }
       } else if (err.response && err.response.data) {
         if (err.response.data instanceof Blob) {
           const text = await err.response.data.text();
