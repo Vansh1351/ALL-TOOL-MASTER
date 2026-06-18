@@ -390,6 +390,7 @@ export default function CardMaker({ tool, setView, setActiveTool, navigate, addT
   const [form, setForm] = useState({
     name: '',
     eventType: 'Birthday Party',
+    customEvent: '',
     date: '2026-07-20',
     time: '18:00',
     venue: 'Skyline Banquet Hall, Mumbai',
@@ -417,10 +418,11 @@ export default function CardMaker({ tool, setView, setActiveTool, navigate, addT
   const handleGenerate = async () => {
     setLoading(true);
     const apiKey = localStorage.getItem('gemini_api_key') || '';
+    const displayEventType = form.eventType === 'Custom' ? (form.customEvent || 'Custom Event') : form.eventType;
     const promptText = `
 Generate custom invitation card details based on these settings:
 - Host/Name: ${form.name || 'Our Guest'}
-- Event: ${form.eventType}
+- Event: ${displayEventType}
 - Date: ${form.date}
 - Time: ${form.time}
 - Venue: ${form.venue}
@@ -724,6 +726,7 @@ Do not write markdown quotes or explanations, just raw JSON.
     // Determine event title
     let eventTitle = aiData.title;
     let hostLine = '';
+    const displayEventType = form.eventType === 'Custom' ? (form.customEvent || 'Custom Event') : form.eventType;
     
     if (!eventTitle) {
       if (form.name) {
@@ -731,9 +734,9 @@ Do not write markdown quotes or explanations, just raw JSON.
         const possessiveName = cleanName.endsWith("'s") || cleanName.endsWith("s'") 
           ? cleanName 
           : (cleanName.endsWith("s") ? `${cleanName}'` : `${cleanName}'s`);
-        eventTitle = `${possessiveName} ${form.eventType}`;
+        eventTitle = `${possessiveName} ${displayEventType}`;
       } else {
-        eventTitle = form.eventType;
+        eventTitle = displayEventType;
       }
     } else {
       if (form.name) {
@@ -864,9 +867,10 @@ Do not write markdown quotes or explanations, just raw JSON.
     const canvas = canvasRef.current;
     if (!canvas) return;
     const dataUrl = canvas.toDataURL(`image/${format === 'png' ? 'png' : 'jpeg'}`, 0.95);
+    const displayEventType = form.eventType === 'Custom' ? (form.customEvent || 'Custom Event') : form.eventType;
     const link = document.createElement('a');
     link.href = dataUrl;
-    link.download = `invitation_${form.eventType.toLowerCase().replace(/\s+/g, '_')}.${format}`;
+    link.download = `invitation_${displayEventType.toLowerCase().replace(/\s+/g, '_')}.${format}`;
     link.click();
     addToast(`Card downloaded as ${format.toUpperCase()}!`, 'success');
   };
@@ -954,9 +958,23 @@ Do not write markdown quotes or explanations, just raw JSON.
                 <option value="Surprise Party">Surprise Party</option>
                 <option value="Graduation Party">Graduation Party</option>
                 <option value="Engagement Party">Engagement Party</option>
+                <option value="Custom">Custom Event / Party</option>
               </select>
             </div>
           </div>
+
+          {form.eventType === 'Custom' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }} className="animate-fade-in">
+              <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)' }}>Custom Event Name</label>
+              <input 
+                type="text" 
+                className="input-field" 
+                value={form.customEvent} 
+                onChange={e => set('customEvent', e.target.value)} 
+                placeholder="e.g. Kitty Party, Get Together" 
+              />
+            </div>
+          )}
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
