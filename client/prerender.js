@@ -77,6 +77,7 @@ function prerender() {
     { path: '/converter', title: 'Free File Converters Online — PDF, Word, Image, Video | All Tool Master', desc: 'Convert PDF to Word, Word to PDF, JPG to PNG, MP4 to MP3 and more. All converters are free, browser-based and require no account.' },
     { path: '/downloader', title: 'Free Video Downloader — YouTube, Instagram, TikTok & More | All Tool Master', desc: 'Download videos from YouTube, Instagram, TikTok, Facebook, Twitter and Vimeo for free. No watermark, no signup required.' },
     { path: '/ai-notes', title: 'Free AI Notes Tools — Lecture Notes, Transcripts & Summaries | All Tool Master', desc: 'AI-powered tools to generate lecture notes, meeting minutes, transcripts, study guides and video summaries. Free, no account needed.' },
+    { path: '/utility', title: 'Free Digital Utilities & Productivity Tools Online | All Tool Master', desc: 'Free online utilities including ZIP Extractor, File Compressor, and Resume Builder. Browser-based, fast, secure, and no signup required.' },
     { path: '/blog', title: 'Blog — File Conversion Tips & Video Download Guides | All Tool Master', desc: 'Guides and tutorials on file conversion, video downloading, AI note-taking and online productivity tools. Free tips, updated regularly.' }
   ];
   

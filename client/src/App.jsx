@@ -144,6 +144,9 @@ function getInitialRouteState() {
   if (path === '/ai-notes') {
     return { view: 'dashboard', activeTool: null, selectedBlogSlug: null, selectedBlogCategory: null, searchVal: 'AI Tool' };
   }
+  if (path === '/utility') {
+    return { view: 'dashboard', activeTool: null, selectedBlogSlug: null, selectedBlogCategory: null, searchVal: 'Utility' };
+  }
   
   // Specific tools
   const matchedTool = TOOLS_DATA.find(tool => 
@@ -416,6 +419,14 @@ export default function App() {
         setTimeout(scrollToTools, 100);
         return;
       }
+      if (path === '/utility') {
+        setView('dashboard');
+        setActiveTool(null);
+        setSelectedBlogSlug(null);
+        setSearchVal('Utility');
+        setTimeout(scrollToTools, 100);
+        return;
+      }
       
       // Specific tools
       const matchedTool = TOOLS_DATA.find(tool => 
@@ -568,7 +579,7 @@ export default function App() {
       }
     } else {
       const currentPath = window.location.pathname;
-      if (['/downloader', '/converter', '/ai-notes'].includes(currentPath)) {
+      if (['/downloader', '/converter', '/ai-notes', '/utility'].includes(currentPath)) {
         path = currentPath;
         const seoInfo = SEO_DATA[currentPath];
         title = seoInfo?.title || title;

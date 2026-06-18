@@ -62,7 +62,8 @@ const generateSitemap = () => {
     '/converter',
     '/downloader',
     '/ai-notes',
-    '/blog'
+    '/blog',
+    '/utility'
   ];
   
   const excludeRoutes = [

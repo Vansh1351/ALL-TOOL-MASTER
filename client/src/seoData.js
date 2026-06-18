@@ -1248,6 +1248,10 @@ Simply provide a title, select your script type and genre, and write a brief pre
     title: 'Free AI Notes Tools — Lecture Notes, Transcripts & Summaries | All Tool Master',
     description: 'AI-powered tools to generate lecture notes, meeting minutes, transcripts, study guides and video summaries. Free, no account needed.'
   },
+  '/utility': {
+    title: 'Free Digital Utilities & Productivity Tools Online | All Tool Master',
+    description: 'Free online utilities including ZIP Extractor, File Compressor, and Resume Builder. Browser-based, fast, secure, and no signup required.'
+  },
   '/convert/pdf-to-word': {
     title: 'Free PDF to Word Converter Online — No Signup | All Tool Master',
     description: 'Convert any PDF to an editable Word document instantly. Preserves formatting. No email, no watermark, completely free.'
