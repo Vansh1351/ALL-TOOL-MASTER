@@ -1,6 +1,10 @@
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
-import { FiArrowLeft, FiDownload, FiPlus, FiX, FiFileText, FiUser, FiBriefcase, FiBook, FiAward, FiCode, FiZap, FiTrash2 } from 'react-icons/fi';
+import { 
+  FiArrowLeft, FiDownload, FiPlus, FiX, FiFileText, FiUser, 
+  FiBriefcase, FiBook, FiAward, FiCode, FiZap, FiTrash2,
+  FiLinkedin, FiGithub, FiYoutube, FiInstagram, FiTwitter, FiFacebook, FiGlobe, FiVideo
+} from 'react-icons/fi';
 
 const SECTION_COLORS = {
   personal: '#0ea5e9',
@@ -29,6 +33,21 @@ const emptyExp = () => ({ company: '', role: '', startDate: '', endDate: '', cur
 const emptyEdu = () => ({ institution: '', degree: '', field: '', year: '' });
 const emptyCert = () => ({ name: '', issuer: '', year: '' });
 
+const getSocialIcon = (platform, color = 'currentColor', size = 12) => {
+  const props = { size, style: { display: 'inline-block', verticalAlign: 'middle', marginRight: '4px', color } };
+  switch (platform) {
+    case 'linkedin': return <FiLinkedin {...props} />;
+    case 'github': return <FiGithub {...props} />;
+    case 'youtube': return <FiYoutube {...props} />;
+    case 'instagram': return <FiInstagram {...props} />;
+    case 'twitter': return <FiTwitter {...props} />;
+    case 'facebook': return <FiFacebook {...props} />;
+    case 'tiktok': return <FiVideo {...props} />;
+    case 'website': return <FiGlobe {...props} />;
+    default: return <FiGlobe {...props} />;
+  }
+};
+
 export default function ResumeBuilder({ tool, setView, setActiveTool, navigate }) {
   const previewRef = useRef(null);
 
@@ -46,6 +65,16 @@ export default function ResumeBuilder({ tool, setView, setActiveTool, navigate }
   const [customSections, setCustomSections] = useState([]);
   const [enhancing, setEnhancing] = useState(null);
   const [downloading, setDownloading] = useState(false);
+
+  const [socials, setSocials] = useState([
+    { platform: 'linkedin', value: '' },
+    { platform: 'github', value: '' }
+  ]);
+
+  const addSocial = () => setSocials(prev => [...prev, { platform: 'linkedin', value: '' }]);
+  const updateSocialPlatform = (idx, platform) => setSocials(prev => prev.map((s, i) => i === idx ? { ...s, platform } : s));
+  const updateSocialValue = (idx, value) => setSocials(prev => prev.map((s, i) => i === idx ? { ...s, value } : s));
+  const deleteSocial = (idx) => setSocials(prev => prev.filter((_, i) => i !== idx));
 
   const [newSectionTitle, setNewSectionTitle] = useState('');
   const [newSectionType, setNewSectionType] = useState('bullets');
@@ -316,8 +345,14 @@ export default function ResumeBuilder({ tool, setView, setActiveTool, navigate }
             {info.email && <span>✉ {info.email}</span>}
             {info.phone && <span>📞 {info.phone}</span>}
             {info.location && <span>📍 {info.location}</span>}
-            {info.linkedin && <span>🔗 {cleanUrl(info.linkedin)}</span>}
-            {info.portfolio && <span>🌐 {cleanUrl(info.portfolio)}</span>}
+            {socials.map((soc, idx) => (
+              soc.value && (
+                <span key={idx} style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  {getSocialIcon(soc.platform, templateColor, 12)}
+                  {cleanUrl(soc.value)}
+                </span>
+              )
+            ))}
             {customLinks.map((lnk, idx) => (
               lnk.label && lnk.value && <span key={idx}>▪ {lnk.label}: {lnk.value}</span>
             ))}
@@ -509,8 +544,14 @@ export default function ResumeBuilder({ tool, setView, setActiveTool, navigate }
             {info.email && <span>{info.email}</span>}
             {info.phone && <span>• {info.phone}</span>}
             {info.location && <span>• {info.location}</span>}
-            {info.linkedin && <span>• {cleanUrl(info.linkedin)}</span>}
-            {info.portfolio && <span>• {cleanUrl(info.portfolio)}</span>}
+            {socials.map((soc, idx) => (
+              soc.value && (
+                <span key={idx} style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  •&nbsp;{getSocialIcon(soc.platform, '#475569', 11)}
+                  {cleanUrl(soc.value)}
+                </span>
+              )
+            ))}
             {customLinks.map((lnk, idx) => (
               lnk.label && lnk.value && <span key={idx}>• {lnk.label}: {lnk.value}</span>
             ))}
@@ -715,8 +756,14 @@ export default function ResumeBuilder({ tool, setView, setActiveTool, navigate }
             {info.email && <span>{info.email}</span>}
             {info.phone && <span>• {info.phone}</span>}
             {info.location && <span>• {info.location}</span>}
-            {info.linkedin && <span>• {cleanUrl(info.linkedin)}</span>}
-            {info.portfolio && <span>• {cleanUrl(info.portfolio)}</span>}
+            {socials.map((soc, idx) => (
+              soc.value && (
+                <span key={idx} style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  •&nbsp;{getSocialIcon(soc.platform, templateColor, 11)}
+                  {cleanUrl(soc.value)}
+                </span>
+              )
+            ))}
             {customLinks.map((lnk, idx) => (
               lnk.label && lnk.value && <span key={idx}>• {lnk.label}: {lnk.value}</span>
             ))}
@@ -924,8 +971,14 @@ export default function ResumeBuilder({ tool, setView, setActiveTool, navigate }
               {info.email && <div>✉ {info.email}</div>}
               {info.phone && <div>📞 {info.phone}</div>}
               {info.location && <div>📍 {info.location}</div>}
-              {info.linkedin && <div>🔗 {cleanUrl(info.linkedin)}</div>}
-              {info.portfolio && <div>🌐 {cleanUrl(info.portfolio)}</div>}
+              {socials.map((soc, idx) => (
+                soc.value && (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'center' }}>
+                    {getSocialIcon(soc.platform, templateColor, 12)}
+                    {cleanUrl(soc.value)}
+                  </div>
+                )
+              ))}
               {customLinks.map((lnk, idx) => (
                 lnk.label && lnk.value && <div key={idx}>▪ <strong>{lnk.label}:</strong> {lnk.value}</div>
               ))}
@@ -1195,10 +1248,82 @@ export default function ResumeBuilder({ tool, setView, setActiveTool, navigate }
               </div>
               <Field label="Location" id="location" type="text" placeholder="City, Country" value={info.location}
                 onChange={e => setInfo(p => ({ ...p, location: e.target.value }))} />
-              <Field label="LinkedIn URL" id="linkedin" type="url" placeholder="https://linkedin.com/in/..." value={info.linkedin}
-                onChange={e => setInfo(p => ({ ...p, linkedin: e.target.value }))} />
-              <Field label="Portfolio / Website" id="portfolio" type="url" placeholder="https://yoursite.com" value={info.portfolio}
-                onChange={e => setInfo(p => ({ ...p, portfolio: e.target.value }))} />
+              {/* Find Me Out (Social Links & Profiles) */}
+              <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div>
+                  <h4 style={{ fontSize: '12px', fontWeight: '800', marginBottom: '4px', color: 'var(--text-main)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>🌐 Find Me Out</h4>
+                  <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Link your social media profiles, websites, channels, or custom pages with icons.</p>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {socials.map((soc, idx) => (
+                    <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
+                      <div style={{ flex: 1 }}>
+                        <label htmlFor={`social-platform-${idx}`} style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '6px', textTransform: 'uppercase' }}>Platform</label>
+                        <select 
+                          id={`social-platform-${idx}`}
+                          value={soc.platform} 
+                          onChange={e => updateSocialPlatform(idx, e.target.value)} 
+                          className="input-field" 
+                          style={{ 
+                            padding: '8px', 
+                            height: '38px', 
+                            fontSize: '13px', 
+                            background: 'var(--bg-card)', 
+                            border: '1px solid var(--border-color)', 
+                            borderRadius: '8px', 
+                            color: 'var(--text-main)',
+                            width: '100%',
+                            outline: 'none'
+                          }}
+                        >
+                          <option value="linkedin">LinkedIn</option>
+                          <option value="github">GitHub</option>
+                          <option value="youtube">YouTube</option>
+                          <option value="instagram">Instagram</option>
+                          <option value="twitter">Twitter / X</option>
+                          <option value="facebook">Facebook</option>
+                          <option value="tiktok">TikTok</option>
+                          <option value="website">Website / Portfolio</option>
+                        </select>
+                      </div>
+                      <div style={{ flex: 2 }}>
+                        <Field 
+                          label="Profile URL" 
+                          id={`social-link-${idx}`} 
+                          type="url" 
+                          placeholder={
+                            soc.platform === 'linkedin' ? 'https://linkedin.com/in/username' :
+                            soc.platform === 'github' ? 'https://github.com/username' :
+                            soc.platform === 'youtube' ? 'https://youtube.com/@channel' :
+                            soc.platform === 'instagram' ? 'https://instagram.com/username' :
+                            soc.platform === 'twitter' ? 'https://x.com/username' :
+                            soc.platform === 'facebook' ? 'https://facebook.com/username' :
+                            soc.platform === 'tiktok' ? 'https://tiktok.com/@username' :
+                            'https://yoursite.com'
+                          } 
+                          value={soc.value} 
+                          onChange={e => updateSocialValue(idx, e.target.value)} 
+                        />
+                      </div>
+                      <button 
+                        className="btn btn-secondary" 
+                        onClick={() => deleteSocial(idx)} 
+                        style={{ padding: '8px 10px', height: '38px', color: 'var(--red-color)', borderColor: 'var(--border-color)' }}
+                        title="Remove link"
+                      >
+                        <FiX size={14} />
+                      </button>
+                    </div>
+                  ))}
+                  <button 
+                    className="btn btn-secondary" 
+                    onClick={addSocial} 
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '12px', marginTop: '6px', width: '100%' }}
+                  >
+                    <FiPlus size={14} /> Add Social Link
+                  </button>
+                </div>
+              </div>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <Field label="Professional Summary" id="summary" as="textarea" placeholder="Write 2-3 sentences about your professional background..." value={info.summary}
