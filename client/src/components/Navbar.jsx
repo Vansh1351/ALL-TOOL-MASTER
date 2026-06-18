@@ -13,8 +13,13 @@ export default function Navbar({ theme, toggleTheme, currentView, setView, navig
     { name: 'FAQs', id: 'faqs' }
   ];
 
-  const handleNavClick = (viewId) => {
-    navigate(viewId);
+  const handleNavClick = (link) => {
+    if (link.path) {
+      window.history.pushState({}, '', link.path);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    } else {
+      navigate(link.id);
+    }
     setMobileMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -74,7 +79,7 @@ export default function Navbar({ theme, toggleTheme, currentView, setView, navig
           {navLinks.map(link => (
             <span
               key={link.id}
-              onClick={() => handleNavClick(link.id)}
+              onClick={() => handleNavClick(link)}
               style={{
                 fontSize: '14px',
                 fontWeight: '600',
@@ -141,7 +146,7 @@ export default function Navbar({ theme, toggleTheme, currentView, setView, navig
           {navLinks.map(link => (
             <div
               key={link.id}
-              onClick={() => handleNavClick(link.id)}
+              onClick={() => handleNavClick(link)}
               style={{
                 fontSize: '16px',
                 fontWeight: '600',

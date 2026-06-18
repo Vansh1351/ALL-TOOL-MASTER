@@ -19,6 +19,14 @@ const BlogPostPage = React.lazy(() => import('./pages/BlogPostPage'));
 const FileCompressor = React.lazy(() => import('./pages/FileCompressor'));
 const ResumeBuilder = React.lazy(() => import('./pages/ResumeBuilder'));
 const ScriptWriter = React.lazy(() => import('./pages/ScriptWriter'));
+const CardMaker = React.lazy(() => import('./pages/CardMaker'));
+const WatermarkRemover = React.lazy(() => import('./pages/WatermarkRemover'));
+const ObjectRemover = React.lazy(() => import('./pages/ObjectRemover'));
+const BackgroundRemover = React.lazy(() => import('./pages/BackgroundRemover'));
+const LogoGenerator = React.lazy(() => import('./pages/LogoGenerator'));
+const QRCodeGenerator = React.lazy(() => import('./pages/QRCodeGenerator'));
+const BusinessCardMaker = React.lazy(() => import('./pages/BusinessCardMaker'));
+const ThumbnailMaker = React.lazy(() => import('./pages/ThumbnailMaker'));
 const DealsPage = React.lazy(() => import('./pages/DealsPage'));
 
 // New Page Modules
@@ -1479,6 +1487,22 @@ export default function App() {
               <ResumeBuilder tool={activeTool} setView={setView} setActiveTool={setActiveTool} navigate={navigate} addToast={addToast} />
             ) : activeTool.id === 'ai-script-writer' ? (
               <ScriptWriter tool={activeTool} setView={setView} setActiveTool={setActiveTool} navigate={navigate} addToast={addToast} />
+            ) : activeTool.id === 'ai-card-maker' ? (
+              <CardMaker tool={activeTool} setView={setView} setActiveTool={setActiveTool} navigate={navigate} addToast={addToast} />
+            ) : activeTool.id === 'watermark-remover' ? (
+              <WatermarkRemover tool={activeTool} setView={setView} setActiveTool={setActiveTool} navigate={navigate} addToast={addToast} />
+            ) : activeTool.id === 'object-remover' ? (
+              <ObjectRemover tool={activeTool} setView={setView} setActiveTool={setActiveTool} navigate={navigate} addToast={addToast} />
+            ) : activeTool.id === 'background-remover' ? (
+              <BackgroundRemover tool={activeTool} setView={setView} setActiveTool={setActiveTool} navigate={navigate} addToast={addToast} />
+            ) : activeTool.id === 'ai-logo-generator' ? (
+              <LogoGenerator tool={activeTool} setView={setView} setActiveTool={setActiveTool} navigate={navigate} addToast={addToast} />
+            ) : activeTool.id === 'qr-code-generator' ? (
+              <QRCodeGenerator tool={activeTool} setView={setView} setActiveTool={setActiveTool} navigate={navigate} addToast={addToast} />
+            ) : activeTool.id === 'business-card-maker' ? (
+              <BusinessCardMaker tool={activeTool} setView={setView} setActiveTool={setActiveTool} navigate={navigate} addToast={addToast} />
+            ) : activeTool.id === 'youtube-thumbnail-maker' ? (
+              <ThumbnailMaker tool={activeTool} setView={setView} setActiveTool={setActiveTool} navigate={navigate} addToast={addToast} />
             ) : (
               <ToolPage 
                 tool={activeTool} 

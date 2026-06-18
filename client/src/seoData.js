@@ -1,4 +1,7 @@
+import { SEO_DATA_CREATIVE_STUDIO } from './seoDataCreativeStudio.js';
+
 export const SEO_DATA = {
+  ...SEO_DATA_CREATIVE_STUDIO,
   'youtube-downloader': {
     title: 'YouTube Video Downloader Online Free - YouTube Shorts & MP4 | All Tool Master',
     description: 'Download YouTube videos & shorts instantly without app or watermark. Convert YouTube link to MP4 or extract audio with our fast YouTube MP3 downloader.',

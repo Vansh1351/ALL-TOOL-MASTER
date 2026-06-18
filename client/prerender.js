@@ -241,7 +241,8 @@ function prerender() {
         'Converter': 'Converters',
         'Downloader': 'Downloaders',
         'AI Tool': 'AI Notes',
-        'Utility': 'Utilities'
+        'Utility': 'Utilities',
+        'AI Creative Studio': 'AI Creative Studio'
       };
       
       const parentName = appCategoryMap[tool.category] || 'Converters';

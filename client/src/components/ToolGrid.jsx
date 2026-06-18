@@ -3,7 +3,8 @@ import {
   FiYoutube, FiMusic, FiImage, FiFileText, 
   FiFolderPlus, FiVideo, FiMic, FiCompass, 
   FiBookOpen, FiClock, FiSettings, FiVolume2,
-  FiStar
+  FiStar, FiBriefcase, FiPenTool, FiScissors,
+  FiSliders, FiEdit3, FiGrid, FiCamera, FiCommand
 } from 'react-icons/fi';
 
 export const TOOLS_DATA = [
@@ -322,6 +323,151 @@ export const TOOLS_DATA = [
       'professional script writer online', 'ai creative writing tool', 'script from title ai',
       'generate script from description', 'full script generator', 'ai screenplay writer free',
       'ai video script writer', 'content script generator ai', 'blog to script converter', 'script ai tool'
+    ]
+  },
+  {
+    id: 'ai-card-maker',
+    title: 'AI Invitation & Card Maker',
+    desc: 'Design custom greeting cards and invitations for weddings, birthdays, baby showers, and events with AI.',
+    icon: FiEdit3,
+    color: '#06b6d4',
+    category: 'AI Tool',
+    routes: [
+      '/ai-card-maker',
+      '/birthday-card-maker',
+      '/anniversary-card-maker',
+      '/event-card-maker',
+      '/invitation-card-maker',
+      '/wedding-card-maker',
+      '/baby-shower-card-maker',
+      '/housewarming-card-maker',
+      '/festival-card-maker',
+      '/thank-you-card-maker',
+      '/farewell-card-maker',
+      '/business-invitation-maker'
+    ],
+    keywords: [
+      'ai card maker', 'card maker online', 'invitation maker', 'wedding card maker', 'birthday card maker',
+      'wedding invitation templates', 'anniversary card maker', 'festival card creator', 'party invitations',
+      'custom invitation maker free', 'baby shower invitation', 'housewarming invitation', 'farewell card maker'
+    ]
+  },
+  {
+    id: 'watermark-remover',
+    title: 'AI Watermark Remover',
+    desc: 'Erase distracting watermarks, logo overlays, timestamps, and screenshot markings from your photos.',
+    icon: FiCamera,
+    color: '#3b82f6',
+    category: 'AI Tool',
+    routes: [
+      '/watermark-remover',
+      '/remove-watermark-online',
+      '/remove-logo-from-image',
+      '/remove-text-from-image',
+      '/remove-timestamp-from-photo'
+    ],
+    keywords: [
+      'watermark remover', 'remove watermark from image', 'logo remover', 'remove text from image',
+      'erase watermark online free', 'timestamp remover', 'cleanup screenshot markings', 'photo cleanup tool'
+    ]
+  },
+  {
+    id: 'object-remover',
+    title: 'AI Object Remover',
+    desc: 'Erase unwanted people, objects, vehicles, animals, or wires from your images using content-aware fill.',
+    icon: FiSliders,
+    color: '#10b981',
+    category: 'AI Tool',
+    routes: [
+      '/object-remover',
+      '/remove-person-from-photo',
+      '/remove-object-from-photo',
+      '/remove-unwanted-things-from-image'
+    ],
+    keywords: [
+      'object remover', 'remove person from photo', 'remove object from image', 'erase wires from photo',
+      'content aware fill online', 'photobomb remover', 'cleanup photos online free', 'erase distractions'
+    ]
+  },
+  {
+    id: 'background-remover',
+    title: 'AI Background Remover',
+    desc: 'Remove image backgrounds in one click, export transparent PNGs, or add new colors and gradients.',
+    icon: FiScissors,
+    color: '#ec4899',
+    category: 'AI Tool',
+    routes: [
+      '/background-remover',
+      '/remove-background-online',
+      '/transparent-png-maker'
+    ],
+    keywords: [
+      'background remover', 'remove background from image', 'transparent png maker', 'transparent background',
+      'white background converter', 'change background online free', 'image cutout creator', 'png cutout maker'
+    ]
+  },
+  {
+    id: 'ai-logo-generator',
+    title: 'AI Logo Generator',
+    desc: 'Generate multiple unique logo concepts, branding typography, and slogans for your business with AI.',
+    icon: FiPenTool,
+    color: '#f59e0b',
+    category: 'AI Tool',
+    routes: [
+      '/ai-logo-generator',
+      '/logo-generator',
+      '/free-logo-maker'
+    ],
+    keywords: [
+      'ai logo generator', 'logo generator free', 'logo maker online', 'business logo creator',
+      'branding generator', 'minimalist logo maker', 'create custom logo free', 'vector logo generator'
+    ]
+  },
+  {
+    id: 'qr-code-generator',
+    title: 'Custom QR Code Generator',
+    desc: 'Create styled QR codes for URLs, WiFi networks, business vCards, emails, and WhatsApp with custom colors and logos.',
+    icon: FiCommand,
+    color: '#14b8a6',
+    category: 'Utility',
+    routes: [
+      '/qr-code-generator',
+      '/free-qr-generator'
+    ],
+    keywords: [
+      'qr code generator', 'custom qr code creator', 'wifi qr code generator', 'vcard qr code maker',
+      'gradient qr code online', 'qr code with logo', 'free qr generator', 'create printable qr code'
+    ]
+  },
+  {
+    id: 'business-card-maker',
+    title: 'Business Card Maker',
+    desc: 'Design professional visiting cards with pre-aligned templates, company logos, and contact QR codes.',
+    icon: FiBriefcase,
+    color: '#0ea5e9',
+    category: 'Utility',
+    routes: [
+      '/business-card-maker',
+      '/visiting-card-maker'
+    ],
+    keywords: [
+      'business card maker', 'visiting card creator', 'design business card online', 'printable business cards',
+      'professional cv business cards', 'card layout templates', 'create visiting card free'
+    ]
+  },
+  {
+    id: 'youtube-thumbnail-maker',
+    title: 'YouTube Thumbnail Maker',
+    desc: 'Design high-CTR YouTube covers and thumbnails with bold outlined text overlays, templates, and backgrounds.',
+    icon: FiGrid,
+    color: '#ef4444',
+    category: 'Utility',
+    routes: [
+      '/youtube-thumbnail-maker'
+    ],
+    keywords: [
+      'youtube thumbnail maker', 'custom youtube cover creator', 'high ctr thumbnail generator',
+      'thumbnail editor online free', 'youtube banner maker', 'add text outline to image thumbnail'
     ]
   }
 ];
