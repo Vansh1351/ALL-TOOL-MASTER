@@ -435,7 +435,7 @@ Return EXACTLY a JSON string with these fields:
   "title": "Short catchy event title (e.g. 'Birthday Bash', 'Wedding Celebration')",
   "greeting": "One-line opening like 'You are cordially invited to' or 'Please join us to celebrate'",
   "message": "Heartfelt 2-3 sentence invitation message body",
-  "rsvp": "RSVP instructions line"
+  "rsvp": "RSVP instructions line. IMPORTANT: Do NOT include placeholders like '[RSVP Date]' or '[Contact Information]' or brackets. If no contact information is available, write something general like 'RSVP to Host' or 'Kindly reply by next week' or similar."
 }
 Do not write markdown quotes or explanations, just raw JSON.
 `;
@@ -852,9 +852,11 @@ Do not write markdown quotes or explanations, just raw JSON.
     ctx.fillText(venueLine.trim(), centerX, curY);
 
     // --- RSVP Line ---
-    ctx.fillStyle = template.accentColor;
-    ctx.font = `italic 15px ${template.font}`;
-    ctx.fillText(aiData.rsvp, centerX, H - 50);
+    if (aiData.rsvp && aiData.rsvp.trim()) {
+      ctx.fillStyle = template.accentColor;
+      ctx.font = `italic 15px ${template.font}`;
+      ctx.fillText(aiData.rsvp.trim(), centerX, H - 50);
+    }
 
   }, [form, aiData, decorSeed]);
 
@@ -1049,6 +1051,51 @@ Do not write markdown quotes or explanations, just raw JSON.
               '✨ Generate AI Card'
             )}
           </button>
+
+          {/* Card Copy Editor */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '18px', marginTop: '10px' }}>
+            <h4 style={{ fontWeight: '700', fontSize: '14px', color: '#06b6d4', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <FiEdit3 /> Edit Card Text
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)' }}>Greeting</label>
+              <input 
+                type="text" 
+                className="input-field" 
+                value={aiData.greeting} 
+                onChange={e => setAiData(p => ({ ...p, greeting: e.target.value }))} 
+              />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)' }}>Event Title (Override)</label>
+              <input 
+                type="text" 
+                className="input-field" 
+                value={aiData.title} 
+                onChange={e => setAiData(p => ({ ...p, title: e.target.value }))} 
+                placeholder={form.eventType === 'Custom' ? form.customEvent : form.eventType}
+              />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)' }}>Invitation Message</label>
+              <textarea 
+                className="input-field" 
+                style={{ height: '70px', resize: 'vertical', fontFamily: 'inherit', fontSize: '13px', lineHeight: '1.4' }}
+                value={aiData.message} 
+                onChange={e => setAiData(p => ({ ...p, message: e.target.value }))} 
+              />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)' }}>RSVP Line (Clear to remove)</label>
+              <input 
+                type="text" 
+                className="input-field" 
+                value={aiData.rsvp} 
+                onChange={e => setAiData(p => ({ ...p, rsvp: e.target.value }))} 
+                placeholder="e.g. RSVP to Host by July 15th"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Right Canvas Preview & Exports */}
