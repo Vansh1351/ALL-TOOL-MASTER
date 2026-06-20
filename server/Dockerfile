@@ -14,21 +14,31 @@ RUN apt-get update && apt-get install -y \
 RUN pip3 install --no-cache-dir --break-system-packages -U pip && \
     pip3 install --no-cache-dir --break-system-packages -U "yt-dlp[default,curl-cffi]"
 
-
 # Create app directory
 WORKDIR /app
 
-# Install app dependencies
+# Pre-create writable directories
+RUN mkdir -p /app/uploads /app/bin
+
+# Install app dependencies (as root for native builds like sharp)
 COPY package*.json ./
-RUN npm install
+RUN npm install --production
 
 # Copy application files
 COPY . .
+
+# Fix ALL ownership AFTER npm install & copy — ensures node_modules,
+# uploads, bin, and all app files are writable by the runtime user.
+# HuggingFace Spaces run containers as UID 1000 which maps to 'node'.
+RUN chown -R node:node /app
+
+# Switch to non-root user
+USER node
 
 # Hugging Face Spaces run on port 7860
 EXPOSE 7860
 ENV PORT=7860
 ENV NODE_ENV=production
 
-# Start server using garbage collection flag and 4GB memory allocation
+# Start server
 CMD ["node", "--expose-gc", "--max-old-space-size=4096", "server.js"]

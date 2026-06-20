@@ -1,32 +1,51 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
-  FiArrowLeft, FiCamera, FiDownload, FiZap, FiSliders, FiMousePointer, FiTrash2, FiRefreshCw
+  FiArrowLeft, FiCamera, FiDownload, FiZap, FiSliders, FiMousePointer, FiTrash2, FiRefreshCw,
+  FiUpload, FiCheck, FiX, FiLoader, FiEye
 } from 'react-icons/fi';
+
+const rawBackendUrl = import.meta.env.VITE_API_URL || 'https://vansh135-all-tool-master-backend.hf.space';
+const BACKEND_URL = rawBackendUrl.replace(/\/+$/, '');
 
 export default function WatermarkRemover({ tool, setView, setActiveTool, navigate, addToast }) {
   const [image, setImage] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
   const [imageSize, setImageSize] = useState({ w: 0, h: 0 });
   const [mode, setMode] = useState('auto'); // auto, manual
-  const [toolType, setToolType] = useState('brush'); // brush, rect, eraser
+  const [toolType, setToolType] = useState('brush'); // brush, eraser
   const [brushSize, setBrushSize] = useState(24);
   const [isDrawing, setIsDrawing] = useState(false);
   const [processing, setProcessing] = useState(false);
-  const [scanProgress, setScanProgress] = useState(-1); // -1 = not scanning
+  const [processingMsg, setProcessingMsg] = useState('');
+  const [aiScanning, setAiScanning] = useState(false);
+  const [scanProgress, setScanProgress] = useState(-1);
+  const [hoverPos, setHoverPos] = useState(null);
+  const [cleaned, setCleaned] = useState(false);
+  const [showComparison, setShowComparison] = useState(false);
+  const [comparisonPos, setComparisonPos] = useState(50);
 
   const canvasRef = useRef(null);
+  const overlayCanvasRef = useRef(null);
   const maskCanvasRef = useRef(null);
   const originalImageRef = useRef(null);
+  const originalPixelsRef = useRef(null);
+  const lastXRef = useRef(0);
+  const lastYRef = useRef(0);
+  const comparisonCleanedCanvasRef = useRef(null);
+  const comparisonOriginalCanvasRef = useRef(null);
 
-  // Simulated AI detected bounding boxes (percentage coords)
-  const [detectedRegions, setDetectedRegions] = useState([
-    { id: 1, type: 'Timestamp', x: 70, y: 85, w: 22, h: 6, selected: true },
-    { id: 2, type: 'Logo / Icon', x: 10, y: 10, w: 12, h: 12, selected: true },
-    { id: 3, type: 'Text Overlay', x: 30, y: 45, w: 40, h: 8, selected: false }
-  ]);
+  const [detectedRegions, setDetectedRegions] = useState([]);
 
+  // ─── Image Upload ───────────────────────────────────────────────
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    setImageFile(file);
+    setCleaned(false);
+    setShowComparison(false);
+    setDetectedRegions([]);
+
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
@@ -34,193 +53,363 @@ export default function WatermarkRemover({ tool, setView, setActiveTool, navigat
         originalImageRef.current = img;
         setImage(img);
         setImageSize({ w: img.width, h: img.height });
-        addToast('Image uploaded successfully!', 'success');
-        // Reset regions selection
-        setDetectedRegions(prev => prev.map(r => ({ ...r, selected: true })));
+        addToast('Image uploaded! Starting AI analysis...', 'success');
       };
       img.src = event.target.result;
     };
     reader.readAsDataURL(file);
   };
 
-  const drawWorkspace = () => {
+  // ─── Canvas Drawing ─────────────────────────────────────────────
+  const drawBaseImage = useCallback(() => {
     const canvas = canvasRef.current;
-    const maskCanvas = maskCanvasRef.current;
     if (!canvas || !image) return;
-
     const ctx = canvas.getContext('2d');
-    const maskCtx = maskCanvas.getContext('2d');
-
-    // Match mask canvas sizes
-    if (maskCanvas.width !== canvas.width || maskCanvas.height !== canvas.height) {
-      maskCanvas.width = canvas.width;
-      maskCanvas.height = canvas.height;
-    }
-
-    // Clear and draw original image
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+  }, [image]);
 
-    // Apply manual masking overlays (translucent red)
-    ctx.save();
-    ctx.globalAlpha = 0.45;
-    ctx.drawImage(maskCanvas, 0, 0);
-    ctx.restore();
+  const drawOverlay = useCallback(() => {
+    const overlayCanvas = overlayCanvasRef.current;
+    const maskCanvas = maskCanvasRef.current;
+    if (!overlayCanvas || !image) return;
 
-    // Draw Auto Bounding Boxes if in auto mode
-    if (mode === 'auto' && scanProgress === -1) {
+    const ctx = overlayCanvas.getContext('2d');
+    ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+
+    // Draw manual mask translucent
+    if (mode === 'manual' && maskCanvas) {
+      ctx.save();
+      ctx.globalAlpha = 0.45;
+      ctx.drawImage(maskCanvas, 0, 0);
+      ctx.restore();
+    }
+
+    // Draw AI-detected bounding boxes
+    if (mode === 'auto' && scanProgress === -1 && !cleaned) {
       detectedRegions.forEach(r => {
-        const rx = (r.x / 100) * canvas.width;
-        const ry = (r.y / 100) * canvas.height;
-        const rw = (r.w / 100) * canvas.width;
-        const rh = (r.h / 100) * canvas.height;
+        const rx = (r.x / 100) * overlayCanvas.width;
+        const ry = (r.y / 100) * overlayCanvas.height;
+        const rw = (r.w / 100) * overlayCanvas.width;
+        const rh = (r.h / 100) * overlayCanvas.height;
 
         ctx.strokeStyle = r.selected ? 'rgba(239, 68, 68, 0.95)' : 'rgba(6, 182, 212, 0.6)';
         ctx.fillStyle = r.selected ? 'rgba(239, 68, 68, 0.15)' : 'rgba(6, 182, 212, 0.05)';
-        ctx.lineWidth = r.selected ? 3 : 1.5;
-        
+        ctx.lineWidth = r.selected ? Math.max(3, overlayCanvas.width * 0.006) : Math.max(1.5, overlayCanvas.width * 0.003);
+
         ctx.fillRect(rx, ry, rw, rh);
         ctx.strokeRect(rx, ry, rw, rh);
 
-        // Label
+        // Label with confidence
         ctx.fillStyle = r.selected ? '#ef4444' : '#06b6d4';
-        ctx.font = 'bold 11px sans-serif';
-        ctx.fillText(r.type, rx + 4, ry - 4);
+        const fontSize = Math.max(11, Math.round(overlayCanvas.width * 0.022));
+        ctx.font = `bold ${fontSize}px sans-serif`;
+        const label = `${r.type} (${Math.round((r.confidence || 0.9) * 100)}%)`;
+        ctx.fillText(label, rx + 4, ry - fontSize * 0.3);
       });
     }
 
-    // If scanning, draw visual laser line
+    // Scanning laser effect
     if (scanProgress >= 0 && scanProgress <= 100) {
-      const laserY = (scanProgress / 100) * canvas.height;
-      const grad = ctx.createLinearGradient(0, laserY - 15, 0, laserY);
+      const laserY = (scanProgress / 100) * overlayCanvas.height;
+      const laserHeight = Math.max(15, overlayCanvas.height * 0.035);
+      const grad = ctx.createLinearGradient(0, laserY - laserHeight, 0, laserY);
       grad.addColorStop(0, 'rgba(6, 182, 212, 0)');
       grad.addColorStop(1, 'rgba(6, 182, 212, 0.8)');
       ctx.fillStyle = grad;
-      ctx.fillRect(0, laserY - 15, canvas.width, 15);
+      ctx.fillRect(0, laserY - laserHeight, overlayCanvas.width, laserHeight);
 
       ctx.strokeStyle = '#06b6d4';
-      ctx.lineWidth = 3;
+      ctx.lineWidth = Math.max(3, overlayCanvas.height * 0.007);
       ctx.beginPath();
       ctx.moveTo(0, laserY);
-      ctx.lineTo(canvas.width, laserY);
+      ctx.lineTo(overlayCanvas.width, laserY);
       ctx.stroke();
     }
-  };
 
+    // Brush hover cursor
+    if (mode === 'manual' && hoverPos) {
+      const rect = overlayCanvas.getBoundingClientRect();
+      const scale = rect.width > 0 ? overlayCanvas.width / rect.width : 1;
+      const logicalBrushSize = brushSize * scale;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(hoverPos.x, hoverPos.y, logicalBrushSize / 2, 0, Math.PI * 2);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = Math.max(1.5, overlayCanvas.width * 0.003);
+      ctx.shadowColor = 'rgba(0,0,0,0.5)';
+      ctx.shadowBlur = 4;
+      ctx.stroke();
+      ctx.restore();
+    }
+  }, [image, mode, scanProgress, detectedRegions, hoverPos, brushSize, cleaned]);
+
+  // Set canvas sizes and draw base image once when image or imageSize changes
   useEffect(() => {
-    drawWorkspace();
-  }, [image, mode, toolType, brushSize, detectedRegions, scanProgress]);
+    const canvas = canvasRef.current;
+    const overlayCanvas = overlayCanvasRef.current;
+    const maskCanvas = maskCanvasRef.current;
 
-  // Start manual painting drawing state
+    if (imageSize.w && imageSize.h) {
+      if (canvas) {
+        canvas.width = imageSize.w;
+        canvas.height = imageSize.h;
+      }
+      if (overlayCanvas) {
+        overlayCanvas.width = imageSize.w;
+        overlayCanvas.height = imageSize.h;
+      }
+      if (maskCanvas) {
+        maskCanvas.width = imageSize.w;
+        maskCanvas.height = imageSize.h;
+        const maskCtx = maskCanvas.getContext('2d');
+        maskCtx.clearRect(0, 0, imageSize.w, imageSize.h);
+      }
+      drawBaseImage();
+      // Save original pixels for comparison
+      if (image && canvas) {
+        const ctx = canvas.getContext('2d');
+        originalPixelsRef.current = ctx.getImageData(0, 0, imageSize.w, imageSize.h);
+      }
+      drawOverlay();
+    }
+  }, [image, imageSize, drawBaseImage, drawOverlay]);
+
+  // Re-draw overlay whenever it changes
+  useEffect(() => {
+    drawOverlay();
+  }, [drawOverlay]);
+
+  // Copy cleaned and original pixels to comparison canvases once shown
+  useEffect(() => {
+    if (showComparison && imageSize.w && imageSize.h) {
+      const cleanCanvas = comparisonCleanedCanvasRef.current;
+      if (cleanCanvas && canvasRef.current) {
+        cleanCanvas.width = imageSize.w;
+        cleanCanvas.height = imageSize.h;
+        const ctx = cleanCanvas.getContext('2d');
+        ctx.drawImage(canvasRef.current, 0, 0);
+      }
+      const origCanvas = comparisonOriginalCanvasRef.current;
+      if (origCanvas && originalPixelsRef.current) {
+        origCanvas.width = imageSize.w;
+        origCanvas.height = imageSize.h;
+        const ctx = origCanvas.getContext('2d');
+        ctx.putImageData(originalPixelsRef.current, 0, 0);
+      }
+    }
+  }, [showComparison, imageSize, cleaned]);
+
+  // ─── AI Detection via Backend ───────────────────────────────────
+  const triggerAiScan = useCallback(async () => {
+    if (!imageFile) return;
+
+    setAiScanning(true);
+    setScanProgress(0);
+
+    // Animate scanning laser
+    const interval = setInterval(() => {
+      setScanProgress(p => {
+        if (p >= 95) return 95; // Hold at 95% until response
+        return p + 2;
+      });
+    }, 80);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', imageFile);
+      formData.append('tool', 'watermark-remover');
+
+      const response = await fetch(`${BACKEND_URL}/api/ai`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || `Server error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      let resultText = data.result || '[]';
+
+      // Clean markdown code fences if present
+      resultText = resultText.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
+
+      let regions = [];
+      try {
+        regions = JSON.parse(resultText);
+      } catch (parseErr) {
+        // Try to extract JSON array from the response
+        const match = resultText.match(/\[[\s\S]*\]/);
+        if (match) {
+          regions = JSON.parse(match[0]);
+        } else {
+          console.warn('Could not parse AI response as JSON:', resultText);
+          regions = [];
+        }
+      }
+
+      if (!Array.isArray(regions)) regions = [];
+
+      // Add id and selected flag
+      const formattedRegions = regions.map((r, i) => ({
+        id: i + 1,
+        type: r.type || 'Detected Overlay',
+        x: Math.max(0, Math.min(100, r.x || 0)),
+        y: Math.max(0, Math.min(100, r.y || 0)),
+        w: Math.max(1, Math.min(100, r.w || 10)),
+        h: Math.max(1, Math.min(100, r.h || 5)),
+        confidence: r.confidence || 0.85,
+        selected: true,
+      }));
+
+      clearInterval(interval);
+      setScanProgress(100);
+
+      setTimeout(() => {
+        setScanProgress(-1);
+        setDetectedRegions(formattedRegions);
+        setAiScanning(false);
+
+        if (formattedRegions.length > 0) {
+          addToast(`AI detected ${formattedRegions.length} watermark region(s)!`, 'success');
+        } else {
+          addToast('No watermarks detected by AI. Try Manual Eraser mode.', 'info');
+        }
+      }, 500);
+
+    } catch (err) {
+      clearInterval(interval);
+      setScanProgress(-1);
+      setAiScanning(false);
+      console.error('AI Scan error:', err);
+      addToast(`AI scan failed: ${err.message}. Try Manual Eraser mode.`, 'error');
+    }
+  }, [imageFile, addToast]);
+
+  // Auto-trigger AI scan when image loads in auto mode
+  useEffect(() => {
+    if (image && imageFile && mode === 'auto') {
+      triggerAiScan();
+    }
+  }, [image, imageFile, mode]);
+
+  // ─── Mouse Event Handlers ──────────────────────────────────────
   const handleMouseDown = (e) => {
     if (mode !== 'manual' || !image) return;
     setIsDrawing(true);
-    drawMask(e);
+
+    const overlayCanvas = overlayCanvasRef.current;
+    if (!overlayCanvas) return;
+    const rect = overlayCanvas.getBoundingClientRect();
+    const x = rect.width > 0 ? ((e.clientX - rect.left) / rect.width) * overlayCanvas.width : 0;
+    const y = rect.height > 0 ? ((e.clientY - rect.top) / rect.height) * overlayCanvas.height : 0;
+
+    lastXRef.current = x;
+    lastYRef.current = y;
+    drawMask(x, y, x, y);
   };
 
   const handleMouseMove = (e) => {
-    if (!isDrawing) return;
-    drawMask(e);
+    const overlayCanvas = overlayCanvasRef.current;
+    if (!overlayCanvas || !image) return;
+    const rect = overlayCanvas.getBoundingClientRect();
+    const x = rect.width > 0 ? ((e.clientX - rect.left) / rect.width) * overlayCanvas.width : 0;
+    const y = rect.height > 0 ? ((e.clientY - rect.top) / rect.height) * overlayCanvas.height : 0;
+
+    if (mode === 'manual') {
+      setHoverPos({ x, y });
+    } else {
+      setHoverPos(null);
+    }
+
+    if (isDrawing) {
+      drawMask(lastXRef.current, lastYRef.current, x, y);
+      lastXRef.current = x;
+      lastYRef.current = y;
+    }
   };
 
-  const handleMouseUp = () => {
-    setIsDrawing(false);
-  };
+  const handleMouseUp = () => setIsDrawing(false);
+  const handleMouseLeave = () => { setIsDrawing(false); setHoverPos(null); };
 
-  const drawMask = (e) => {
-    const canvas = canvasRef.current;
+  const drawMask = (x1, y1, x2, y2) => {
+    const overlayCanvas = overlayCanvasRef.current;
     const maskCanvas = maskCanvasRef.current;
-    if (!canvas || !maskCanvas) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * canvas.width;
-    const y = ((e.clientY - rect.top) / rect.height) * canvas.height;
+    if (!overlayCanvas || !maskCanvas) return;
 
     const maskCtx = maskCanvas.getContext('2d');
     maskCtx.lineCap = 'round';
     maskCtx.lineJoin = 'round';
 
+    const rect = overlayCanvas.getBoundingClientRect();
+    const scale = rect.width > 0 ? overlayCanvas.width / rect.width : 1;
+    const logicalBrushSize = brushSize * scale;
+
     if (toolType === 'brush') {
-      maskCtx.fillStyle = 'red';
       maskCtx.strokeStyle = 'red';
-      maskCtx.lineWidth = brushSize;
-      
+      maskCtx.lineWidth = logicalBrushSize;
       maskCtx.beginPath();
-      maskCtx.arc(x, y, brushSize / 2, 0, Math.PI * 2);
-      maskCtx.fill();
+      maskCtx.moveTo(x1, y1);
+      maskCtx.lineTo(x2, y2);
+      maskCtx.stroke();
     } else if (toolType === 'eraser') {
       maskCtx.save();
       maskCtx.globalCompositeOperation = 'destination-out';
-      maskCtx.lineWidth = brushSize;
-      
+      maskCtx.strokeStyle = 'rgba(0,0,0,1)';
+      maskCtx.lineWidth = logicalBrushSize;
       maskCtx.beginPath();
-      maskCtx.arc(x, y, brushSize / 2, 0, Math.PI * 2);
-      maskCtx.fill();
+      maskCtx.moveTo(x1, y1);
+      maskCtx.lineTo(x2, y2);
+      maskCtx.stroke();
       maskCtx.restore();
     }
 
-    drawWorkspace();
+    drawOverlay();
   };
-
-  // Simulated automatic AI Scanning
-  const triggerAutoScan = () => {
-    if (!image) return;
-    setScanProgress(0);
-    const interval = setInterval(() => {
-      setScanProgress(p => {
-        if (p >= 100) {
-          clearInterval(interval);
-          addToast('AI Scanning completed! 3 zones identified.', 'success');
-          return -1;
-        }
-        return p + 4;
-      });
-    }, 60);
-  };
-
-  useEffect(() => {
-    if (image && mode === 'auto') {
-      triggerAutoScan();
-    }
-  }, [image, mode]);
 
   const toggleRegion = (id) => {
     setDetectedRegions(prev => prev.map(r => r.id === id ? { ...r, selected: !r.selected } : r));
   };
 
-  // Perform Content-Aware Inpainting Client-Side
+  // ─── Advanced Content-Aware Inpainting ──────────────────────────
   const handleRemove = () => {
     if (!image) return;
     setProcessing(true);
+    setProcessingMsg('AI Inpainting & Reconstructing...');
 
     setTimeout(() => {
       const canvas = canvasRef.current;
       const maskCanvas = maskCanvasRef.current;
+      if (!canvas || !maskCanvas) return;
+
       const ctx = canvas.getContext('2d');
       const maskCtx = maskCanvas.getContext('2d');
-
       const width = canvas.width;
       const height = canvas.height;
 
-      // Extract mask regions
-      const imgData = ctx.getImageData(0, 0, width, height);
-      const maskImgData = maskCtx.getImageData(0, 0, width, height);
-      const pixels = imgData.data;
-      const maskPixels = maskImgData.data;
-
-      // Create a set of marked pixels (both manual & auto selected regions)
-      const toRemove = new Uint8Array(width * height);
-
-      // 1. Process manual mask pixels (non-zero alpha in mask canvas)
-      for (let i = 0; i < pixels.length; i += 4) {
-        const alpha = maskPixels[i + 3];
-        if (alpha > 50) {
-          toRemove[i / 4] = 1;
-        }
+      // Re-draw original image to canvas to start fresh
+      if (originalImageRef.current) {
+        ctx.drawImage(originalImageRef.current, 0, 0, width, height);
       }
 
-      // 2. Process automatic selected bounding boxes
-      if (mode === 'auto') {
+      const imgData = ctx.getImageData(0, 0, width, height);
+      const pixels = imgData.data;
+
+      // Build removal mask
+      const toRemove = new Uint8Array(width * height);
+
+      if (mode === 'manual') {
+        const maskImgData = maskCtx.getImageData(0, 0, width, height);
+        const maskPixels = maskImgData.data;
+        for (let i = 0; i < pixels.length; i += 4) {
+          if (maskPixels[i + 3] > 50) {
+            toRemove[i / 4] = 1;
+          }
+        }
+      } else {
         detectedRegions.forEach(r => {
           if (!r.selected) return;
           const rx1 = Math.round((r.x / 100) * width);
@@ -238,89 +427,162 @@ export default function WatermarkRemover({ tool, setView, setActiveTool, navigat
         });
       }
 
-      // Inpainting algorithm: Bilateral box interpolation
-      // Loop multiple passes to grow inward from healthy boundaries
-      const passes = 3;
-      const radius = 6;
-      for (let pass = 0; pass < passes; pass++) {
-        for (let y = 0; y < height; y++) {
-          for (let x = 0; x < width; x++) {
-            const idx = y * width + x;
-            if (toRemove[idx] === 1) {
-              let rSum = 0, gSum = 0, bSum = 0, count = 0;
-              
-              // Sample surrounding pixels
-              for (let dy = -radius; dy <= radius; dy++) {
-                for (let dx = -radius; dx <= radius; dx++) {
-                  const ny = y + dy;
-                  const nx = x + dx;
-                  if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
-                    const nIdx = ny * width + nx;
-                    if (toRemove[nIdx] === 0) {
-                      rSum += pixels[nIdx * 4];
-                      gSum += pixels[nIdx * 4 + 1];
-                      bSum += pixels[nIdx * 4 + 2];
-                      count++;
-                    }
-                  }
-                }
-              }
-
-              if (count > 0) {
-                pixels[idx * 4] = rSum / count + (Math.random() - 0.5) * 4;
-                pixels[idx * 4 + 1] = gSum / count + (Math.random() - 0.5) * 4;
-                pixels[idx * 4 + 2] = bSum / count + (Math.random() - 0.5) * 4;
-                // Leave alpha intact
-              }
-            }
-          }
+      // Collect initial pixel indices to remove
+      let remainingPixels = [];
+      for (let i = 0; i < toRemove.length; i++) {
+        if (toRemove[i] === 1) {
+          remainingPixels.push(i);
         }
       }
 
-      // Commit back to canvas
+      if (remainingPixels.length === 0) {
+        setProcessing(false);
+        addToast('No regions selected for removal.', 'info');
+        return;
+      }
+
+      // Fast boundary-based onion-skin inpainting
+      const toRemoveCopy = new Uint8Array(toRemove);
+      const maxPasses = 150;
+      let pass = 0;
+      const radius = 3; // Fixed small radius is extremely fast and effective
+
+      while (remainingPixels.length > 0 && pass < maxPasses) {
+        const boundary = [];
+        const nextRemaining = [];
+
+        // Identify boundary pixels (masked pixels adjacent to a healthy pixel)
+        for (let i = 0; i < remainingPixels.length; i++) {
+          const idx = remainingPixels[i];
+          const y = Math.floor(idx / width);
+          const x = idx % width;
+
+          let hasHealthyNeighbor = false;
+          if (x > 0 && toRemoveCopy[idx - 1] === 0) hasHealthyNeighbor = true;
+          else if (x < width - 1 && toRemoveCopy[idx + 1] === 0) hasHealthyNeighbor = true;
+          else if (y > 0 && toRemoveCopy[idx - width] === 0) hasHealthyNeighbor = true;
+          else if (y < height - 1 && toRemoveCopy[idx + width] === 0) hasHealthyNeighbor = true;
+
+          if (hasHealthyNeighbor) {
+            boundary.push(idx);
+          } else {
+            nextRemaining.push(idx);
+          }
+        }
+
+        if (boundary.length === 0) {
+          break; // Stop if no pixels can reach healthy neighbors
+        }
+
+        const filledColors = [];
+
+        // Process boundary pixels
+        for (let i = 0; i < boundary.length; i++) {
+          const idx = boundary[i];
+          const y = Math.floor(idx / width);
+          const x = idx % width;
+
+          let rSum = 0, gSum = 0, bSum = 0, wSum = 0;
+
+          for (let dy = -radius; dy <= radius; dy++) {
+            for (let dx = -radius; dx <= radius; dx++) {
+              const ny = y + dy;
+              const nx = x + dx;
+              if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
+                const nIdx = ny * width + nx;
+                if (toRemoveCopy[nIdx] === 0) {
+                  const distSq = dx * dx + dy * dy;
+                  const weight = 1 / (1 + distSq);
+                  rSum += pixels[nIdx * 4] * weight;
+                  gSum += pixels[nIdx * 4 + 1] * weight;
+                  bSum += pixels[nIdx * 4 + 2] * weight;
+                  wSum += weight;
+                }
+              }
+            }
+          }
+
+          if (wSum > 0) {
+            filledColors.push({
+              idx: idx,
+              r: rSum / wSum,
+              g: gSum / wSum,
+              b: bSum / wSum
+            });
+          } else {
+            nextRemaining.push(idx); // Fallback: try again in next pass
+          }
+        }
+
+        // Apply new values and update mask
+        for (let i = 0; i < filledColors.length; i++) {
+          const item = filledColors[i];
+          const idx = item.idx;
+          const noise = (Math.random() - 0.5) * 2;
+          pixels[idx * 4] = Math.max(0, Math.min(255, item.r + noise));
+          pixels[idx * 4 + 1] = Math.max(0, Math.min(255, item.g + noise));
+          pixels[idx * 4 + 2] = Math.max(0, Math.min(255, item.b + noise));
+          pixels[idx * 4 + 3] = 255;
+          toRemoveCopy[idx] = 0;
+        }
+
+        remainingPixels = nextRemaining;
+        pass++;
+      }
+
+      // Commit inpainted pixels
       ctx.putImageData(imgData, 0, 0);
 
-      // Create new clean image source
-      const cleanImg = new Image();
-      cleanImg.onload = () => {
-        setImage(cleanImg);
-        // Clear mask canvas
-        maskCtx.clearRect(0, 0, width, height);
-        // Clear auto zones
-        setDetectedRegions([]);
-        setProcessing(false);
-        addToast('Watermark removed successfully!', 'success');
-      };
-      cleanImg.src = canvas.toDataURL();
+      // Clear mask & regions
+      maskCtx.clearRect(0, 0, width, height);
+      if (mode === 'auto') setDetectedRegions([]);
 
-    }, 1200);
+      setCleaned(true);
+      setProcessing(false);
+      setShowComparison(true);
+      addToast('Watermark removed successfully!', 'success');
+      drawOverlay();
+    }, 100);
   };
 
+  // ─── Download ───────────────────────────────────────────────────
   const handleDownload = (format) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const link = document.createElement('a');
-    link.href = canvas.toDataURL(`image/${format === 'png' ? 'png' : 'jpeg'}`);
+    link.href = canvas.toDataURL(`image/${format === 'png' ? 'png' : 'jpeg'}`, format === 'jpg' ? 0.95 : undefined);
     link.download = `cleaned_photo.${format}`;
     link.click();
     addToast(`Cleaned photo downloaded as ${format.toUpperCase()}!`, 'success');
   };
 
+  // ─── Reset ──────────────────────────────────────────────────────
   const resetAll = () => {
-    if (originalImageRef.current) {
-      setImage(originalImageRef.current);
+    if (image) {
+      drawBaseImage();
       const maskCanvas = maskCanvasRef.current;
       if (maskCanvas) {
         maskCanvas.getContext('2d').clearRect(0, 0, maskCanvas.width, maskCanvas.height);
       }
-      setDetectedRegions([
-        { id: 1, type: 'Timestamp', x: 70, y: 85, w: 22, h: 6, selected: true },
-        { id: 2, type: 'Logo / Icon', x: 10, y: 10, w: 12, h: 12, selected: true },
-        { id: 3, type: 'Text Overlay', x: 30, y: 45, w: 40, h: 8, selected: false }
-      ]);
+      setDetectedRegions([]);
+      setCleaned(false);
+      setShowComparison(false);
       addToast('Reset to original image.', 'info');
+      if (mode === 'auto') {
+        triggerAiScan();
+      }
     }
   };
+
+  // ─── Comparison slider handler ──────────────────────────────────
+  const handleComparisonMove = (e) => {
+    const container = e.currentTarget;
+    const rect = container.getBoundingClientRect();
+    const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+    setComparisonPos(x);
+  };
+
+  const selectedCount = detectedRegions.filter(r => r.selected).length;
 
   return (
     <div className="container animate-fade-in" style={{ padding: '30px 0 80px 0' }}>
@@ -349,7 +611,7 @@ export default function WatermarkRemover({ tool, setView, setActiveTool, navigat
           AI Watermark <span className="text-gradient">Cleanup</span>
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '15px', maxWidth: '600px', margin: '0 auto' }}>
-          Automatically detect or manually brush over watermarks, timestamps, and logos to wipe them clean instantly.
+          Powered by Gemini AI — automatically detects and removes watermarks, timestamps, logos, and text overlays.
         </p>
       </div>
 
@@ -359,7 +621,7 @@ export default function WatermarkRemover({ tool, setView, setActiveTool, navigat
           <div className="glass-panel" style={{
             padding: '60px 40px', borderRadius: '24px', textAlign: 'center',
             border: '2px dashed var(--border-color)', background: 'rgba(0,0,0,0.1)', cursor: 'pointer',
-            position: 'relative'
+            position: 'relative', transition: 'border-color 0.3s, background 0.3s'
           }}>
             <input
               type="file"
@@ -369,24 +631,46 @@ export default function WatermarkRemover({ tool, setView, setActiveTool, navigat
                 position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer'
               }}
             />
-            <FiCamera size={48} style={{ color: '#3b82f6', marginBottom: '16px', opacity: 0.8 }} />
-            <h3 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '8px' }}>Upload Image</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Supports JPG, PNG, WEBP, or HEIC (Max 50MB)</p>
+            <FiUpload size={48} style={{ color: '#3b82f6', marginBottom: '16px', opacity: 0.8 }} />
+            <h3 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '8px' }}>Upload Image with Watermark</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>
+              Supports JPG, PNG, WEBP (Max 50MB) — AI will automatically detect watermarks
+            </p>
+          </div>
+
+          {/* How it works */}
+          <div style={{ marginTop: '32px', display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            {[
+              { icon: <FiUpload />, title: 'Upload', desc: 'Drop your watermarked image' },
+              { icon: <FiZap />, title: 'AI Detects', desc: 'Gemini AI finds all watermarks' },
+              { icon: <FiCheck />, title: 'Remove', desc: 'One-click clean removal' },
+              { icon: <FiDownload />, title: 'Download', desc: 'Get your clean image' },
+            ].map((step, i) => (
+              <div key={i} style={{
+                textAlign: 'center', padding: '16px', borderRadius: '14px',
+                background: 'rgba(59,130,246,0.06)', flex: '1', minWidth: '120px',
+                border: '1px solid rgba(59,130,246,0.1)'
+              }}>
+                <div style={{ color: '#3b82f6', fontSize: '22px', marginBottom: '8px' }}>{step.icon}</div>
+                <div style={{ fontWeight: '700', fontSize: '13px', marginBottom: '4px' }}>{step.title}</div>
+                <div style={{ color: 'var(--text-muted)', fontSize: '11px' }}>{step.desc}</div>
+              </div>
+            ))}
           </div>
         </div>
       ) : (
         /* Editor Workspace */
         <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '28px', alignItems: 'start' }} className="tool-page-grid">
-          
-          {/* Visual Workspace Canvas */}
+
+          {/* Canvas Workspace */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
-            
-            {/* Editor Canvas Container */}
+
+            {/* Canvas Container */}
             <div className="glass-panel" style={{
               position: 'relative', padding: '16px', borderRadius: '24px', width: '100%',
               display: 'flex', justifyContent: 'center', background: 'rgba(0,0,0,0.2)'
             }}>
-              {processing && (
+              {(processing || aiScanning) && (
                 <div style={{
                   position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
                   background: 'rgba(0,0,0,0.75)', borderRadius: '24px', zIndex: 10,
@@ -396,43 +680,135 @@ export default function WatermarkRemover({ tool, setView, setActiveTool, navigat
                     width: '44px', height: '44px', border: '3px solid #3b82f6', borderTopColor: 'transparent',
                     borderRadius: '50%', animation: 'spin 1s linear infinite'
                   }} />
-                  <span style={{ fontSize: '15px', fontWeight: '700' }}>AI Inpainting &amp; Reconstructing...</span>
+                  <span style={{ fontSize: '15px', fontWeight: '700' }}>
+                    {aiScanning ? 'AI Analyzing Image for Watermarks...' : processingMsg}
+                  </span>
+                  {aiScanning && scanProgress >= 0 && (
+                    <div style={{ width: '200px', height: '6px', borderRadius: '3px', background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+                      <div style={{
+                        width: `${scanProgress}%`, height: '100%', borderRadius: '3px',
+                        background: 'linear-gradient(90deg, #06b6d4, #3b82f6)',
+                        transition: 'width 0.3s ease'
+                      }} />
+                    </div>
+                  )}
                 </div>
               )}
 
-              <div style={{ position: 'relative', maxWidth: '100%' }}>
+              <div style={{ position: 'relative', maxWidth: '100%', width: '100%' }}>
                 <canvas
                   ref={canvasRef}
-                  width={560}
-                  height={420}
+                  width={imageSize.w || 560}
+                  height={imageSize.h || 420}
+                  style={{
+                    borderRadius: '16px', width: '100%', height: 'auto', display: 'block',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+                  }}
+                />
+                <canvas
+                  ref={overlayCanvasRef}
+                  width={imageSize.w || 560}
+                  height={imageSize.h || 420}
                   onMouseDown={handleMouseDown}
                   onMouseMove={handleMouseMove}
                   onMouseUp={handleMouseUp}
-                  onMouseLeave={handleMouseUp}
+                  onMouseLeave={handleMouseLeave}
                   style={{
-                    borderRadius: '16px', width: '100%', height: 'auto', display: 'block', cursor: 'crosshair',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+                    position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                    borderRadius: '16px', display: 'block',
+                    cursor: mode === 'manual' ? 'crosshair' : 'default',
+                    pointerEvents: 'auto'
                   }}
                 />
                 <canvas ref={maskCanvasRef} style={{ display: 'none' }} />
               </div>
             </div>
 
+            {/* Before/After Comparison */}
+            {showComparison && originalPixelsRef.current && (
+              <div className="glass-panel" style={{ width: '100%', padding: '16px', borderRadius: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <FiEye style={{ color: '#3b82f6' }} />
+                  <span style={{ fontWeight: '700', fontSize: '14px' }}>Before / After Comparison</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginLeft: 'auto' }}>← Drag slider →</span>
+                </div>
+                <div
+                  style={{ position: 'relative', width: '100%', cursor: 'col-resize', borderRadius: '12px', overflow: 'hidden' }}
+                  onMouseMove={handleComparisonMove}
+                >
+                  {/* After (cleaned) - full width */}
+                  <canvas
+                    ref={comparisonCleanedCanvasRef}
+                    style={{ width: '100%', height: 'auto', display: 'block', borderRadius: '12px' }}
+                  />
+                  {/* Before (original) - clipped */}
+                  <canvas
+                    ref={comparisonOriginalCanvasRef}
+                    style={{
+                      position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                      borderRadius: '12px',
+                      clipPath: `inset(0 ${100 - comparisonPos}% 0 0)`
+                    }}
+                  />
+                  {/* Divider line */}
+                  <div style={{
+                    position: 'absolute', top: 0, bottom: 0, left: `${comparisonPos}%`,
+                    width: '3px', background: '#fff', transform: 'translateX(-50%)',
+                    boxShadow: '0 0 8px rgba(0,0,0,0.5)'
+                  }}>
+                    <div style={{
+                      position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+                      width: '32px', height: '32px', borderRadius: '50%', background: '#fff',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.3)', fontSize: '14px', color: '#333'
+                    }}>⇔</div>
+                  </div>
+                  {/* Labels */}
+                  <div style={{
+                    position: 'absolute', top: '8px', left: '8px',
+                    background: 'rgba(0,0,0,0.7)', color: '#fff', padding: '4px 10px',
+                    borderRadius: '6px', fontSize: '11px', fontWeight: '700'
+                  }}>BEFORE</div>
+                  <div style={{
+                    position: 'absolute', top: '8px', right: '8px',
+                    background: 'rgba(59,130,246,0.9)', color: '#fff', padding: '4px 10px',
+                    borderRadius: '6px', fontSize: '11px', fontWeight: '700'
+                  }}>AFTER</div>
+                </div>
+              </div>
+            )}
+
             {/* Actions Bar */}
-            <div style={{ display: 'flex', gap: '12px', width: '100%', justifyContent: 'center' }}>
-              <button className="btn btn-primary" onClick={handleRemove} style={{ background: '#3b82f6', borderColor: '#3b82f6', minWidth: '160px' }}>
-                <FiZap style={{ marginRight: '6px' }} /> Remove Overlays
+            <div style={{ display: 'flex', gap: '12px', width: '100%', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button
+                className="btn btn-primary"
+                onClick={handleRemove}
+                disabled={processing || aiScanning}
+                style={{
+                  background: '#3b82f6', borderColor: '#3b82f6', minWidth: '160px',
+                  opacity: (processing || aiScanning) ? 0.6 : 1
+                }}
+              >
+                <FiZap style={{ marginRight: '6px' }} />
+                {mode === 'auto' && selectedCount > 0
+                  ? `Remove ${selectedCount} Region${selectedCount > 1 ? 's' : ''}`
+                  : 'Remove Watermarks'}
               </button>
-              <button className="btn btn-secondary" onClick={resetAll}>
+              <button className="btn btn-secondary" onClick={resetAll} disabled={processing || aiScanning}>
                 <FiRefreshCw style={{ marginRight: '6px' }} /> Reset
               </button>
+              {mode === 'auto' && !aiScanning && (
+                <button className="btn btn-secondary" onClick={triggerAiScan} disabled={processing}>
+                  <FiZap style={{ marginRight: '6px' }} /> Re-scan
+                </button>
+              )}
             </div>
           </div>
 
           {/* Settings Control Panel */}
           <div className="glass-panel" style={{ borderRadius: '20px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <h3 style={{ fontWeight: '800', fontSize: '18px', color: '#3b82f6' }}>Cleanup Panel</h3>
-            
+
             {/* Mode selection */}
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
@@ -452,30 +828,70 @@ export default function WatermarkRemover({ tool, setView, setActiveTool, navigat
             </div>
 
             {mode === 'auto' ? (
-              /* Auto Mode detected regions */
+              /* Auto Mode */
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <span style={{ fontSize: '12.5px', color: 'var(--text-muted)', fontWeight: '700' }}>DETECTED REGIONS</span>
-                {detectedRegions.length === 0 ? (
-                  <div style={{ padding: '14px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', textAlign: 'center', fontSize: '12.5px', color: 'var(--text-muted)' }}>
-                    No watermark overlays detected in frame.
+                {aiScanning ? (
+                  <div style={{
+                    padding: '20px', borderRadius: '12px', background: 'rgba(59,130,246,0.08)',
+                    textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px'
+                  }}>
+                    <div style={{
+                      width: '28px', height: '28px', border: '2px solid #3b82f6',
+                      borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite'
+                    }} />
+                    <span style={{ fontSize: '13px', fontWeight: '700', color: '#3b82f6' }}>
+                      Gemini AI is analyzing your image...
+                    </span>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                      Detecting watermarks, logos, text overlays
+                    </span>
                   </div>
                 ) : (
-                  detectedRegions.map(r => (
-                    <div
-                      key={r.id}
-                      onClick={() => toggleRegion(r.id)}
-                      style={{
-                        padding: '12px 16px', borderRadius: '12px', border: `1px solid ${r.selected ? '#3b82f6' : 'var(--border-color)'}`,
-                        background: r.selected ? 'rgba(59, 130, 246, 0.08)' : 'transparent', cursor: 'pointer',
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                      }}
-                    >
-                      <span style={{ fontSize: '13px', fontWeight: '700' }}>{r.type}</span>
-                      <span style={{ fontSize: '11px', color: r.selected ? '#3b82f6' : 'var(--text-muted)' }}>
-                        {r.selected ? 'Selected' : 'Ignored'}
-                      </span>
-                    </div>
-                  ))
+                  <>
+                    <span style={{ fontSize: '12.5px', color: 'var(--text-muted)', fontWeight: '700' }}>
+                      AI DETECTED REGIONS {detectedRegions.length > 0 && `(${detectedRegions.length})`}
+                    </span>
+                    {detectedRegions.length === 0 ? (
+                      <div style={{
+                        padding: '14px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)',
+                        textAlign: 'center', fontSize: '12.5px', color: 'var(--text-muted)'
+                      }}>
+                        {cleaned
+                          ? '✅ All watermarks have been removed!'
+                          : 'No watermark overlays detected. Try Manual Eraser mode.'}
+                      </div>
+                    ) : (
+                      detectedRegions.map(r => (
+                        <div
+                          key={r.id}
+                          onClick={() => toggleRegion(r.id)}
+                          style={{
+                            padding: '12px 16px', borderRadius: '12px',
+                            border: `1px solid ${r.selected ? '#3b82f6' : 'var(--border-color)'}`,
+                            background: r.selected ? 'rgba(59, 130, 246, 0.08)' : 'transparent',
+                            cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          <div>
+                            <span style={{ fontSize: '13px', fontWeight: '700' }}>{r.type}</span>
+                            <span style={{
+                              fontSize: '10px', color: 'var(--text-muted)', marginLeft: '8px',
+                              background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: '4px'
+                            }}>
+                              {Math.round((r.confidence || 0.9) * 100)}% confidence
+                            </span>
+                          </div>
+                          <span style={{
+                            fontSize: '11px', fontWeight: '700',
+                            color: r.selected ? '#3b82f6' : 'var(--text-muted)'
+                          }}>
+                            {r.selected ? '✓ Selected' : 'Ignored'}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </>
                 )}
               </div>
             ) : (
@@ -512,6 +928,13 @@ export default function WatermarkRemover({ tool, setView, setActiveTool, navigat
                     style={{ width: '100%', accentColor: '#3b82f6' }}
                   />
                 </div>
+
+                <div style={{
+                  padding: '12px', borderRadius: '10px', background: 'rgba(59,130,246,0.05)',
+                  fontSize: '11.5px', color: 'var(--text-muted)', lineHeight: '1.5'
+                }}>
+                  💡 <strong>Tip:</strong> Use Brush Paint to highlight watermark areas, then click "Remove Watermarks". Use Mask Eraser to correct mistakes.
+                </div>
               </div>
             )}
 
@@ -523,6 +946,22 @@ export default function WatermarkRemover({ tool, setView, setActiveTool, navigat
                 <button className="btn btn-secondary" style={{ padding: '8px 0' }} onClick={() => handleDownload('jpg')}>JPG</button>
                 <button className="btn btn-secondary" style={{ padding: '8px 0' }} onClick={() => handleDownload('webp')}>WEBP</button>
               </div>
+            </div>
+
+            {/* Upload new image */}
+            <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
+              <label className="btn btn-secondary" style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                width: '100%', cursor: 'pointer', position: 'relative'
+              }}>
+                <FiUpload /> Upload New Image
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
+                />
+              </label>
             </div>
           </div>
         </div>
