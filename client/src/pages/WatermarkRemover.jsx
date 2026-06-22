@@ -31,6 +31,7 @@ export default function WatermarkRemover({ tool, setView, setActiveTool, navigat
   const originalPixelsRef = useRef(null);
   const lastXRef = useRef(0);
   const lastYRef = useRef(0);
+  const isDrawingRef = useRef(false);
   const comparisonCleanedCanvasRef = useRef(null);
   const comparisonOriginalCanvasRef = useRef(null);
 
@@ -296,44 +297,73 @@ export default function WatermarkRemover({ tool, setView, setActiveTool, navigat
     }
   }, [image, imageFile, mode]);
 
-  // ─── Mouse Event Handlers ──────────────────────────────────────
+  // ─── Mouse/Touch Event Helpers ──────────────────────────────────
+  const getCanvasCoords = (e) => {
+    const overlayCanvas = overlayCanvasRef.current;
+    if (!overlayCanvas) return null;
+    const rect = overlayCanvas.getBoundingClientRect();
+    // Support both mouse and touch events
+    let clientX, clientY;
+    if (e.touches && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else if (e.changedTouches && e.changedTouches.length > 0) {
+      clientX = e.changedTouches[0].clientX;
+      clientY = e.changedTouches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+    const x = rect.width > 0 ? ((clientX - rect.left) / rect.width) * overlayCanvas.width : 0;
+    const y = rect.height > 0 ? ((clientY - rect.top) / rect.height) * overlayCanvas.height : 0;
+    return { x, y };
+  };
+
   const handleMouseDown = (e) => {
     if (mode !== 'manual' || !image) return;
+    e.preventDefault();
+    isDrawingRef.current = true;
     setIsDrawing(true);
 
-    const overlayCanvas = overlayCanvasRef.current;
-    if (!overlayCanvas) return;
-    const rect = overlayCanvas.getBoundingClientRect();
-    const x = rect.width > 0 ? ((e.clientX - rect.left) / rect.width) * overlayCanvas.width : 0;
-    const y = rect.height > 0 ? ((e.clientY - rect.top) / rect.height) * overlayCanvas.height : 0;
+    const coords = getCanvasCoords(e);
+    if (!coords) return;
 
-    lastXRef.current = x;
-    lastYRef.current = y;
-    drawMask(x, y, x, y);
+    lastXRef.current = coords.x;
+    lastYRef.current = coords.y;
+    drawMask(coords.x, coords.y, coords.x, coords.y);
   };
 
   const handleMouseMove = (e) => {
     const overlayCanvas = overlayCanvasRef.current;
     if (!overlayCanvas || !image) return;
-    const rect = overlayCanvas.getBoundingClientRect();
-    const x = rect.width > 0 ? ((e.clientX - rect.left) / rect.width) * overlayCanvas.width : 0;
-    const y = rect.height > 0 ? ((e.clientY - rect.top) / rect.height) * overlayCanvas.height : 0;
+    if (mode === 'manual') e.preventDefault();
+
+    const coords = getCanvasCoords(e);
+    if (!coords) return;
 
     if (mode === 'manual') {
-      setHoverPos({ x, y });
+      setHoverPos({ x: coords.x, y: coords.y });
     } else {
       setHoverPos(null);
     }
 
-    if (isDrawing) {
-      drawMask(lastXRef.current, lastYRef.current, x, y);
-      lastXRef.current = x;
-      lastYRef.current = y;
+    if (isDrawingRef.current) {
+      drawMask(lastXRef.current, lastYRef.current, coords.x, coords.y);
+      lastXRef.current = coords.x;
+      lastYRef.current = coords.y;
     }
   };
 
-  const handleMouseUp = () => setIsDrawing(false);
-  const handleMouseLeave = () => { setIsDrawing(false); setHoverPos(null); };
+  const handleMouseUp = (e) => {
+    if (e) e.preventDefault();
+    isDrawingRef.current = false;
+    setIsDrawing(false);
+  };
+  const handleMouseLeave = () => {
+    isDrawingRef.current = false;
+    setIsDrawing(false);
+    setHoverPos(null);
+  };
 
   const drawMask = (x1, y1, x2, y2) => {
     const overlayCanvas = overlayCanvasRef.current;
@@ -646,11 +676,16 @@ export default function WatermarkRemover({ tool, setView, setActiveTool, navigat
                   onMouseMove={handleMouseMove}
                   onMouseUp={handleMouseUp}
                   onMouseLeave={handleMouseLeave}
+                  onTouchStart={handleMouseDown}
+                  onTouchMove={handleMouseMove}
+                  onTouchEnd={handleMouseUp}
+                  onTouchCancel={handleMouseLeave}
                   style={{
                     position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
                     borderRadius: '16px', display: 'block',
                     cursor: mode === 'manual' ? 'crosshair' : 'default',
-                    pointerEvents: 'auto'
+                    pointerEvents: 'auto',
+                    touchAction: mode === 'manual' ? 'none' : 'auto'
                   }}
                 />
                 <canvas ref={maskCanvasRef} style={{ display: 'none' }} />

@@ -427,20 +427,7 @@ export async function removeWatermark({ filePath, mimeType, maskPath, regions, a
   }
 
   // Build the prompt
-  const prompt = `You are an expert image restoration AI. Your task is to remove ALL watermarks, text overlays, logos, timestamps, and any other non-original content from this image.
-${regionDescription}
-CRITICAL INSTRUCTIONS:
-- Remove every watermark, logo, text overlay, and semi-transparent pattern completely
-- Reconstruct the underlying image content behind each watermark naturally
-- The result must look like the original clean photograph with NO traces of watermarks
-- Preserve the original image quality, colors, lighting, and composition exactly
-- Do NOT add any new text, logos, or artifacts
-- Do NOT crop or resize the image
-- Return ONLY the cleaned image with no watermarks remaining
-
-${maskPath ? 'A mask image is also provided — white/red areas indicate regions to clean. Focus removal on those areas but also check for any other watermarks across the entire image.' : ''}
-
-Output the cleaned image.`;
+  const prompt = `Edit this image: Remove all watermarks, logos, text overlays, timestamps, and semi-transparent patterns from this image. Inpaint the areas where watermarks were with the natural background content that should be behind them. Keep everything else exactly the same - same colors, lighting, composition, and quality. Do not add any new elements. Do not crop or resize.${regionDescription ? '\nFocus especially on these detected regions:' + regionDescription : ''}${maskPath ? '\nThe second image is a mask where painted areas show exactly where to remove content.' : ''}`;
 
   const contents = [];
 
@@ -474,7 +461,11 @@ Output the cleaned image.`;
 
   // Try each Gemini key
   let lastError = null;
-  const modelsToTry = ['gemini-2.0-flash-exp', 'gemini-2.5-flash', 'gemini-2.0-flash'];
+  // These models support image generation/editing via responseModalities: ['IMAGE']
+  const modelsToTry = [
+    'gemini-2.5-flash-preview-image-generation',
+    'gemini-2.0-flash-preview-image-generation',
+  ];
 
   for (let i = 0; i < geminiKeys.length; i++) {
     const key = geminiKeys[i];
@@ -495,7 +486,7 @@ Output the cleaned image.`;
             model: model,
             contents: contents,
             config: {
-              responseModalities: ['TEXT', 'IMAGE'],
+              responseModalities: ['IMAGE', 'TEXT'],
             }
           });
 
@@ -645,87 +636,121 @@ async function localInpaint({ filePath, mimeType, maskPath, regions, uploadsDir 
     return { outputPath, mimeType };
   }
   
-  // Concentric square search helper
-  const maxSearchRadius = Math.max(50, Math.floor(Math.min(width, height) / 8));
+  // Working copy of image data and 2D mask
+  const workingImage = Buffer.from(rawImage);
+  const workingMask = Array.from({ length: height }, (_, y) => new Uint8Array(isMasked[y]));
   
-  function getPixelColor(x, y) {
-    const idx = (y * width + x) * 4;
-    return { r: rawImage[idx], g: rawImage[idx+1], b: rawImage[idx+2] };
-  }
-  
-  // Run distance-weighted average inpainting
+  // Count masked pixels
+  let maskedCount = 0;
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      if (isMasked[y][x] === 1) {
-        let sumR = 0, sumG = 0, sumB = 0, weightSum = 0;
-        let found = false;
-        
-        for (let r = 1; r <= maxSearchRadius; r++) {
-          // Check border of square of radius r centered at (x, y)
-          for (let i = -r; i <= r; i++) {
-            const points = [
-              { px: x + i, py: y - r },
-              { px: x + i, py: y + r },
-              { px: x - r, py: y + i },
-              { px: x + r, py: y + i }
-            ];
-            
-            for (const pt of points) {
-              if (pt.px >= 0 && pt.px < width && pt.py >= 0 && pt.py < height) {
-                if (isMasked[pt.py][pt.px] === 0) {
-                  const distSq = i * i + r * r;
-                  const weight = 1 / distSq;
-                  const color = getPixelColor(pt.px, pt.py);
-                  sumR += color.r * weight;
-                  sumG += color.g * weight;
-                  sumB += color.b * weight;
-                  weightSum += weight;
-                  found = true;
-                }
-              }
-            }
-          }
-          if (found) break;
-        }
-        
-        const idx = (y * width + x) * 4;
-        if (weightSum > 0) {
-          resultBuffer[idx] = Math.round(sumR / weightSum);
-          resultBuffer[idx+1] = Math.round(sumG / weightSum);
-          resultBuffer[idx+2] = Math.round(sumB / weightSum);
-        } else {
-          // Absolute fallback: search the whole image for first non-masked pixel
-          let fallbackColor = { r: 128, g: 128, b: 128 };
-          outer: for (let r = 1; r < Math.max(width, height); r++) {
-            for (let i = -r; i <= r; i++) {
-              const points = [
-                { px: x + i, py: y - r },
-                { px: x + i, py: y + r },
-                { px: x - r, py: y + i },
-                { px: x + r, py: y + i }
-              ];
-              for (const pt of points) {
-                if (pt.px >= 0 && pt.px < width && pt.py >= 0 && pt.py < height && isMasked[pt.py][pt.px] === 0) {
-                  fallbackColor = getPixelColor(pt.px, pt.py);
-                  break outer;
-                }
-              }
-            }
-          }
-          resultBuffer[idx] = fallbackColor.r;
-          resultBuffer[idx+1] = fallbackColor.g;
-          resultBuffer[idx+2] = fallbackColor.b;
-        }
-      }
+      if (workingMask[y][x] === 1) maskedCount++;
     }
   }
   
-  // Write the output file
+  console.log(`[Local Inpaint] Boundary propagation: ${maskedCount} pixels to inpaint.`);
+  
+  let iterations = 0;
+  const maxIterations = 500; // Safeguard limit
+  
+  // Onion-skin layer propagation
+  while (maskedCount > 0 && iterations < maxIterations) {
+    iterations++;
+    const boundaryPixels = [];
+    
+    // Find boundary pixels: masked pixels that have at least one unmasked neighbor
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (workingMask[y][x] === 1) {
+          let hasUnmaskedNeighbor = false;
+          // Check 8-neighborhood
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+              if (dx === 0 && dy === 0) continue;
+              const nx = x + dx;
+              const ny = y + dy;
+              if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                if (workingMask[ny][nx] === 0) {
+                  hasUnmaskedNeighbor = true;
+                  break;
+                }
+              }
+            }
+            if (hasUnmaskedNeighbor) break;
+          }
+          
+          if (hasUnmaskedNeighbor) {
+            boundaryPixels.push({ x, y });
+          }
+        }
+      }
+    }
+    
+    // If no boundary pixels found but we still have masked pixels, break (island case)
+    if (boundaryPixels.length === 0) {
+      break;
+    }
+    
+    // Calculate new colors for boundary pixels
+    const newColors = [];
+    for (const { x, y } of boundaryPixels) {
+      let sumR = 0, sumG = 0, sumB = 0, weightSum = 0;
+      
+      // Use 5x5 local window (radius 2)
+      const r = 2;
+      for (let dy = -r; dy <= r; dy++) {
+        for (let dx = -r; dx <= r; dx++) {
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+            if (workingMask[ny][nx] === 0) {
+              const distSq = dx * dx + dy * dy || 1;
+              const weight = 1 / distSq;
+              const idx = (ny * width + nx) * 4;
+              sumR += workingImage[idx] * weight;
+              sumG += workingImage[idx + 1] * weight;
+              sumB += workingImage[idx + 2] * weight;
+              weightSum += weight;
+            }
+          }
+        }
+      }
+      
+      if (weightSum > 0) {
+        newColors.push({
+          x, y,
+          r: Math.round(sumR / weightSum),
+          g: Math.round(sumG / weightSum),
+          b: Math.round(sumB / weightSum)
+        });
+      } else {
+        const idx = (y * width + x) * 4;
+        newColors.push({
+          x, y,
+          r: workingImage[idx],
+          g: workingImage[idx+1],
+          b: workingImage[idx+2]
+        });
+      }
+    }
+    
+    // Apply inpainted colors and mark them as unmasked
+    for (const { x, y, r, g, b } of newColors) {
+      const idx = (y * width + x) * 4;
+      workingImage[idx] = r;
+      workingImage[idx + 1] = g;
+      workingImage[idx + 2] = b;
+      workingMask[y][x] = 0;
+      maskedCount--;
+    }
+  }
+  
+  // Write output file using sharp
   const ext = mimeType?.includes('png') ? 'png' : 'jpg';
   const outputFilename = `watermark_cleaned_${Date.now()}.${ext}`;
   const outputPath = path.join(uploadsDir, outputFilename);
   
-  await sharp(resultBuffer, {
+  await sharp(workingImage, {
     raw: {
       width,
       height,
@@ -734,6 +759,6 @@ async function localInpaint({ filePath, mimeType, maskPath, regions, uploadsDir 
   })
   .toFile(outputPath);
   
-  console.log(`[Local Inpaint] Local inpainting completed successfully: ${outputFilename}`);
+  console.log(`[Local Inpaint] Onion-skin propagation inpainting completed successfully: ${outputFilename}`);
   return { outputPath, mimeType };
 }
