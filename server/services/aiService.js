@@ -473,7 +473,7 @@ Output the cleaned image.`;
 
   // Try each Gemini key
   let lastError = null;
-  const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash'];
+  const modelsToTry = ['gemini-2.0-flash-exp', 'gemini-2.5-flash', 'gemini-2.0-flash'];
 
   for (let i = 0; i < geminiKeys.length; i++) {
     const key = geminiKeys[i];
