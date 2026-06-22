@@ -374,175 +374,103 @@ export default function WatermarkRemover({ tool, setView, setActiveTool, navigat
     setDetectedRegions(prev => prev.map(r => r.id === id ? { ...r, selected: !r.selected } : r));
   };
 
-  // ─── Advanced Content-Aware Inpainting ──────────────────────────
-  const handleRemove = () => {
-    if (!image) return;
-    setProcessing(true);
-    setProcessingMsg('AI Inpainting & Reconstructing...');
+  // ─── Server-Side AI Watermark Removal ────────────────────────────
+  const handleRemove = async () => {
+    if (!image || !imageFile) return;
 
-    setTimeout(() => {
-      const canvas = canvasRef.current;
-      const maskCanvas = maskCanvasRef.current;
-      if (!canvas || !maskCanvas) return;
-
-      const ctx = canvas.getContext('2d');
-      const maskCtx = maskCanvas.getContext('2d');
-      const width = canvas.width;
-      const height = canvas.height;
-
-      // Re-draw original image to canvas to start fresh
-      if (originalImageRef.current) {
-        ctx.drawImage(originalImageRef.current, 0, 0, width, height);
+    // Validate that there's something to remove
+    if (mode === 'auto') {
+      const selected = detectedRegions.filter(r => r.selected);
+      if (selected.length === 0 && detectedRegions.length > 0) {
+        addToast('No regions selected for removal. Click regions to select them.', 'info');
+        return;
       }
+    }
 
-      const imgData = ctx.getImageData(0, 0, width, height);
-      const pixels = imgData.data;
+    setProcessing(true);
+    setProcessingMsg('Sending to AI for watermark removal...');
 
-      // Build removal mask
-      const toRemove = new Uint8Array(width * height);
+    try {
+      const formData = new FormData();
+      formData.append('file', imageFile);
 
       if (mode === 'manual') {
-        const maskImgData = maskCtx.getImageData(0, 0, width, height);
-        const maskPixels = maskImgData.data;
-        for (let i = 0; i < pixels.length; i += 4) {
-          if (maskPixels[i + 3] > 50) {
-            toRemove[i / 4] = 1;
+        // Render the mask canvas to a PNG blob and include it
+        const maskCanvas = maskCanvasRef.current;
+        if (maskCanvas) {
+          const maskBlob = await new Promise((resolve) => {
+            maskCanvas.toBlob((blob) => resolve(blob), 'image/png');
+          });
+          if (maskBlob && maskBlob.size > 100) {
+            formData.append('mask', maskBlob, 'mask.png');
+          } else {
+            setProcessing(false);
+            addToast('Please paint over the watermark areas first using the brush tool.', 'info');
+            return;
           }
         }
       } else {
-        detectedRegions.forEach(r => {
-          if (!r.selected) return;
-          const rx1 = Math.round((r.x / 100) * width);
-          const ry1 = Math.round((r.y / 100) * height);
-          const rx2 = Math.round(((r.x + r.w) / 100) * width);
-          const ry2 = Math.round(((r.y + r.h) / 100) * height);
-
-          for (let y = ry1; y < ry2; y++) {
-            for (let x = rx1; x < rx2; x++) {
-              if (x >= 0 && x < width && y >= 0 && y < height) {
-                toRemove[y * width + x] = 1;
-              }
-            }
-          }
-        });
-      }
-
-      // Collect initial pixel indices to remove
-      let remainingPixels = [];
-      for (let i = 0; i < toRemove.length; i++) {
-        if (toRemove[i] === 1) {
-          remainingPixels.push(i);
+        // Auto mode: include the selected detected regions
+        const selected = detectedRegions.filter(r => r.selected);
+        if (selected.length > 0) {
+          formData.append('regions', JSON.stringify(selected));
         }
       }
 
-      if (remainingPixels.length === 0) {
+      setProcessingMsg('AI is removing watermarks & reconstructing image...');
+
+      const response = await fetch(`${BACKEND_URL}/api/watermark-remove`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || `Server error: ${response.status}`);
+      }
+
+      // Read the cleaned image from the response
+      const blob = await response.blob();
+      const cleanedUrl = URL.createObjectURL(blob);
+
+      // Load the cleaned image and draw it on canvas
+      const cleanedImg = new Image();
+      cleanedImg.onload = () => {
+        const canvas = canvasRef.current;
+        if (canvas) {
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(cleanedImg, 0, 0, canvas.width, canvas.height);
+        }
+
+        // Clear mask & regions
+        const maskCanvas = maskCanvasRef.current;
+        if (maskCanvas) {
+          maskCanvas.getContext('2d').clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+        }
+        if (mode === 'auto') setDetectedRegions([]);
+
+        setCleaned(true);
         setProcessing(false);
-        addToast('No regions selected for removal.', 'info');
-        return;
-      }
+        setShowComparison(true);
+        addToast('Watermark removed successfully by AI!', 'success');
+        drawOverlay();
 
-      // Fast boundary-based onion-skin inpainting
-      const toRemoveCopy = new Uint8Array(toRemove);
-      const maxPasses = 150;
-      let pass = 0;
-      const radius = 3; // Fixed small radius is extremely fast and effective
+        // Clean up object URL after a delay
+        setTimeout(() => URL.revokeObjectURL(cleanedUrl), 5000);
+      };
+      cleanedImg.onerror = () => {
+        setProcessing(false);
+        addToast('Failed to load the cleaned image from server.', 'error');
+        URL.revokeObjectURL(cleanedUrl);
+      };
+      cleanedImg.src = cleanedUrl;
 
-      while (remainingPixels.length > 0 && pass < maxPasses) {
-        const boundary = [];
-        const nextRemaining = [];
-
-        // Identify boundary pixels (masked pixels adjacent to a healthy pixel)
-        for (let i = 0; i < remainingPixels.length; i++) {
-          const idx = remainingPixels[i];
-          const y = Math.floor(idx / width);
-          const x = idx % width;
-
-          let hasHealthyNeighbor = false;
-          if (x > 0 && toRemoveCopy[idx - 1] === 0) hasHealthyNeighbor = true;
-          else if (x < width - 1 && toRemoveCopy[idx + 1] === 0) hasHealthyNeighbor = true;
-          else if (y > 0 && toRemoveCopy[idx - width] === 0) hasHealthyNeighbor = true;
-          else if (y < height - 1 && toRemoveCopy[idx + width] === 0) hasHealthyNeighbor = true;
-
-          if (hasHealthyNeighbor) {
-            boundary.push(idx);
-          } else {
-            nextRemaining.push(idx);
-          }
-        }
-
-        if (boundary.length === 0) {
-          break; // Stop if no pixels can reach healthy neighbors
-        }
-
-        const filledColors = [];
-
-        // Process boundary pixels
-        for (let i = 0; i < boundary.length; i++) {
-          const idx = boundary[i];
-          const y = Math.floor(idx / width);
-          const x = idx % width;
-
-          let rSum = 0, gSum = 0, bSum = 0, wSum = 0;
-
-          for (let dy = -radius; dy <= radius; dy++) {
-            for (let dx = -radius; dx <= radius; dx++) {
-              const ny = y + dy;
-              const nx = x + dx;
-              if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
-                const nIdx = ny * width + nx;
-                if (toRemoveCopy[nIdx] === 0) {
-                  const distSq = dx * dx + dy * dy;
-                  const weight = 1 / (1 + distSq);
-                  rSum += pixels[nIdx * 4] * weight;
-                  gSum += pixels[nIdx * 4 + 1] * weight;
-                  bSum += pixels[nIdx * 4 + 2] * weight;
-                  wSum += weight;
-                }
-              }
-            }
-          }
-
-          if (wSum > 0) {
-            filledColors.push({
-              idx: idx,
-              r: rSum / wSum,
-              g: gSum / wSum,
-              b: bSum / wSum
-            });
-          } else {
-            nextRemaining.push(idx); // Fallback: try again in next pass
-          }
-        }
-
-        // Apply new values and update mask
-        for (let i = 0; i < filledColors.length; i++) {
-          const item = filledColors[i];
-          const idx = item.idx;
-          const noise = (Math.random() - 0.5) * 2;
-          pixels[idx * 4] = Math.max(0, Math.min(255, item.r + noise));
-          pixels[idx * 4 + 1] = Math.max(0, Math.min(255, item.g + noise));
-          pixels[idx * 4 + 2] = Math.max(0, Math.min(255, item.b + noise));
-          pixels[idx * 4 + 3] = 255;
-          toRemoveCopy[idx] = 0;
-        }
-
-        remainingPixels = nextRemaining;
-        pass++;
-      }
-
-      // Commit inpainted pixels
-      ctx.putImageData(imgData, 0, 0);
-
-      // Clear mask & regions
-      maskCtx.clearRect(0, 0, width, height);
-      if (mode === 'auto') setDetectedRegions([]);
-
-      setCleaned(true);
+    } catch (err) {
       setProcessing(false);
-      setShowComparison(true);
-      addToast('Watermark removed successfully!', 'success');
-      drawOverlay();
-    }, 100);
+      console.error('Watermark removal error:', err);
+      addToast(`Watermark removal failed: ${err.message}`, 'error');
+    }
   };
 
   // ─── Download ───────────────────────────────────────────────────
@@ -683,6 +611,11 @@ export default function WatermarkRemover({ tool, setView, setActiveTool, navigat
                   <span style={{ fontSize: '15px', fontWeight: '700' }}>
                     {aiScanning ? 'AI Analyzing Image for Watermarks...' : processingMsg}
                   </span>
+                  {processing && !aiScanning && (
+                    <span style={{ fontSize: '11.5px', color: 'rgba(255,255,255,0.6)', textAlign: 'center', maxWidth: '280px' }}>
+                      Gemini AI is reconstructing the image — this may take 10-30 seconds
+                    </span>
+                  )}
                   {aiScanning && scanProgress >= 0 && (
                     <div style={{ width: '200px', height: '6px', borderRadius: '3px', background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
                       <div style={{

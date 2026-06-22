@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 
 import { performConversion } from './services/converter.js';
 import { downloadMedia, ensureYtdlp } from './services/downloader.js';
-import { processAiTool } from './services/aiService.js';
+import { processAiTool, removeWatermark } from './services/aiService.js';
 import { compressFile } from './services/compressor.js';
 import archiver from 'archiver';
 
@@ -232,6 +232,81 @@ app.post('/api/ai', upload.single('file'), async (req, res) => {
     if (global.gc) {
       try { global.gc(); } catch (e) {}
     }
+    res.status(400).json({ error: error.message });
+  }
+});
+
+/**
+ * AI Watermark Removal API
+ * Accepts: image file + optional mask + region data
+ * Returns: cleaned image file
+ */
+app.post('/api/watermark-remove', upload.fields([
+  { name: 'file', maxCount: 1 },
+  { name: 'mask', maxCount: 1 }
+]), async (req, res) => {
+  const imageFile = req.files?.file?.[0];
+  const maskFile = req.files?.mask?.[0];
+
+  if (!imageFile) {
+    if (maskFile) try { fs.unlinkSync(maskFile.path); } catch (e) {}
+    return res.status(400).json({ error: "No image file uploaded." });
+  }
+
+  const { regions, apiKey } = req.body;
+  let parsedRegions = [];
+  if (regions) {
+    try {
+      parsedRegions = JSON.parse(regions);
+      if (!Array.isArray(parsedRegions)) parsedRegions = [];
+    } catch (e) {
+      parsedRegions = [];
+    }
+  }
+
+  console.log(`[Watermark Remove] Processing image: ${imageFile.originalname}, mask: ${!!maskFile}, regions: ${parsedRegions.length}`);
+
+  try {
+    const result = await removeWatermark({
+      filePath: imageFile.path,
+      mimeType: imageFile.mimetype,
+      maskPath: maskFile ? maskFile.path : null,
+      regions: parsedRegions,
+      apiKey,
+      uploadsDir,
+    });
+
+    // Clean up uploaded files
+    try { fs.unlinkSync(imageFile.path); } catch (e) {}
+    if (maskFile) try { fs.unlinkSync(maskFile.path); } catch (e) {}
+
+    if (!fs.existsSync(result.outputPath)) {
+      return res.status(500).json({ error: 'Cleaned image file not found after processing.' });
+    }
+
+    // Send the cleaned image back
+    res.setHeader('Content-Type', result.mimeType || 'image/png');
+    res.setHeader('Content-Disposition', `inline; filename="cleaned_image.${result.mimeType?.includes('png') ? 'png' : 'jpg'}"`);
+
+    const stream = fs.createReadStream(result.outputPath);
+    stream.on('end', () => {
+      try { fs.unlinkSync(result.outputPath); } catch (e) {}
+    });
+    stream.on('error', () => {
+      try { fs.unlinkSync(result.outputPath); } catch (e) {}
+    });
+    stream.pipe(res);
+
+  } catch (error) {
+    console.error("[Watermark Remove] Error:", error.message);
+    // Clean up uploaded files
+    try { fs.unlinkSync(imageFile.path); } catch (e) {}
+    if (maskFile) try { fs.unlinkSync(maskFile.path); } catch (e) {}
+
+    if (global.gc) {
+      try { global.gc(); } catch (e) {}
+    }
+
     res.status(400).json({ error: error.message });
   }
 });

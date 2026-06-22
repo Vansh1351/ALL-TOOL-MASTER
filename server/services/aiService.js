@@ -130,6 +130,30 @@ BEGIN with "ENHANCED TITLE:" then write the full script immediately. Do not add 
     case 'ai-resume-enhance-experience':
       prompt = "You are an expert resume writer. Enhance and polish the following work experience description or bullet points. Use active verb phrase format (e.g. 'Led cross-functional teams...', 'Optimized pipeline speed...'), quantify achievements where possible, and ensure the tone is professional, clear, and action-oriented. Keep the structure as a list of bullet points if the input is in that format, or write 2-3 strong bullet points. Start directly with the enhanced text, do not add introductory phrases, conversational comments, or explanations.";
       break;
+    case 'watermark-remover':
+      prompt = `You are an expert image analysis AI specializing in detecting watermarks, overlays, and non-original content on images.
+
+Analyze this image carefully and detect ALL of the following:
+- Text watermarks (e.g. stock photo watermarks like "Shutterstock", "Getty Images", "Adobe Stock", etc.)
+- Logo watermarks (company logos, brand marks overlaid on the image)
+- Timestamps (date/time overlays)
+- Text overlays (captions, subtitles, credit text)
+- Semi-transparent overlays (diagonal repeating text patterns, grid watermarks)
+- Any other non-original content overlaid on the base image
+
+For each detected watermark/overlay, return its bounding box as PERCENTAGE coordinates (0-100) relative to the image width and height:
+- x: left edge percentage
+- y: top edge percentage  
+- w: width percentage
+- h: height percentage
+
+Return ONLY a valid JSON array with no markdown formatting, no code blocks, no explanation. Example format:
+[{"type":"Text Watermark","x":25,"y":40,"w":50,"h":15,"confidence":0.95},{"type":"Logo","x":5,"y":5,"w":12,"h":12,"confidence":0.88}]
+
+If no watermarks are detected, return exactly: []
+
+CRITICAL: Return ONLY the raw JSON array. No other text.`;
+      break;
     default:
       prompt = `Provide a comprehensive summary and analysis of the attached content. Highlight all main topics and present them clearly in markdown.`;
   }
@@ -352,4 +376,193 @@ ${contextText ? `Context Content:\n${contextText}\n\n` : ''}${textContent ? `Tex
   }
 
   throw new Error(`All provided API keys failed. Last error: ${lastError.message}`);
+}
+
+/**
+ * Removes watermarks from an image using Gemini's native image generation/editing.
+ * Sends the image (and optional mask) to Gemini with responseModalities: ['TEXT', 'IMAGE'].
+ * Returns the path to the cleaned image file.
+ */
+export async function removeWatermark({ filePath, mimeType, maskPath, regions, apiKey, uploadsDir }) {
+  let incomingKey = apiKey;
+  if (incomingKey) {
+    incomingKey = incomingKey.trim();
+    if (incomingKey.length < 10) incomingKey = null;
+  }
+  if (incomingKey) {
+    const lower = incomingKey.toLowerCase();
+    if (lower.includes('your_') || lower.includes('api_key') || lower.includes('placeholder') || lower === 'undefined' || lower === 'null') {
+      incomingKey = null;
+    }
+  }
+
+  const rawKey = incomingKey || process.env.GEMINI_API_KEY;
+  if (!rawKey) {
+    throw new Error("Missing Gemini API Key. Please provide it in Settings or configure the server .env.");
+  }
+
+  const keys = rawKey.split(',').map(k => k.trim()).filter(Boolean).filter(k => {
+    const trimmed = k.toLowerCase();
+    return !(trimmed.includes('your_') || trimmed.includes('api_key') || trimmed.includes('placeholder'));
+  });
+
+  if (keys.length === 0) {
+    throw new Error("No valid Gemini API keys found.");
+  }
+
+  // Only use Gemini SDK keys (AIzaSy...) for image generation — OpenRouter doesn't support it
+  const geminiKeys = keys.filter(k => !k.startsWith('sk-'));
+  if (geminiKeys.length === 0) {
+    throw new Error("Watermark removal requires a Google Gemini API key (starts with 'AIzaSy'). OpenRouter keys do not support image generation.");
+  }
+
+  // Build region description for the prompt
+  let regionDescription = '';
+  if (regions && regions.length > 0) {
+    const regionLines = regions.map((r, i) =>
+      `  ${i + 1}. "${r.type}" at position (${r.x}%, ${r.y}%) with size ${r.w}% × ${r.h}%`
+    ).join('\n');
+    regionDescription = `\nThe following watermark/overlay regions have been detected:\n${regionLines}\n`;
+  }
+
+  // Build the prompt
+  const prompt = `You are an expert image restoration AI. Your task is to remove ALL watermarks, text overlays, logos, timestamps, and any other non-original content from this image.
+${regionDescription}
+CRITICAL INSTRUCTIONS:
+- Remove every watermark, logo, text overlay, and semi-transparent pattern completely
+- Reconstruct the underlying image content behind each watermark naturally
+- The result must look like the original clean photograph with NO traces of watermarks
+- Preserve the original image quality, colors, lighting, and composition exactly
+- Do NOT add any new text, logos, or artifacts
+- Do NOT crop or resize the image
+- Return ONLY the cleaned image with no watermarks remaining
+
+${maskPath ? 'A mask image is also provided — white/red areas indicate regions to clean. Focus removal on those areas but also check for any other watermarks across the entire image.' : ''}
+
+Output the cleaned image.`;
+
+  const contents = [];
+
+  // Add the original image
+  if (filePath && fs.existsSync(filePath)) {
+    const fileBuffer = fs.readFileSync(filePath);
+    contents.push({
+      inlineData: {
+        mimeType: mimeType || 'image/jpeg',
+        data: fileBuffer.toString('base64')
+      }
+    });
+  } else {
+    throw new Error("Image file not found for watermark removal.");
+  }
+
+  // Add the mask image if provided (manual mode)
+  if (maskPath && fs.existsSync(maskPath)) {
+    const maskBuffer = fs.readFileSync(maskPath);
+    contents.push({
+      inlineData: {
+        mimeType: 'image/png',
+        data: maskBuffer.toString('base64')
+      }
+    });
+    contents.push({ text: 'The second image above is a mask — white/red painted areas indicate the watermark regions to remove.' });
+  }
+
+  // Add the prompt
+  contents.push({ text: prompt });
+
+  // Try each Gemini key
+  let lastError = null;
+  const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash'];
+
+  for (let i = 0; i < geminiKeys.length; i++) {
+    const key = geminiKeys[i];
+    const maskedKey = key.length > 10 ? `${key.slice(0, 8)}...${key.slice(-4)}` : 'Key';
+    console.log(`[Watermark Removal] Trying API key ${i + 1}/${geminiKeys.length} (${maskedKey})...`);
+
+    const ai = new GoogleGenAI({ apiKey: key });
+
+    for (const model of modelsToTry) {
+      let attempts = 2;
+      let delay = 2000;
+
+      for (let attempt = 1; attempt <= attempts; attempt++) {
+        try {
+          console.log(`[Watermark Removal] Calling ${model} with image editing (attempt ${attempt}/${attempts})...`);
+
+          const response = await ai.models.generateContent({
+            model: model,
+            contents: contents,
+            config: {
+              responseModalities: ['TEXT', 'IMAGE'],
+            }
+          });
+
+          // Extract the image from the response
+          const candidates = response.candidates || (response.response && response.response.candidates) || [];
+          let imageData = null;
+          let imageMimeType = 'image/png';
+
+          for (const candidate of candidates) {
+            const parts = candidate.content?.parts || [];
+            for (const part of parts) {
+              if (part.inlineData && part.inlineData.data) {
+                imageData = part.inlineData.data;
+                imageMimeType = part.inlineData.mimeType || 'image/png';
+                break;
+              }
+            }
+            if (imageData) break;
+          }
+
+          if (!imageData) {
+            // Try alternate response structure
+            if (response.image) {
+              imageData = response.image.imageBytes || response.image;
+              imageMimeType = response.image.mimeType || 'image/png';
+            } else if (response.generatedImages && response.generatedImages.length > 0) {
+              imageData = response.generatedImages[0].image?.imageBytes;
+              imageMimeType = response.generatedImages[0].image?.mimeType || 'image/png';
+            }
+          }
+
+          if (!imageData) {
+            throw new Error("Gemini did not return an image in the response. The model may not support image generation with this configuration.");
+          }
+
+          // Save the cleaned image
+          const ext = imageMimeType.includes('png') ? 'png' : imageMimeType.includes('webp') ? 'webp' : 'jpg';
+          const outputFilename = `watermark_cleaned_${Date.now()}.${ext}`;
+          const outputPath = path.join(uploadsDir, outputFilename);
+
+          const imageBuffer = Buffer.from(imageData, 'base64');
+          fs.writeFileSync(outputPath, imageBuffer);
+
+          console.log(`[Watermark Removal] Success! Cleaned image saved: ${outputFilename} (${(imageBuffer.length / 1024).toFixed(1)}KB)`);
+          return { outputPath, mimeType: imageMimeType };
+
+        } catch (error) {
+          lastError = error;
+          const errMsg = error.message || '';
+          const status = error.status || 0;
+          const isTransient = status === 503 || status === 429 ||
+                              errMsg.includes('503') || errMsg.includes('429') ||
+                              errMsg.toLowerCase().includes('high demand') ||
+                              errMsg.toLowerCase().includes('temporarily') ||
+                              errMsg.toLowerCase().includes('unavailable');
+
+          if (isTransient && attempt < attempts) {
+            console.warn(`[Watermark Removal] Transient error with ${model}: ${errMsg}. Retrying in ${delay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            delay *= 2;
+          } else {
+            console.error(`[Watermark Removal] Error with ${model}:`, errMsg);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  throw new Error(`Watermark removal failed: ${lastError?.message || 'Unknown error'}. Please try again.`);
 }
