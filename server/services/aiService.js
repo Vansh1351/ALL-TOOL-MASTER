@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { GoogleGenAI } from '@google/genai';
+import sharp from 'sharp';
 import pdfParse from 'pdf-parse';
 import { convertMedia, extractTextFromDocx } from './converter.js';
 
@@ -564,5 +565,175 @@ Output the cleaned image.`;
     }
   }
 
-  throw new Error(`Watermark removal failed: ${lastError?.message || 'Unknown error'}. Please try again.`);
+  console.warn(`[Watermark Removal] Gemini API failed: ${lastError?.message || 'Unknown error'}. Falling back to high-quality local inpainting...`);
+  try {
+    return await localInpaint({ filePath, mimeType, maskPath, regions, uploadsDir });
+  } catch (fallbackError) {
+    console.error(`[Watermark Removal] Local inpainting fallback also failed:`, fallbackError.message);
+    throw new Error(`Watermark removal failed: ${lastError?.message || 'Unknown error'} (Fallback error: ${fallbackError.message}). Please try again.`);
+  }
+}
+
+/**
+ * Performs high-quality local image inpainting using concentric distance-weighted averaging.
+ * Runs completely locally on the server using the sharp library.
+ */
+async function localInpaint({ filePath, mimeType, maskPath, regions, uploadsDir }) {
+  console.log(`[Local Inpaint] Running local inpainting fallback...`);
+  
+  const img = sharp(filePath);
+  const metadata = await img.metadata();
+  const width = metadata.width;
+  const height = metadata.height;
+  
+  // Get raw RGBA pixels (ensureAlpha guarantees 4 channels)
+  const rawImage = await img.ensureAlpha().raw().toBuffer();
+  const resultBuffer = Buffer.from(rawImage);
+  
+  // Initialize 2D mask array (0 = original, 1 = masked/needs inpaint)
+  const isMasked = Array.from({ length: height }, () => new Uint8Array(width));
+  let hasMask = false;
+  
+  // 1. Parse manual mask image if provided
+  if (maskPath && fs.existsSync(maskPath)) {
+    const maskImg = sharp(maskPath).resize(width, height).raw();
+    const rawMask = await maskImg.toBuffer();
+    
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const idx = (y * width + x) * 4;
+        const r = rawMask[idx];
+        const g = rawMask[idx+1];
+        const b = rawMask[idx+2];
+        const a = rawMask[idx+3];
+        // Red brush from manual canvas, or non-transparent pixels
+        if ((r > 120 && g < 100 && b < 100) || (a > 30 && (r > 80 || g > 80 || b > 80))) {
+          isMasked[y][x] = 1;
+          hasMask = true;
+        }
+      }
+    }
+  }
+  
+  // 2. Parse auto-detected regions if provided
+  if (regions && regions.length > 0) {
+    for (const r of regions) {
+      const rx = Math.max(0, Math.min(width - 1, Math.round((r.x / 100) * width)));
+      const ry = Math.max(0, Math.min(height - 1, Math.round((r.y / 100) * height)));
+      const rw = Math.max(1, Math.round((r.w / 100) * width));
+      const rh = Math.max(1, Math.round((r.h / 100) * height));
+      
+      const xEnd = Math.min(width, rx + rw);
+      const yEnd = Math.min(height, ry + rh);
+      
+      for (let y = ry; y < yEnd; y++) {
+        for (let x = rx; x < xEnd; x++) {
+          isMasked[y][x] = 1;
+          hasMask = true;
+        }
+      }
+    }
+  }
+  
+  // If no mask/regions were detected, copy original and return
+  if (!hasMask) {
+    console.log(`[Local Inpaint] No mask regions detected. Returning copy of original image.`);
+    const ext = mimeType?.includes('png') ? 'png' : 'jpg';
+    const outputFilename = `watermark_cleaned_${Date.now()}.${ext}`;
+    const outputPath = path.join(uploadsDir, outputFilename);
+    fs.copyFileSync(filePath, outputPath);
+    return { outputPath, mimeType };
+  }
+  
+  // Concentric square search helper
+  const maxSearchRadius = Math.max(50, Math.floor(Math.min(width, height) / 8));
+  
+  function getPixelColor(x, y) {
+    const idx = (y * width + x) * 4;
+    return { r: rawImage[idx], g: rawImage[idx+1], b: rawImage[idx+2] };
+  }
+  
+  // Run distance-weighted average inpainting
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (isMasked[y][x] === 1) {
+        let sumR = 0, sumG = 0, sumB = 0, weightSum = 0;
+        let found = false;
+        
+        for (let r = 1; r <= maxSearchRadius; r++) {
+          // Check border of square of radius r centered at (x, y)
+          for (let i = -r; i <= r; i++) {
+            const points = [
+              { px: x + i, py: y - r },
+              { px: x + i, py: y + r },
+              { px: x - r, py: y + i },
+              { px: x + r, py: y + i }
+            ];
+            
+            for (const pt of points) {
+              if (pt.px >= 0 && pt.px < width && pt.py >= 0 && pt.py < height) {
+                if (isMasked[pt.py][pt.px] === 0) {
+                  const distSq = i * i + r * r;
+                  const weight = 1 / distSq;
+                  const color = getPixelColor(pt.px, pt.py);
+                  sumR += color.r * weight;
+                  sumG += color.g * weight;
+                  sumB += color.b * weight;
+                  weightSum += weight;
+                  found = true;
+                }
+              }
+            }
+          }
+          if (found) break;
+        }
+        
+        const idx = (y * width + x) * 4;
+        if (weightSum > 0) {
+          resultBuffer[idx] = Math.round(sumR / weightSum);
+          resultBuffer[idx+1] = Math.round(sumG / weightSum);
+          resultBuffer[idx+2] = Math.round(sumB / weightSum);
+        } else {
+          // Absolute fallback: search the whole image for first non-masked pixel
+          let fallbackColor = { r: 128, g: 128, b: 128 };
+          outer: for (let r = 1; r < Math.max(width, height); r++) {
+            for (let i = -r; i <= r; i++) {
+              const points = [
+                { px: x + i, py: y - r },
+                { px: x + i, py: y + r },
+                { px: x - r, py: y + i },
+                { px: x + r, py: y + i }
+              ];
+              for (const pt of points) {
+                if (pt.px >= 0 && pt.px < width && pt.py >= 0 && pt.py < height && isMasked[pt.py][pt.px] === 0) {
+                  fallbackColor = getPixelColor(pt.px, pt.py);
+                  break outer;
+                }
+              }
+            }
+          }
+          resultBuffer[idx] = fallbackColor.r;
+          resultBuffer[idx+1] = fallbackColor.g;
+          resultBuffer[idx+2] = fallbackColor.b;
+        }
+      }
+    }
+  }
+  
+  // Write the output file
+  const ext = mimeType?.includes('png') ? 'png' : 'jpg';
+  const outputFilename = `watermark_cleaned_${Date.now()}.${ext}`;
+  const outputPath = path.join(uploadsDir, outputFilename);
+  
+  await sharp(resultBuffer, {
+    raw: {
+      width,
+      height,
+      channels: 4
+    }
+  })
+  .toFile(outputPath);
+  
+  console.log(`[Local Inpaint] Local inpainting completed successfully: ${outputFilename}`);
+  return { outputPath, mimeType };
 }
