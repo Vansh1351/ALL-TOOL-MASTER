@@ -1,10 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
-  FiArrowLeft, FiSliders, FiDownload, FiZap, FiTrash2, FiPlusCircle, FiRefreshCw
+  FiArrowLeft, FiSliders, FiDownload, FiZap, FiTrash2, FiPlusCircle, FiRefreshCw, FiUpload, FiMousePointer
 } from 'react-icons/fi';
+
+const rawBackendUrl = import.meta.env.VITE_API_URL || 'https://vansh135-all-tool-master-backend.hf.space';
+const BACKEND_URL = rawBackendUrl.replace(/\/+$/, '');
 
 export default function ObjectRemover({ tool, setView, setActiveTool, navigate, addToast }) {
   const [image, setImage] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [imageSize, setImageSize] = useState({ w: 800, h: 600 });
   const [mode, setMode] = useState('manual'); // manual, auto
   const [toolType, setToolType] = useState('brush'); // brush, polygon, eraser
   const [brushSize, setBrushSize] = useState(28);
@@ -12,10 +17,15 @@ export default function ObjectRemover({ tool, setView, setActiveTool, navigate, 
   const [processing, setProcessing] = useState(false);
   const [scanProgress, setScanProgress] = useState(-1);
   const [polygonPoints, setPolygonPoints] = useState([]);
+  const [hoverPos, setHoverPos] = useState(null);
 
   const canvasRef = useRef(null);
+  const overlayCanvasRef = useRef(null);
   const maskCanvasRef = useRef(null);
   const originalImageRef = useRef(null);
+  const lastXRef = useRef(0);
+  const lastYRef = useRef(0);
+  const isDrawingRef = useRef(false);
 
   // Simulated AI detected objects
   const [detectedObjects, setDetectedObjects] = useState([
@@ -27,13 +37,27 @@ export default function ObjectRemover({ tool, setView, setActiveTool, navigate, 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    setImageFile(file);
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
       img.onload = () => {
         originalImageRef.current = img;
         setImage(img);
-        setDetectedObjects(prev => prev.map(o => ({ ...o, selected: true })));
+        setImageSize({ w: img.width, h: img.height });
+        // Clear mask canvas
+        const maskCanvas = maskCanvasRef.current;
+        if (maskCanvas) {
+          maskCanvas.width = img.width;
+          maskCanvas.height = img.height;
+          const maskCtx = maskCanvas.getContext('2d');
+          maskCtx.clearRect(0, 0, img.width, img.height);
+        }
+        setDetectedObjects([
+          { id: 1, name: 'Person (Photobomb)', x: 45, y: 30, w: 14, h: 48, selected: true },
+          { id: 2, name: 'Sign Post', x: 15, y: 20, w: 8, h: 32, selected: false },
+          { id: 3, name: 'Vehicle / Car', x: 75, y: 55, w: 20, h: 22, selected: true }
+        ]);
         addToast('Image uploaded successfully!', 'success');
       };
       img.src = event.target.result;
@@ -41,141 +65,234 @@ export default function ObjectRemover({ tool, setView, setActiveTool, navigate, 
     reader.readAsDataURL(file);
   };
 
-  const drawWorkspace = () => {
+  const drawWorkspace = useCallback(() => {
     const canvas = canvasRef.current;
+    const overlayCanvas = overlayCanvasRef.current;
     const maskCanvas = maskCanvasRef.current;
-    if (!canvas || !image) return;
+    if (!canvas || !overlayCanvas || !image) return;
 
     const ctx = canvas.getContext('2d');
-    const maskCtx = maskCanvas.getContext('2d');
-
-    if (maskCanvas.width !== canvas.width || maskCanvas.height !== canvas.height) {
-      maskCanvas.width = canvas.width;
-      maskCanvas.height = canvas.height;
-    }
+    const overCtx = overlayCanvas.getContext('2d');
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
 
+    overCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+
     // Draw manual mask layers
-    ctx.save();
-    ctx.globalAlpha = 0.45;
-    ctx.drawImage(maskCanvas, 0, 0);
-    ctx.restore();
+    if (maskCanvas) {
+      overCtx.save();
+      overCtx.globalAlpha = 0.45;
+      overCtx.drawImage(maskCanvas, 0, 0);
+      overCtx.restore();
+    }
 
     // Draw polygon connection lines
-    if (polygonPoints.length > 0) {
-      ctx.strokeStyle = '#ef4444';
-      ctx.fillStyle = 'rgba(239, 68, 68, 0.3)';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(polygonPoints[0].x, polygonPoints[0].y);
+    if (mode === 'manual' && toolType === 'polygon' && polygonPoints.length > 0) {
+      overCtx.strokeStyle = '#ef4444';
+      overCtx.fillStyle = 'rgba(239, 68, 68, 0.3)';
+      overCtx.lineWidth = Math.max(2, overlayCanvas.width * 0.005);
+      overCtx.beginPath();
+      overCtx.moveTo(polygonPoints[0].x, polygonPoints[0].y);
       for (let i = 1; i < polygonPoints.length; i++) {
-        ctx.lineTo(polygonPoints[i].x, polygonPoints[i].y);
+        overCtx.lineTo(polygonPoints[i].x, polygonPoints[i].y);
       }
-      ctx.stroke();
+      overCtx.stroke();
 
       // Dot anchors
       polygonPoints.forEach(p => {
-        ctx.fillStyle = '#ef4444';
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
-        ctx.fill();
+        overCtx.fillStyle = '#ef4444';
+        overCtx.beginPath();
+        overCtx.arc(p.x, p.y, Math.max(4, overlayCanvas.width * 0.008), 0, Math.PI * 2);
+        overCtx.fill();
       });
     }
 
     // Auto Mode detected areas
     if (mode === 'auto' && scanProgress === -1) {
       detectedObjects.forEach(obj => {
-        const ox = (obj.x / 100) * canvas.width;
-        const oy = (obj.y / 100) * canvas.height;
-        const ow = (obj.w / 100) * canvas.width;
-        const oh = (obj.h / 100) * canvas.height;
+        const ox = (obj.x / 100) * overlayCanvas.width;
+        const oy = (obj.y / 100) * overlayCanvas.height;
+        const ow = (obj.w / 100) * overlayCanvas.width;
+        const oh = (obj.h / 100) * overlayCanvas.height;
 
-        ctx.strokeStyle = obj.selected ? 'rgba(239, 68, 68, 0.95)' : 'rgba(16, 185, 129, 0.6)';
-        ctx.fillStyle = obj.selected ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.05)';
-        ctx.lineWidth = obj.selected ? 3 : 1.5;
+        overCtx.strokeStyle = obj.selected ? 'rgba(239, 68, 68, 0.95)' : 'rgba(16, 185, 129, 0.6)';
+        overCtx.fillStyle = obj.selected ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.05)';
+        overCtx.lineWidth = obj.selected ? Math.max(3, overlayCanvas.width * 0.006) : Math.max(1.5, overlayCanvas.width * 0.003);
 
-        ctx.fillRect(ox, oy, ow, oh);
-        ctx.strokeRect(ox, oy, ow, oh);
+        overCtx.fillRect(ox, oy, ow, oh);
+        overCtx.strokeRect(ox, oy, ow, oh);
 
-        ctx.fillStyle = obj.selected ? '#ef4444' : '#10b981';
-        ctx.font = 'bold 11px sans-serif';
-        ctx.fillText(obj.name, ox + 4, oy - 4);
+        overCtx.fillStyle = obj.selected ? '#ef4444' : '#10b981';
+        const fontSize = Math.max(11, Math.round(overlayCanvas.width * 0.022));
+        overCtx.font = `bold ${fontSize}px sans-serif`;
+        overCtx.fillText(obj.name, ox + 4, oy - fontSize * 0.3);
       });
     }
 
-    // Scanning animations
+    // Scanning laser effect
     if (scanProgress >= 0 && scanProgress <= 100) {
-      const laserY = (scanProgress / 100) * canvas.height;
-      ctx.strokeStyle = '#10b981';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(0, laserY);
-      ctx.lineTo(canvas.width, laserY);
-      ctx.stroke();
+      const laserY = (scanProgress / 100) * overlayCanvas.height;
+      overCtx.strokeStyle = '#10b981';
+      overCtx.lineWidth = Math.max(3, overlayCanvas.height * 0.007);
+      overCtx.beginPath();
+      overCtx.moveTo(0, laserY);
+      overCtx.lineTo(overlayCanvas.width, laserY);
+      overCtx.stroke();
 
-      ctx.fillStyle = 'rgba(16, 185, 129, 0.1)';
-      ctx.fillRect(0, 0, canvas.width, laserY);
+      overCtx.fillStyle = 'rgba(16, 185, 129, 0.1)';
+      overCtx.fillRect(0, 0, overlayCanvas.width, laserY);
     }
-  };
+
+    // Brush hover cursor
+    if (mode === 'manual' && hoverPos && (toolType === 'brush' || toolType === 'eraser')) {
+      const rect = overlayCanvas.getBoundingClientRect();
+      const scale = rect.width > 0 ? overlayCanvas.width / rect.width : 1;
+      const logicalBrushSize = brushSize * scale;
+
+      overCtx.save();
+      overCtx.beginPath();
+      overCtx.arc(hoverPos.x, hoverPos.y, logicalBrushSize / 2, 0, Math.PI * 2);
+      overCtx.strokeStyle = '#ffffff';
+      overCtx.lineWidth = Math.max(1.5, overlayCanvas.width * 0.003);
+      overCtx.shadowColor = 'rgba(0,0,0,0.5)';
+      overCtx.shadowBlur = 4;
+      overCtx.stroke();
+      overCtx.restore();
+    }
+  }, [image, mode, toolType, brushSize, detectedObjects, scanProgress, polygonPoints, hoverPos]);
 
   useEffect(() => {
+    const canvas = canvasRef.current;
+    const overlayCanvas = overlayCanvasRef.current;
+    const maskCanvas = maskCanvasRef.current;
+
+    if (imageSize.w && imageSize.h) {
+      if (canvas) {
+        canvas.width = imageSize.w;
+        canvas.height = imageSize.h;
+      }
+      if (overlayCanvas) {
+        overlayCanvas.width = imageSize.w;
+        overlayCanvas.height = imageSize.h;
+      }
+      if (maskCanvas) {
+        maskCanvas.width = imageSize.w;
+        maskCanvas.height = imageSize.h;
+        const maskCtx = maskCanvas.getContext('2d');
+        maskCtx.clearRect(0, 0, imageSize.w, imageSize.h);
+      }
+      // Initial draw of base image
+      if (canvas && image) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+      }
+    }
+  }, [image, imageSize]);
+
+  // Redraw overlay when points, hover, or selections change
+  useEffect(() => {
     drawWorkspace();
-  }, [image, mode, toolType, brushSize, detectedObjects, scanProgress, polygonPoints]);
+  }, [polygonPoints, hoverPos, detectedObjects, scanProgress, drawWorkspace]);
+
+  const getCanvasCoords = (e) => {
+    const overlayCanvas = overlayCanvasRef.current;
+    if (!overlayCanvas) return null;
+    const rect = overlayCanvas.getBoundingClientRect();
+    let clientX, clientY;
+    if (e.touches && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+    const x = rect.width > 0 ? ((clientX - rect.left) / rect.width) * overlayCanvas.width : 0;
+    const y = rect.height > 0 ? ((clientY - rect.top) / rect.height) * overlayCanvas.height : 0;
+    return { x, y };
+  };
 
   const handleMouseDown = (e) => {
     if (!image) return;
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * canvas.width;
-    const y = ((e.clientY - rect.top) / rect.height) * canvas.height;
+    e.preventDefault();
+
+    const coords = getCanvasCoords(e);
+    if (!coords) return;
 
     if (mode === 'manual' && toolType === 'polygon') {
-      // Add point
-      setPolygonPoints(prev => [...prev, { x, y }]);
+      setPolygonPoints(prev => [...prev, { x: coords.x, y: coords.y }]);
       return;
     }
 
-    if (mode !== 'manual' || toolType === 'polygon') return;
+    isDrawingRef.current = true;
     setIsDrawing(true);
-    drawMask(x, y);
+    lastXRef.current = coords.x;
+    lastYRef.current = coords.y;
+    drawMask(coords.x, coords.y, coords.x, coords.y);
   };
 
   const handleMouseMove = (e) => {
-    if (!isDrawing) return;
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * canvas.width;
-    const y = ((e.clientY - rect.top) / rect.height) * canvas.height;
-    drawMask(x, y);
+    const overlayCanvas = overlayCanvasRef.current;
+    if (!overlayCanvas || !image) return;
+
+    const coords = getCanvasCoords(e);
+    if (!coords) return;
+
+    if (mode === 'manual') {
+      setHoverPos({ x: coords.x, y: coords.y });
+    } else {
+      setHoverPos(null);
+    }
+
+    if (isDrawingRef.current) {
+      e.preventDefault();
+      drawMask(lastXRef.current, lastYRef.current, coords.x, coords.y);
+      lastXRef.current = coords.x;
+      lastYRef.current = coords.y;
+    }
   };
 
   const handleMouseUp = () => {
+    isDrawingRef.current = false;
     setIsDrawing(false);
   };
 
-  const drawMask = (x, y) => {
+  const handleMouseLeave = () => {
+    isDrawingRef.current = false;
+    setIsDrawing(false);
+    setHoverPos(null);
+  };
+
+  const drawMask = (x1, y1, x2, y2) => {
+    const overlayCanvas = overlayCanvasRef.current;
     const maskCanvas = maskCanvasRef.current;
-    if (!maskCanvas) return;
+    if (!overlayCanvas || !maskCanvas) return;
+
     const maskCtx = maskCanvas.getContext('2d');
     maskCtx.lineCap = 'round';
     maskCtx.lineJoin = 'round';
 
+    const rect = overlayCanvas.getBoundingClientRect();
+    const scale = rect.width > 0 ? overlayCanvas.width / rect.width : 1;
+    const logicalBrushSize = brushSize * scale;
+
     if (toolType === 'brush') {
-      maskCtx.fillStyle = 'red';
       maskCtx.strokeStyle = 'red';
-      maskCtx.lineWidth = brushSize;
+      maskCtx.lineWidth = logicalBrushSize;
       maskCtx.beginPath();
-      maskCtx.arc(x, y, brushSize / 2, 0, Math.PI * 2);
-      maskCtx.fill();
+      maskCtx.moveTo(x1, y1);
+      maskCtx.lineTo(x2, y2);
+      maskCtx.stroke();
     } else if (toolType === 'eraser') {
       maskCtx.save();
       maskCtx.globalCompositeOperation = 'destination-out';
-      maskCtx.lineWidth = brushSize;
+      maskCtx.strokeStyle = 'rgba(0,0,0,1)';
+      maskCtx.lineWidth = logicalBrushSize;
       maskCtx.beginPath();
-      maskCtx.arc(x, y, brushSize / 2, 0, Math.PI * 2);
-      maskCtx.fill();
+      maskCtx.moveTo(x1, y1);
+      maskCtx.lineTo(x2, y2);
+      maskCtx.stroke();
       maskCtx.restore();
     }
 
@@ -226,99 +343,89 @@ export default function ObjectRemover({ tool, setView, setActiveTool, navigate, 
     setDetectedObjects(prev => prev.map(o => o.id === id ? { ...o, selected: !o.selected } : o));
   };
 
-  // Content-Aware Eraser Fill
-  const handleRemove = () => {
-    if (!image) return;
+  // Backend connected AI Eraser
+  const handleRemove = async () => {
+    if (!image || !imageFile) return;
     setProcessing(true);
 
-    setTimeout(() => {
-      const canvas = canvasRef.current;
-      const maskCanvas = maskCanvasRef.current;
-      const ctx = canvas.getContext('2d');
-      const maskCtx = maskCanvas.getContext('2d');
+    try {
+      const formData = new FormData();
+      formData.append('file', imageFile);
 
-      const width = canvas.width;
-      const height = canvas.height;
-
-      const imgData = ctx.getImageData(0, 0, width, height);
-      const maskImgData = maskCtx.getImageData(0, 0, width, height);
-      const pixels = imgData.data;
-      const maskPixels = maskImgData.data;
-
-      const toRemove = new Uint8Array(width * height);
-
-      // Manual brush markers
-      for (let i = 0; i < pixels.length; i += 4) {
-        if (maskPixels[i + 3] > 50) {
-          toRemove[i / 4] = 1;
+      if (mode === 'manual') {
+        const maskCanvas = maskCanvasRef.current;
+        if (maskCanvas) {
+          const maskBlob = await new Promise((resolve) => {
+            maskCanvas.toBlob((blob) => resolve(blob), 'image/png');
+          });
+          if (maskBlob && maskBlob.size > 100) {
+            formData.append('mask', maskBlob, 'mask.png');
+          } else {
+            setProcessing(false);
+            addToast('Please paint or select an object to remove first.', 'info');
+            return;
+          }
+        }
+      } else {
+        // Auto Mode
+        const selected = detectedObjects.filter(o => o.selected).map((obj, i) => ({
+          id: i + 1,
+          type: obj.name,
+          x: obj.x,
+          y: obj.y,
+          w: obj.w,
+          h: obj.h,
+          confidence: 0.95
+        }));
+        if (selected.length > 0) {
+          formData.append('regions', JSON.stringify(selected));
+        } else {
+          setProcessing(false);
+          addToast('No objects selected for removal.', 'info');
+          return;
         }
       }
 
-      // Auto bounding box markers
-      if (mode === 'auto') {
-        detectedObjects.forEach(obj => {
-          if (!obj.selected) return;
-          const ox1 = Math.round((obj.x / 100) * width);
-          const oy1 = Math.round((obj.y / 100) * height);
-          const ox2 = Math.round(((obj.x + obj.w) / 100) * width);
-          const oy2 = Math.round(((obj.y + obj.h) / 100) * height);
+      const response = await fetch(`${BACKEND_URL}/api/watermark-remove`, {
+        method: 'POST',
+        body: formData,
+      });
 
-          for (let y = oy1; y < oy2; y++) {
-            for (let x = ox1; x < ox2; x++) {
-              if (x >= 0 && x < width && y >= 0 && y < height) {
-                toRemove[y * width + x] = 1;
-              }
-            }
-          }
-        });
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || `Server error: ${response.status}`);
       }
 
-      // Multi-pass smart interpolation
-      const passes = 4;
-      const radius = 8;
-      for (let p = 0; p < passes; p++) {
-        for (let y = 0; y < height; y++) {
-          for (let x = 0; x < width; x++) {
-            const idx = y * width + x;
-            if (toRemove[idx] === 1) {
-              let rSum = 0, gSum = 0, bSum = 0, count = 0;
-              for (let dy = -radius; dy <= radius; dy++) {
-                for (let dx = -radius; dx <= radius; dx++) {
-                  const ny = y + dy;
-                  const nx = x + dx;
-                  if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
-                    const nIdx = ny * width + nx;
-                    if (toRemove[nIdx] === 0) {
-                      rSum += pixels[nIdx * 4];
-                      gSum += pixels[nIdx * 4 + 1];
-                      bSum += pixels[nIdx * 4 + 2];
-                      count++;
-                    }
-                  }
-                }
-              }
-              if (count > 0) {
-                pixels[idx * 4] = rSum / count + (Math.random() - 0.5) * 2;
-                pixels[idx * 4 + 1] = gSum / count + (Math.random() - 0.5) * 2;
-                pixels[idx * 4 + 2] = bSum / count + (Math.random() - 0.5) * 2;
-              }
-            }
-          }
+      const blob = await response.blob();
+      const cleanedUrl = URL.createObjectURL(blob);
+
+      const cleanedImg = new Image();
+      cleanedImg.onload = () => {
+        setImage(cleanedImg);
+        // Clear mask canvas
+        const maskCanvas = maskCanvasRef.current;
+        if (maskCanvas) {
+          maskCanvas.getContext('2d').clearRect(0, 0, maskCanvas.width, maskCanvas.height);
         }
-      }
-
-      ctx.putImageData(imgData, 0, 0);
-
-      const cleanImg = new Image();
-      cleanImg.onload = () => {
-        setImage(cleanImg);
-        maskCtx.clearRect(0, 0, width, height);
-        setDetectedObjects([]);
+        if (mode === 'auto') setDetectedObjects([]);
         setProcessing(false);
-        addToast('Object removed successfully!', 'success');
+        addToast('Object removed successfully by AI!', 'success');
+        
+        // Clean up object URL after a short delay
+        setTimeout(() => URL.revokeObjectURL(cleanedUrl), 5000);
       };
-      cleanImg.src = canvas.toDataURL();
-    }, 1400);
+      cleanedImg.onerror = () => {
+        setProcessing(false);
+        addToast('Failed to load the processed image.', 'error');
+        URL.revokeObjectURL(cleanedUrl);
+      };
+      cleanedImg.src = cleanedUrl;
+
+    } catch (err) {
+      setProcessing(false);
+      console.error('Object removal failed:', err);
+      addToast(`Object removal failed: ${err.message}`, 'error');
+    }
   };
 
   const handleDownload = (format) => {
@@ -409,32 +516,47 @@ export default function ObjectRemover({ tool, setView, setActiveTool, navigate, 
               position: 'relative', padding: '16px', borderRadius: '24px', width: '100%',
               display: 'flex', justifyContent: 'center', background: 'rgba(0,0,0,0.2)'
             }}>
-              {processing && (
-                <div style={{
-                  position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-                  background: 'rgba(0,0,0,0.75)', borderRadius: '24px', zIndex: 10,
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '14px'
-                }}>
+              <div style={{ position: 'relative', maxWidth: '100%', width: '100%' }}>
+                {processing && (
                   <div style={{
-                    width: '44px', height: '44px', border: '3px solid #10b981', borderTopColor: 'transparent',
-                    borderRadius: '50%', animation: 'spin 1s linear infinite'
-                  }} />
-                  <span style={{ fontSize: '15px', fontWeight: '700' }}>Erasing Object &amp; Healing Background...</span>
-                </div>
-              )}
-
-              <div style={{ position: 'relative', maxWidth: '100%' }}>
+                    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.75)', borderRadius: '24px', zIndex: 10,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '14px'
+                  }}>
+                    <div style={{
+                      width: '44px', height: '44px', border: '3px solid #10b981', borderTopColor: 'transparent',
+                      borderRadius: '50%', animation: 'spin 1s linear infinite'
+                    }} />
+                    <span style={{ fontSize: '15px', fontWeight: '700' }}>Erasing Object &amp; Healing Background...</span>
+                  </div>
+                )}
                 <canvas
                   ref={canvasRef}
-                  width={560}
-                  height={420}
+                  width={imageSize.w}
+                  height={imageSize.h}
+                  style={{
+                    borderRadius: '16px', width: '100%', height: 'auto', display: 'block',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+                  }}
+                />
+                <canvas
+                  ref={overlayCanvasRef}
+                  width={imageSize.w}
+                  height={imageSize.h}
                   onMouseDown={handleMouseDown}
                   onMouseMove={handleMouseMove}
                   onMouseUp={handleMouseUp}
-                  onMouseLeave={handleMouseUp}
+                  onMouseLeave={handleMouseLeave}
+                  onTouchStart={handleMouseDown}
+                  onTouchMove={handleMouseMove}
+                  onTouchEnd={handleMouseUp}
+                  onTouchCancel={handleMouseLeave}
                   style={{
-                    borderRadius: '16px', width: '100%', height: 'auto', display: 'block', cursor: 'crosshair',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+                    position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                    borderRadius: '16px', display: 'block',
+                    cursor: mode === 'manual' ? 'crosshair' : 'default',
+                    pointerEvents: 'auto',
+                    touchAction: mode === 'manual' ? 'none' : 'auto'
                   }}
                 />
                 <canvas ref={maskCanvasRef} style={{ display: 'none' }} />
@@ -442,10 +564,10 @@ export default function ObjectRemover({ tool, setView, setActiveTool, navigate, 
             </div>
 
             <div style={{ display: 'flex', gap: '12px', width: '100%', justifyContent: 'center' }}>
-              <button className="btn btn-primary" onClick={handleRemove} style={{ background: '#10b981', borderColor: '#10b981', minWidth: '160px' }}>
+              <button className="btn btn-primary" onClick={handleRemove} style={{ background: '#10b981', borderColor: '#10b981', minWidth: '160px' }} disabled={processing}>
                 <FiZap style={{ marginRight: '6px' }} /> Erase Object
               </button>
-              <button className="btn btn-secondary" onClick={resetAll}>
+              <button className="btn btn-secondary" onClick={resetAll} disabled={processing}>
                 <FiRefreshCw style={{ marginRight: '6px' }} /> Reset
               </button>
             </div>
@@ -529,7 +651,7 @@ export default function ObjectRemover({ tool, setView, setActiveTool, navigate, 
                   </div>
                 ) : (
                   detectedObjects.map(obj => (
-                    <div
+                     <div
                       key={obj.id}
                       onClick={() => toggleObjectSelection(obj.id)}
                       style={{

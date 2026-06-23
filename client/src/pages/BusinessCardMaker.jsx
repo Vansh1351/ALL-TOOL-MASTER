@@ -226,7 +226,8 @@ export default function BusinessCardMaker({ tool, setView, setActiveTool, naviga
         </p>
       </div>
 
-      {/* Canva Affiliate Hook */}
+      {/* Canva Affiliate Hook (Temporarily Hidden) */}
+      {false && (
       <div className="glass-panel" style={{
         padding: '16px 24px', borderRadius: '14px', marginBottom: '28px',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px',
@@ -239,6 +240,7 @@ export default function BusinessCardMaker({ tool, setView, setActiveTool, naviga
           Open Canva
         </a>
       </div>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '28px', alignItems: 'start' }} className="tool-page-grid">
         

@@ -13,6 +13,8 @@ const PRESET_GRADIENTS = [
 
 export default function BackgroundRemover({ tool, setView, setActiveTool, navigate, addToast }) {
   const [image, setImage] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [imageSize, setImageSize] = useState({ w: 800, h: 600 });
   const [cutoutImage, setCutoutImage] = useState(null);
   const [bgType, setBgType] = useState('transparent'); // transparent, color, gradient, custom
   const [solidColor, setSolidColor] = useState('#ffffff');
@@ -27,12 +29,14 @@ export default function BackgroundRemover({ tool, setView, setActiveTool, naviga
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    setImageFile(file);
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
       img.onload = () => {
         originalImageRef.current = img;
         setImage(img);
+        setImageSize({ w: img.width, h: img.height });
         setCutoutImage(null);
         addToast('Photo uploaded!', 'success');
       };
@@ -57,69 +61,85 @@ export default function BackgroundRemover({ tool, setView, setActiveTool, naviga
     reader.readAsDataURL(file);
   };
 
-  // Run AI-simulated background isolation
-  const handleRemoveBackground = () => {
-    if (!image) return;
+  const runThresholdFallback = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = image.width;
+    canvas.height = image.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(image, 0, 0);
+
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imgData.data;
+
+    // Sample corner pixels to guess background color (e.g., top-left)
+    const rBg = data[0];
+    const gBg = data[1];
+    const bBg = data[2];
+
+    // Thresholding loop to make background transparent
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i+1];
+      const b = data[i+2];
+      
+      // Calculate Euclidean distance in RGB space
+      const dist = Math.sqrt((r - rBg)**2 + (g - gBg)**2 + (b - bBg)**2);
+      if (dist < 80) { // Background match threshold
+        data[i+3] = 0; // Set alpha to 0
+      } else {
+        // Add slight smoothing/feathering near the edges
+        if (dist < 110) {
+          const alpha = ((dist - 80) / 30) * 255;
+          data[i+3] = Math.min(data[i+3], alpha);
+        }
+      }
+    }
+
+    ctx.putImageData(imgData, 0, 0);
+
+    const cutout = new Image();
+    cutout.onload = () => {
+      setCutoutImage(cutout);
+      setProcessing(false);
+      setScanProgress(-1);
+      addToast('Background removed using color keyer!', 'success');
+    };
+    cutout.src = canvas.toDataURL();
+  };
+
+  // Run AI background isolation
+  const handleRemoveBackground = async () => {
+    if (!image || !imageFile) return;
     setProcessing(true);
     setScanProgress(0);
 
-    const interval = setInterval(() => {
-      setScanProgress(p => {
-        if (p >= 100) {
-          clearInterval(interval);
-          
-          // Perform client-side color-difference transparency keying
-          // This isolates background from typical portrait/product backgrounds (e.g. solid white or green-screen,
-          // or thresholding corners to build a quick alpha mask)
-          const canvas = document.createElement('canvas');
-          canvas.width = image.width;
-          canvas.height = image.height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(image, 0, 0);
-
-          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          const data = imgData.data;
-
-          // Sample corner pixels to guess background color (e.g., top-left)
-          const rBg = data[0];
-          const gBg = data[1];
-          const bBg = data[2];
-
-          // Thresholding loop to make background transparent
-          for (let i = 0; i < data.length; i += 4) {
-            const r = data[i];
-            const g = data[i+1];
-            const b = data[i+2];
-            
-            // Calculate Euclidean distance in RGB space
-            const dist = Math.sqrt((r - rBg)**2 + (g - gBg)**2 + (b - bBg)**2);
-            if (dist < 80) { // Background match threshold
-              data[i+3] = 0; // Set alpha to 0
-            } else {
-              // Add slight smoothing/feathering near the edges
-              if (dist < 110) {
-                const alpha = ((dist - 80) / 30) * 255;
-                data[i+3] = Math.min(data[i+3], alpha);
-              }
-            }
+    try {
+      const imglyRemoveBackground = (await import('@imgly/background-removal')).default;
+      const blob = await imglyRemoveBackground(imageFile, {
+        progress: (key, current, total) => {
+          if (total > 0) {
+            setScanProgress(Math.round((current / total) * 100));
           }
-
-          ctx.putImageData(imgData, 0, 0);
-
-          const cutout = new Image();
-          cutout.onload = () => {
-            setCutoutImage(cutout);
-            setProcessing(false);
-            setScanProgress(-1);
-            addToast('Background removed!', 'success');
-          };
-          cutout.src = canvas.toDataURL();
-          
-          return -1;
         }
-        return p + 10;
       });
-    }, 150);
+
+      const cutoutUrl = URL.createObjectURL(blob);
+      const cutout = new Image();
+      cutout.onload = () => {
+        setCutoutImage(cutout);
+        setProcessing(false);
+        setScanProgress(-1);
+        addToast('Background removed by AI!', 'success');
+        
+        // Clean up object URL after a short delay
+        setTimeout(() => URL.revokeObjectURL(cutoutUrl), 5000);
+      };
+      cutout.src = cutoutUrl;
+    } catch (e) {
+      console.error("AI Background Removal failed, falling back:", e);
+      addToast("AI Model failed. Falling back to local color keyer...", "warning");
+      runThresholdFallback();
+    }
   };
 
   // Render composite canvas workspace
@@ -174,7 +194,7 @@ export default function BackgroundRemover({ tool, setView, setActiveTool, naviga
     if (scanProgress >= 0 && scanProgress <= 100) {
       const laserY = (scanProgress / 100) * canvas.height;
       ctx.strokeStyle = '#ec4899';
-      ctx.lineWidth = 4;
+      ctx.lineWidth = Math.max(3, canvas.height * 0.007);
       ctx.beginPath();
       ctx.moveTo(0, laserY);
       ctx.lineTo(canvas.width, laserY);
@@ -187,7 +207,7 @@ export default function BackgroundRemover({ tool, setView, setActiveTool, naviga
 
   useEffect(() => {
     drawWorkspace();
-  }, [image, cutoutImage, bgType, solidColor, selectedGradient, customBg, scanProgress]);
+  }, [image, cutoutImage, bgType, solidColor, selectedGradient, customBg, scanProgress, imageSize]);
 
   const handleDownload = (format) => {
     const canvas = canvasRef.current;
@@ -268,11 +288,33 @@ export default function BackgroundRemover({ tool, setView, setActiveTool, naviga
               position: 'relative', padding: '16px', borderRadius: '24px', width: '100%',
               display: 'flex', justifyContent: 'center', background: 'rgba(0,0,0,0.2)'
             }}>
-              <div style={{ position: 'relative', maxWidth: '100%' }}>
+              <div style={{ position: 'relative', maxWidth: '100%', width: '100%' }}>
+                {processing && (
+                  <div style={{
+                    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.75)', borderRadius: '24px', zIndex: 10,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '14px'
+                  }}>
+                    <div style={{
+                      width: '44px', height: '44px', border: '3px solid #ec4899', borderTopColor: 'transparent',
+                      borderRadius: '50%', animation: 'spin 1s linear infinite'
+                    }} />
+                    <span style={{ fontSize: '15px', fontWeight: '700' }}>AI Isolating Subject...</span>
+                    {scanProgress >= 0 && (
+                      <div style={{ width: '200px', height: '6px', borderRadius: '3px', background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+                        <div style={{
+                          width: `${scanProgress}%`, height: '100%', borderRadius: '3px',
+                          background: 'linear-gradient(90deg, #ec4899, #be185d)',
+                          transition: 'width 0.3s ease'
+                        }} />
+                      </div>
+                    )}
+                  </div>
+                )}
                 <canvas
                   ref={canvasRef}
-                  width={560}
-                  height={420}
+                  width={imageSize.w}
+                  height={imageSize.h}
                   style={{
                     borderRadius: '16px', width: '100%', height: 'auto', display: 'block',
                     boxShadow: '0 4px 20px rgba(0,0,0,0.2)'

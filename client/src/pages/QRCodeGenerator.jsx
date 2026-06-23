@@ -1,7 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
+import QRCode from 'qrcode';
 import {
   FiArrowLeft, FiCommand, FiDownload, FiZap, FiUpload, FiRefreshCw
 } from 'react-icons/fi';
+
+const INDUSTRIES = [
+  'Technology & Software', 'Food & Restaurant', 'Fashion & Beauty', 'Real Estate',
+  'Finance & Consulting', 'Education & Learning', 'Fitness & Health', 'Creative & Design'
+];
+
+const COLORS = [
+  { name: 'Teal Lagoon', primary: '#14b8a6', secondary: '#06b6d4', dark: '#0f172a' },
+  { name: 'Sunset Gold', primary: '#f59e0b', secondary: '#d97706', dark: '#1e293b' },
+  { name: 'Royal Purple', primary: '#a855f7', secondary: '#7c3aed', dark: '#090514' },
+  { name: 'Crimson Slate', primary: '#ef4444', secondary: '#b91c1c', dark: '#18181b' },
+  { name: 'Monochrome', primary: '#0f172a', secondary: '#334155', dark: '#ffffff' }
+];
 
 export default function QRCodeGenerator({ tool, setView, setActiveTool, navigate, addToast }) {
   const [mode, setMode] = useState('url'); // url, wifi, vcard, whatsapp, email
@@ -80,26 +94,12 @@ export default function QRCodeGenerator({ tool, setView, setActiveTool, navigate
     ctx.fillStyle = styling.bgColor;
     ctx.fillRect(0, 0, size, size);
 
-    // Fetch a base QR code matrix using QR Server API, then repaint custom dots
-    const dataString = encodeURIComponent(getPayloadData());
-    const baseQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=0&data=${dataString}`;
-
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      // Create temp canvas to read original pixel data
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = 300;
-      tempCanvas.height = 300;
-      const tempCtx = tempCanvas.getContext('2d');
-      tempCtx.drawImage(img, 0, 0, 300, 300);
-
-      const imgData = tempCtx.getImageData(0, 0, 300, 300);
-      const pixels = imgData.data;
-
-      // Draw custom dots
-      const scale = size / 300;
-      const step = 8; // Size of each QR block
+    try {
+      const dataString = getPayloadData();
+      const qrCode = QRCode.create(dataString, { errorCorrectionLevel: 'H' });
+      const { modules } = qrCode;
+      const count = modules.size;
+      const scale = size / count;
 
       ctx.save();
       
@@ -113,33 +113,29 @@ export default function QRCodeGenerator({ tool, setView, setActiveTool, navigate
       }
       ctx.fillStyle = fillStyleVal;
 
-      for (let y = 0; y < 300; y += step) {
-        for (let x = 0; x < 300; x += step) {
-          // Check if pixel is dark (lower than threshold)
-          const pIdx = (y * 300 + x) * 4;
-          const r = pixels[pIdx];
-          const g = pixels[pIdx+1];
-          const b = pixels[pIdx+2];
-
-          if (r < 120 && g < 120 && b < 120) {
-            // Draw styled block
+      for (let y = 0; y < count; y++) {
+        for (let x = 0; x < count; x++) {
+          if (modules.data[y * count + x] === 1) {
             const drawX = x * scale;
             const drawY = y * scale;
-            const drawSize = step * scale - 1;
+            const drawSize = scale;
 
-            // Anchor corner zones should stay solid square for reliable scans
-            const isAnchor = (x < 65 && y < 65) || (x > 235 && y < 65) || (x < 65 && y > 235);
+            const isAnchor = (x < 7 && y < 7) || (x >= count - 7 && y < 7) || (x < 7 && y >= count - 7);
 
             if (isAnchor || styling.dotType === 'square') {
-              ctx.fillRect(drawX, drawY, drawSize, drawSize);
+              ctx.fillRect(drawX, drawY, drawSize + 0.5, drawSize + 0.5);
             } else if (styling.dotType === 'circle') {
               ctx.beginPath();
-              ctx.arc(drawX + drawSize/2, drawY + drawSize/2, drawSize/2 * 0.95, 0, Math.PI * 2);
+              ctx.arc(drawX + drawSize/2, drawY + drawSize/2, drawSize/2 * 0.85, 0, Math.PI * 2);
               ctx.fill();
             } else if (styling.dotType === 'rounded') {
-              ctx.beginPath();
-              ctx.roundRect(drawX, drawY, drawSize, drawSize, 4);
-              ctx.fill();
+              if (ctx.roundRect) {
+                ctx.beginPath();
+                ctx.roundRect(drawX + scale * 0.05, drawY + scale * 0.05, drawSize * 0.9, drawSize * 0.9, scale * 0.2);
+                ctx.fill();
+              } else {
+                ctx.fillRect(drawX, drawY, drawSize + 0.5, drawSize + 0.5);
+              }
             }
           }
         }
@@ -149,34 +145,109 @@ export default function QRCodeGenerator({ tool, setView, setActiveTool, navigate
 
       // Overlay central logo if uploaded
       if (styling.logoUploaded && styling.logoImg) {
-        const logoSize = size * 0.20;
+        const logoSize = size * 0.22;
         const logoX = (size - logoSize) / 2;
         const logoY = (size - logoSize) / 2;
 
-        // Draw backdrop card for logo to mask QR dots
         ctx.fillStyle = styling.bgColor;
         ctx.beginPath();
-        ctx.roundRect(logoX - 4, logoY - 4, logoSize + 8, logoSize + 8, 8);
+        if (ctx.roundRect) {
+          ctx.roundRect(logoX - 6, logoY - 6, logoSize + 12, logoSize + 12, size * 0.02);
+        } else {
+          ctx.rect(logoX - 6, logoY - 6, logoSize + 12, logoSize + 12);
+        }
         ctx.fill();
 
         ctx.drawImage(styling.logoImg, logoX, logoY, logoSize, logoSize);
       }
-    };
-    img.src = baseQrUrl;
+    } catch (err) {
+      console.error("QR drawing failed:", err);
+    }
   };
 
   useEffect(() => {
     drawQRCode();
   }, [mode, inputs, styling]);
 
+  const generateSVGString = () => {
+    try {
+      const dataString = getPayloadData();
+      const qrCode = QRCode.create(dataString, { errorCorrectionLevel: 'H' });
+      const { modules } = qrCode;
+      const size = modules.size;
+      
+      let paths = [];
+      const isGradient = styling.colorType === 'gradient';
+      
+      let defs = '';
+      let fill = styling.primaryColor;
+      if (isGradient) {
+        fill = 'url(#qr-grad)';
+        defs = `
+      <defs>
+        <linearGradient id="qr-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="${styling.primaryColor}" />
+          <stop offset="100%" stop-color="${styling.secondaryColor}" />
+        </linearGradient>
+      </defs>`;
+      }
+      
+      for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+          if (modules.data[y * size + x] === 1) {
+            const isAnchor = (x < 7 && y < 7) || (x >= size - 7 && y < 7) || (x < 7 && y >= size - 7);
+            
+            if (isAnchor || styling.dotType === 'square') {
+              paths.push(`<rect x="${x}" y="${y}" width="1.05" height="1.05" fill="${fill}" />`);
+            } else if (styling.dotType === 'circle') {
+              paths.push(`<circle cx="${x + 0.5}" cy="${y + 0.5}" r="0.42" fill="${fill}" />`);
+            } else if (styling.dotType === 'rounded') {
+              paths.push(`<rect x="${x + 0.05}" y="${y + 0.05}" width="0.9" height="0.9" rx="0.18" fill="${fill}" />`);
+            }
+          }
+        }
+      }
+      
+      let logoSvg = '';
+      if (styling.logoUploaded && styling.logoImg) {
+        const logoSize = size * 0.22;
+        const logoX = (size - logoSize) / 2;
+        const logoY = (size - logoSize) / 2;
+        logoSvg = `
+      <rect x="${logoX - 0.15}" y="${logoY - 0.15}" width="${logoSize + 0.3}" height="${logoSize + 0.3}" rx="0.3" fill="${styling.bgColor}" />
+      <image x="${logoX}" y="${logoY}" width="${logoSize}" height="${logoSize}" href="${styling.logoImg.src}" />`;
+      }
+      
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="1000" height="1000">
+      <rect width="100%" height="100%" fill="${styling.bgColor}" />${defs}
+      ${paths.join('\n      ')}${logoSvg}
+    </svg>`;
+    } catch (err) {
+      console.error(err);
+      return '';
+    }
+  };
+
   const handleDownload = (format) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const link = document.createElement('a');
-    link.href = canvas.toDataURL('image/png');
-    link.download = `custom_qrcode.${format}`;
-    link.click();
-    addToast('QR Code exported successfully!', 'success');
+    
+    if (format === 'svg') {
+      const svgString = generateSVGString();
+      const blob = new Blob([svgString], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `custom_qrcode.svg`;
+      link.click();
+      addToast('QR Code exported as vector SVG!', 'success');
+    } else {
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = `custom_qrcode.png`;
+      link.click();
+      addToast('QR Code exported as PNG!', 'success');
+    }
   };
 
   return (
@@ -376,8 +447,8 @@ export default function QRCodeGenerator({ tool, setView, setActiveTool, navigate
           }}>
             <canvas
               ref={canvasRef}
-              width={320}
-              height={320}
+              width={1000}
+              height={1000}
               style={{
                 borderRadius: '8px', width: '100%', height: 'auto', display: 'block'
               }}

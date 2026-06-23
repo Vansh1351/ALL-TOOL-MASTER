@@ -38,16 +38,37 @@ export default function LogoGenerator({ tool, setView, setActiveTool, navigate, 
   });
 
   const [loading, setLoading] = useState(false);
+  const [isGenerated, setIsGenerated] = useState(false);
   
   // Concept parameters
   const [brandAssets, setBrandAssets] = useState({
     slogans: ['Innovate Your Future', 'Precision Coding', 'Digital Mastery'],
     activeSlogan: '',
     concepts: [
-      { id: 'concept1', iconType: 'circle-node', font: 'Outfit' },
-      { id: 'concept2', iconType: 'box-grid', font: 'Montserrat' },
-      { id: 'concept3', iconType: 'abstract-star', font: 'Playfair Display' },
-      { id: 'concept4', iconType: 'monogram-letter', font: 'Inter' }
+      {
+        id: 'concept1',
+        name: 'Minimalist Icon',
+        font: 'Outfit',
+        svgIcon: '<circle cx="0" cy="0" r="30" stroke="PRIMARY_COLOR" stroke-width="6" stroke-dasharray="6 6" fill="none" /><polygon points="0,-25 22,12 -22,12" fill="SECONDARY_COLOR" opacity="0.8" />'
+      },
+      {
+        id: 'concept2',
+        name: 'Letter Monogram',
+        font: 'Montserrat',
+        svgIcon: '<rect x="-35" y="-35" width="70" height="70" rx="14" fill="none" stroke-width="4" stroke="PRIMARY_COLOR" /><text x="0" y="15" fill="SECONDARY_COLOR" font-size="46" font-weight="bold" text-anchor="middle">INITIAL_LETTER</text>'
+      },
+      {
+        id: 'concept3',
+        name: 'Vintage Emblem',
+        font: 'Playfair Display',
+        svgIcon: '<polygon points="0,-45 40,30 -40,30" fill="none" stroke-width="4" stroke="PRIMARY_COLOR" /><circle cx="0" cy="5" r="24" stroke-width="3" stroke="SECONDARY_COLOR" fill="none" />'
+      },
+      {
+        id: 'concept4',
+        name: 'Corporate Grid',
+        font: 'Inter',
+        svgIcon: '<rect x="-25" y="-25" width="20" height="20" rx="4" fill="PRIMARY_COLOR" /><rect x="5" y="-25" width="20" height="20" rx="4" fill="SECONDARY_COLOR" /><rect x="-25" y="5" width="20" height="20" rx="4" fill="SECONDARY_COLOR" /><rect x="5" y="5" width="20" height="20" rx="4" fill="PRIMARY_COLOR" />'
+      }
     ],
     activeConceptIdx: 0
   });
@@ -60,14 +81,14 @@ export default function LogoGenerator({ tool, setView, setActiveTool, navigate, 
 
     const apiKey = localStorage.getItem('gemini_api_key') || '';
     const promptText = `
-Generate 3 catchy taglines/slogans for a company with this name: "${form.name}" operating in the "${form.industry}" industry.
-Format your output exactly as a JSON array of strings:
-["slogan 1", "slogan 2", "slogan 3"]
-Do not add markdown formatting or quotes.
+Company Name: "${form.name}"
+Industry: "${form.industry}"
+Preferred Style: "${form.style}"
+Slogan: "${form.slogan}"
 `;
 
     const formData = new FormData();
-    formData.append('tool', 'note-taker');
+    formData.append('tool', 'logo-generator');
     formData.append('textContent', promptText);
     if (apiKey) formData.append('apiKey', apiKey);
 
@@ -75,20 +96,35 @@ Do not add markdown formatting or quotes.
       const res = await axios.post(`${BACKEND_URL}/api/ai`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      const taglines = JSON.parse(res.data.result.replace(/```json|```/g, '').trim());
-      setBrandAssets(prev => ({
-        ...prev,
-        slogans: taglines,
-        activeSlogan: taglines[0]
-      }));
-      addToast('Logo concepts generated successfully!', 'success');
+      
+      let resText = res.data.result.trim();
+      if (resText.startsWith('```')) {
+        resText = resText.replace(/^```[a-zA-Z]*\n/, '').replace(/\n```$/, '');
+      }
+      resText = resText.replace(/```json|```/g, '').trim();
+
+      const data = JSON.parse(resText);
+
+      if (data && data.slogans && data.concepts) {
+        setBrandAssets(prev => ({
+          ...prev,
+          slogans: data.slogans,
+          activeSlogan: data.slogans[0],
+          concepts: data.concepts.map(c => ({
+            id: c.id || Math.random().toString(),
+            name: c.name || 'AI Concept',
+            font: c.font || 'Inter',
+            svgIcon: c.svgIcon || ''
+          })),
+          activeConceptIdx: 0
+        }));
+        setIsGenerated(true);
+        addToast('Unique logo concepts generated successfully!', 'success');
+      } else {
+        throw new Error("Invalid response format from server");
+      }
     } catch (e) {
       console.error(e);
-      // Fallback
-      setBrandAssets(prev => ({
-        ...prev,
-        activeSlogan: prev.slogans[0]
-      }));
       addToast('Logo generated with default templates.', 'info');
     } finally {
       setLoading(false);
@@ -101,8 +137,34 @@ Do not add markdown formatting or quotes.
     }
   }, [form.name]);
 
+  useEffect(() => {
+    if (isGenerated) return;
+    const styleMap = {
+      minimalist: 0,
+      monogram: 1,
+      emblem: 2,
+      corporate: 3
+    };
+    if (styleMap[form.style] !== undefined) {
+      setBrandAssets(prev => ({
+        ...prev,
+        activeConceptIdx: styleMap[form.style]
+      }));
+    }
+  }, [form.style, isGenerated]);
+
   const activeColor = COLORS[form.colorIdx];
-  const activeConcept = brandAssets.concepts[brandAssets.activeConceptIdx];
+  const activeConcept = brandAssets.concepts[brandAssets.activeConceptIdx] || brandAssets.concepts[0];
+
+  const renderCustomIcon = () => {
+    if (!activeConcept) return '';
+    let svg = activeConcept.svgIcon || '';
+    svg = svg.replace(/PRIMARY_COLOR/g, activeColor.primary);
+    svg = svg.replace(/SECONDARY_COLOR/g, activeColor.secondary);
+    const initial = (form.name.trim() ? form.name.charAt(0) : 'A').toUpperCase();
+    svg = svg.replace(/INITIAL_LETTER/g, initial);
+    return svg;
+  };
 
   const downloadSVG = () => {
     const svgEl = document.getElementById('logo-svg-preview');
@@ -165,11 +227,12 @@ Do not add markdown formatting or quotes.
           AI Logo <span className="text-gradient">Generator</span>
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '15px', maxWidth: '600px', margin: '0 auto' }}>
-          Instantly generate vector logo concepts for your business, startup, or blog. powered by Gemini AI.
+          Instantly generate vector logo concepts for your business, startup, or blog. Powered by Gemini AI.
         </p>
       </div>
 
-      {/* Canva Affiliate Hook */}
+      {/* Canva Affiliate Hook (Temporarily Hidden) */}
+      {false && (
       <div className="glass-panel" style={{
         padding: '16px 24px', borderRadius: '14px', marginBottom: '28px',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px',
@@ -182,6 +245,7 @@ Do not add markdown formatting or quotes.
           Explore Canva Pro
         </a>
       </div>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '28px', alignItems: 'start' }} className="tool-page-grid">
         
@@ -257,38 +321,11 @@ Do not add markdown formatting or quotes.
               viewBox="0 0 300 300"
               style={{ overflow: 'visible' }}
             >
-              {/* Logo Layout Mark */}
-              {form.style === 'minimalist' && (
-                <g transform="translate(150, 95)" fill="none" strokeWidth="6" stroke={activeColor.primary}>
-                  <circle cx="0" cy="0" r="30" strokeDasharray="6 6" />
-                  <polygon points="0,-25 22,12 -22,12" fill={activeColor.secondary} opacity="0.8" />
-                </g>
-              )}
-
-              {form.style === 'monogram' && (
-                <g transform="translate(150, 100)">
-                  <rect x="-35" y="-35" width="70" height="70" rx="14" fill="none" strokeWidth="4" stroke={activeColor.primary} />
-                  <text x="0" y="15" fill={activeColor.secondary} fontSize="46" fontWeight="bold" fontFamily={activeConcept.font} textAnchor="middle">
-                    {(form.name.trim() ? form.name.charAt(0) : 'A').toUpperCase()}
-                  </text>
-                </g>
-              )}
-
-              {form.style === 'emblem' && (
-                <g transform="translate(150, 95)">
-                  <polygon points="0,-45 40,30 -40,30" fill="none" strokeWidth="4" stroke={activeColor.primary} />
-                  <circle cx="0" cy="5" r="24" strokeWidth="3" stroke={activeColor.secondary} fill="none" />
-                </g>
-              )}
-
-              {form.style === 'corporate' && (
-                <g transform="translate(150, 95)" fill={activeColor.primary}>
-                  <rect x="-25" y="-25" width="20" height="20" rx="4" />
-                  <rect x="5" y="-25" width="20" height="20" rx="4" fill={activeColor.secondary} />
-                  <rect x="-25" y="5" width="20" height="20" rx="4" fill={activeColor.secondary} />
-                  <rect x="5" y="5" width="20" height="20" rx="4" />
-                </g>
-              )}
+              {/* Custom SVG Icon */}
+              <g
+                transform="translate(150, 95)"
+                dangerouslySetInnerHTML={{ __html: renderCustomIcon() }}
+              />
 
               {/* Title Text */}
               <text
@@ -297,7 +334,7 @@ Do not add markdown formatting or quotes.
                 fill={activeColor.secondary}
                 fontSize="24"
                 fontWeight="900"
-                fontFamily={activeConcept.font}
+                fontFamily={activeConcept ? activeConcept.font : 'Inter'}
                 textAnchor="middle"
               >
                 {form.name || 'BRAND NAME'}
@@ -317,6 +354,31 @@ Do not add markdown formatting or quotes.
               </text>
             </svg>
           </div>
+
+          {/* Concepts Selector list */}
+          {brandAssets.concepts.length > 0 && (
+            <div className="glass-panel" style={{ padding: '14px', borderRadius: '12px', width: '100%', maxWidth: '380px' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>Select Concept Design</span>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '8px' }}>
+                {brandAssets.concepts.map((c, idx) => (
+                  <button
+                    key={c.id}
+                    onClick={() => setBrandAssets(prev => ({ ...prev, activeConceptIdx: idx }))}
+                    className="btn btn-secondary"
+                    style={{
+                      fontSize: '12px', padding: '8px', textAlign: 'center',
+                      borderColor: brandAssets.activeConceptIdx === idx ? '#f59e0b' : 'var(--border-color)',
+                      color: brandAssets.activeConceptIdx === idx ? '#f59e0b' : 'var(--text-main)',
+                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+                    }}
+                    title={c.name}
+                  >
+                    {c.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Alternate Slogans list */}
           {brandAssets.slogans.length > 0 && (

@@ -202,7 +202,8 @@ export default function ThumbnailMaker({ tool, setView, setActiveTool, navigate,
         </p>
       </div>
 
-      {/* Canva Affiliate Hook */}
+      {/* Canva Affiliate Hook (Temporarily Hidden) */}
+      {false && (
       <div className="glass-panel" style={{
         padding: '16px 24px', borderRadius: '14px', marginBottom: '28px',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px',
@@ -215,6 +216,7 @@ export default function ThumbnailMaker({ tool, setView, setActiveTool, navigate,
           Open Canva Pro
         </a>
       </div>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '28px', alignItems: 'start' }} className="tool-page-grid">
         

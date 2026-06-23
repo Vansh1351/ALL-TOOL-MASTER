@@ -173,9 +173,8 @@ export default function WatermarkRemover({ tool, setView, setActiveTool, navigat
         const ctx = canvas.getContext('2d');
         originalPixelsRef.current = ctx.getImageData(0, 0, imageSize.w, imageSize.h);
       }
-      drawOverlay();
     }
-  }, [image, imageSize, drawBaseImage, drawOverlay]);
+  }, [image, imageSize, drawBaseImage]);
 
   // Re-draw overlay whenever it changes
   useEffect(() => {

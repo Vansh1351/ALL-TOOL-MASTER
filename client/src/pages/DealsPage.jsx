@@ -3,7 +3,7 @@ import { AFFILIATE_LINKS } from '../affiliateLinks';
 import { FiGlobe, FiCheck, FiShoppingBag, FiExternalLink, FiVolume2, FiImage, FiEdit, FiLock, FiLayout } from 'react-icons/fi';
 
 export default function DealsPage({ navigate }) {
-  const deals = [
+  const allDeals = [
     {
       id: 'namecheap',
       title: 'Namecheap Domain Names & Security',
@@ -131,6 +131,9 @@ export default function DealsPage({ navigate }) {
       reviewView: 'elementor-deal'
     }
   ];
+
+  // Temporary filter: only show namecheap and elevenlabs
+  const deals = allDeals.filter(deal => ['namecheap', 'elevenlabs'].includes(deal.id));
 
   return (
     <div style={{ padding: '60px 0' }} className="animate-fade-in">

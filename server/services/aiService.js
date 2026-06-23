@@ -155,6 +155,55 @@ If no watermarks are detected, return exactly: []
 
 CRITICAL: Return ONLY the raw JSON array. No other text.`;
       break;
+    case 'logo-generator':
+    case 'ai-logo-generator':
+      prompt = `You are a world-class professional brand identity designer and SVG developer.
+Your task is to generate 3 catchy slogans/taglines and 4 completely unique, custom, creative vector logo marks/icons as SVG elements for a company.
+
+Based on the company details provided in the context, create 4 different vector logo concepts.
+Design Guidelines:
+- The logo marks must look highly professional, unique, premium, and meaningful for the specific company name, industry, and style.
+- Each concept MUST be a set of valid inner SVG tags (such as <path>, <circle>, <polygon>, <rect>, <g>, etc.) centered around coordinate (0, 0).
+- The entire design should fit within a boundary of roughly -40 to 40 on both X and Y axes.
+- Use placeholders "PRIMARY_COLOR" and "SECONDARY_COLOR" for fill or stroke attributes so colors can be dynamically swapped.
+- Do NOT output the outer <svg> tag. Output only the inner elements.
+- Use SINGLE QUOTES (') for all HTML/SVG attributes (e.g. fill='PRIMARY_COLOR' or d='M -20 -20 L 20 20') inside the "svgIcon" string to prevent double quote JSON parsing failures. Do NOT use escaped double quotes inside "svgIcon".
+- The icons must be sophisticated and highly custom. For example, if it's a tech company, design a cool abstract chip, network nodes, or a futuristic polygon. If it's a food company, design custom leaves, spoons, or steam vector paths. If it is corporate, design clean intersecting grids or geometric bands.
+- Do NOT use standard plain circles and triangles unless they are arranged in an extremely creative way.
+
+Format your output strictly as a JSON object:
+{
+  "slogans": ["slogan 1", "slogan 2", "slogan 3"],
+  "concepts": [
+    {
+      "id": "concept1",
+      "name": "Concept Name 1",
+      "font": "Inter",
+      "svgIcon": "<path d='M -20 0 L 20 0' stroke='PRIMARY_COLOR' stroke-width='4' />"
+    },
+    {
+      "id": "concept2",
+      "name": "Concept Name 2",
+      "font": "Montserrat",
+      "svgIcon": "..."
+    },
+    {
+      "id": "concept3",
+      "name": "Concept Name 3",
+      "font": "Outfit",
+      "svgIcon": "..."
+    },
+    {
+      "id": "concept4",
+      "name": "Concept Name 4",
+      "font": "Playfair Display",
+      "svgIcon": "..."
+    }
+  ]
+}
+
+CRITICAL: Return ONLY valid, parser-friendly JSON. Do not wrap in markdown \`\`\`json.`;
+      break;
     default:
       prompt = `Provide a comprehensive summary and analysis of the attached content. Highlight all main topics and present them clearly in markdown.`;
   }
@@ -221,6 +270,15 @@ ${contextText ? `Context Content:\n${contextText}\n\n` : ''}${textContent ? `Tex
           for (let attempt = 1; attempt <= attempts; attempt++) {
             try {
               console.log(`Calling OpenRouter model ${model} (attempt ${attempt}/${attempts})...`);
+              const requestPayload = {
+                model: model,
+                messages: [
+                  { role: "user", content: fullPrompt }
+                ]
+              };
+              if (tool === 'logo-generator' || tool === 'ai-logo-generator' || tool === 'watermark-remover') {
+                requestPayload.response_format = { type: "json_object" };
+              }
               const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
                 method: "POST",
                 headers: {
@@ -229,12 +287,7 @@ ${contextText ? `Context Content:\n${contextText}\n\n` : ''}${textContent ? `Tex
                   "HTTP-Referer": "http://localhost:5000",
                   "X-Title": "All Tool Master"
                 },
-                body: JSON.stringify({
-                  model: model,
-                  messages: [
-                    { role: "user", content: fullPrompt }
-                  ]
-                })
+                body: JSON.stringify(requestPayload)
               });
 
               if (!response.ok) {
@@ -322,9 +375,14 @@ ${contextText ? `Context Content:\n${contextText}\n\n` : ''}${textContent ? `Tex
           for (let attempt = 1; attempt <= attempts; attempt++) {
             try {
               console.log(`Calling SDK model ${model} (attempt ${attempt}/${attempts})...`);
+               const config = {};
+              if (tool === 'logo-generator' || tool === 'ai-logo-generator' || tool === 'watermark-remover') {
+                config.responseMimeType = 'application/json';
+              }
               const response = await ai.models.generateContent({
                 model: model,
-                contents: contents
+                contents: contents,
+                config: config
               });
               responseText = response.text;
               break;
