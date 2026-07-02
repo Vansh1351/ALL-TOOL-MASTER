@@ -1346,20 +1346,20 @@ export default function App() {
                     </a>
                   </div>
 
-                  {/* Grammarly Card */}
+                  {/* Elementor Card */}
                   <div className="glass-panel" style={{ padding: '24px', borderRadius: '18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'rgba(0, 0, 0, 0.03)' }}>
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                        <span style={{ fontSize: '11px', fontWeight: '800', color: '#11a683', background: 'rgba(17, 166, 131, 0.1)', padding: '4px 10px', borderRadius: '6px' }}>AI Writing</span>
-                        <span style={{ fontSize: '11.5px', fontWeight: '800', color: '#10b981' }}>Improve Writing Free</span>
+                        <span style={{ fontSize: '11px', fontWeight: '800', color: '#8d00c4', background: 'rgba(141, 0, 196, 0.1)', padding: '4px 10px', borderRadius: '6px' }}>Web Builder</span>
+                        <span style={{ fontSize: '11.5px', fontWeight: '800', color: '#10b981' }}>#1 WP Page Builder</span>
                       </div>
-                      <h3 style={{ fontSize: '17px', fontWeight: '800', marginBottom: '8px' }}>Grammarly Assistant</h3>
+                      <h3 style={{ fontSize: '17px', fontWeight: '800', marginBottom: '8px' }}>Elementor Pro Builder</h3>
                       <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5', marginBottom: '16px' }}>
-                        Perfect your emails, essays, and articles with advanced AI suggestions for grammar, tone, clarity, and style.
+                        Build custom, high-speed WordPress websites with a professional drag-and-drop live editor and 100+ responsive widgets.
                       </p>
                     </div>
-                    <a href={AFFILIATE_LINKS.grammarly || "#affiliate"} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ background: '#11a683', borderColor: '#11a683', width: '100%', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', textDecoration: 'none' }}>
-                      Improve Writing Free <FiExternalLink size={14} />
+                    <a href={AFFILIATE_LINKS.elementor} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ background: '#8d00c4', borderColor: '#8d00c4', width: '100%', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', textDecoration: 'none' }}>
+                      Get Elementor Pro <FiExternalLink size={14} />
                     </a>
                   </div>
                 </div>

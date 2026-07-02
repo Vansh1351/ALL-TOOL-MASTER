@@ -132,8 +132,8 @@ export default function DealsPage({ navigate }) {
     }
   ];
 
-  // Temporary filter: only show namecheap and elevenlabs
-  const deals = allDeals.filter(deal => ['namecheap', 'elevenlabs'].includes(deal.id));
+  // Temporary filter: show namecheap, elevenlabs, and elementor
+  const deals = allDeals.filter(deal => ['namecheap', 'elevenlabs', 'elementor'].includes(deal.id));
 
   return (
     <div style={{ padding: '60px 0' }} className="animate-fade-in">

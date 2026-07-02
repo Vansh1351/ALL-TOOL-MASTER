@@ -17,6 +17,6 @@ export const AFFILIATE_LINKS = {
   // NordVPN Affiliate (under process)
   nordvpn: '#',
 
-  // Elementor Affiliate (under process)
-  elementor: '#'
+  // Elementor Affiliate
+  elementor: 'https://be.elementor.com/visit/?bta=231879&brand=elementor'
 };
