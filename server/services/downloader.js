@@ -88,6 +88,39 @@ function setupCookies() {
   }
 }
 
+// Helper to configure dedicated Instagram cookies for yt-dlp
+function setupInstagramCookies() {
+  const envCookies = process.env.INSTAGRAM_COOKIES || process.env.YOUTUBE_COOKIES;
+  const cookiesPath = path.join(binDir, 'instagram_cookies.txt');
+
+  if (!envCookies) {
+    const rootCookies = path.join(__dirname, '..', 'instagram_cookies.txt');
+    if (fs.existsSync(rootCookies)) {
+      return rootCookies;
+    }
+    const yCookies = setupCookies();
+    if (yCookies) return yCookies;
+    return null;
+  }
+
+  try {
+    let cookiesContent = envCookies.trim();
+    if (!cookiesContent.includes('# Netscape') && !cookiesContent.includes('\t') && cookiesContent.length > 20) {
+      try {
+        const decoded = Buffer.from(cookiesContent, 'base64').toString('utf8');
+        if (decoded.includes('# Netscape') || decoded.includes('\t')) {
+          cookiesContent = decoded;
+        }
+      } catch (e) {}
+    }
+    fs.writeFileSync(cookiesPath, cookiesContent, 'utf8');
+    return cookiesPath;
+  } catch (err) {
+    console.error("Failed to write instagram_cookies.txt:", err);
+    return null;
+  }
+}
+
 // Determine binary name and URL
 let binaryName = 'yt-dlp';
 let downloadUrl = 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp';
@@ -166,7 +199,7 @@ export async function ensureYtdlp() {
  * @param {string} quality - quality selection (e.g. 'best', '1080p', '720p', etc.)
  * @param {string} outputDir - Directory to save files
  */
-async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
+async function downloadMediaWithYtdlp(url, format, quality, outputDir, options = {}) {
   const binary = await ensureYtdlp();
   
   // Create output path format
@@ -189,6 +222,15 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
     '-4',
     '--socket-timeout', '30'
   ];
+
+  // Configure proxy if provided in environment variables and enabled
+  if (options.useProxy !== false) {
+    const proxyUrl = process.env.DOWNLOAD_PROXY || process.env.HTTP_PROXY || process.env.HTTPS_PROXY;
+    if (proxyUrl) {
+      console.log(`Configuring yt-dlp to use proxy: ${proxyUrl}`);
+      args.push('--proxy', proxyUrl);
+    }
+  }
 
   // Check if the binary supports the requested browser impersonation target.
   const chromeImpersonateTarget = await new Promise(resolve => {
@@ -221,7 +263,7 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
     console.log("Global ffmpeg found in PATH. Using system-installed ffmpeg.");
   }
 
-  const resolvedCookiesPath = setupCookies();
+  const resolvedCookiesPath = options.customCookiesPath || (options.useCookies !== false ? setupCookies() : null);
 
   if (format === 'mp3') {
     args.push('-x', '--audio-format', 'mp3', '--audio-quality', '0');
@@ -257,7 +299,7 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
         }
         if (matched) {
           // If the excluded argument takes a parameter (e.g. -f, --cookies, --extractor-args), skip the next token too
-          const hasParam = ['-f', '-S', '--cookies', '--extractor-args', '--cookies-from-browser'].includes(argList[i]);
+          const hasParam = ['-f', '-S', '--cookies', '--extractor-args', '--cookies-from-browser', '--proxy'].includes(argList[i]);
           if (hasParam) {
             i++;
           }
@@ -270,7 +312,7 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
 
     // Helper to check if cookies are present in base arguments
     const addCookies = (argList) => {
-      if (resolvedCookiesPath) {
+      if (resolvedCookiesPath && options.useCookies !== false) {
         return [...argList, '--cookies', resolvedCookiesPath];
       }
       return argList;
@@ -285,16 +327,21 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
     };
 
     // 1. Default player client, with cookies
-    addAttempt("Default player client (with cookies)", addCookies([...baseArgs]), false);
+    if (options.useCookies !== false && resolvedCookiesPath) {
+      addAttempt("Default player client (with cookies)", addCookies([...baseArgs]), false);
+    }
 
     // 2. Default player client, without cookies
     addAttempt("Default player client (without cookies)", [...baseArgs], false);
 
     // 3. Fallback format (no -f/-S restrictions), with cookies
-    addAttempt("Fallback format selection (with cookies)", addCookies(filterArgs([...baseArgs], ['-f', '-S'])), false);
+    if (options.useCookies !== false && resolvedCookiesPath) {
+      addAttempt("Fallback format selection (with cookies)", addCookies(filterArgs([...baseArgs], ['-f', '-S'])), false);
+    }
 
     // 4. Fallback format (no -f/-S restrictions), without cookies
     addAttempt("Fallback format selection (without cookies)", filterArgs([...baseArgs], ['-f', '-S']), false);
+
 
     // 5. TV client fallback, without cookies
     addAttempt("TV player client fallback (without cookies)", [
@@ -826,13 +873,52 @@ async function tryCobaltForInstagram(postUrl) {
 
 /**
  * Main Instagram download orchestrator
- * Tries multiple strategies in sequence, downloads the file on success
+ * Tries multiple strategies in sequence:
+ * 1. Method 1: yt-dlp with proxy (using DOWNLOAD_PROXY/HTTP_PROXY/HTTPS_PROXY)
+ * 2. Method 2: yt-dlp with cookies (using INSTAGRAM_COOKIES/YOUTUBE_COOKIES)
+ * 3. Scrapers fallback: indown.io, SSSInstagram, Cobalt
  */
 async function downloadInstagram(postUrl, format, outputDir) {
   const strategies = [
-    { name: 'indown.io', fn: () => tryIndownIo(postUrl) },
-    { name: 'SSSInstagram', fn: () => trySSSInstagram(postUrl) },
-    { name: 'Cobalt', fn: () => tryCobaltForInstagram(postUrl) }
+    {
+      name: 'yt-dlp with proxy (Method 1)',
+      fn: async () => {
+        const proxyUrl = process.env.DOWNLOAD_PROXY || process.env.HTTP_PROXY || process.env.HTTPS_PROXY;
+        if (!proxyUrl) {
+          throw new Error('Proxy not configured on server (DOWNLOAD_PROXY environment variable is empty)');
+        }
+        console.log(`[Instagram] Executing yt-dlp with proxy: ${proxyUrl}`);
+        return await downloadMediaWithYtdlp(postUrl, format, 'best', outputDir, { useProxy: true, useCookies: false });
+      },
+      isDirectFile: true
+    },
+    {
+      name: 'yt-dlp with cookies (Method 2)',
+      fn: async () => {
+        const cookiesPath = setupInstagramCookies();
+        if (!cookiesPath) {
+          throw new Error('Instagram cookies not configured on server (YOUTUBE_COOKIES/INSTAGRAM_COOKIES environment variables are empty)');
+        }
+        console.log(`[Instagram] Executing yt-dlp with cookies: ${cookiesPath}`);
+        return await downloadMediaWithYtdlp(postUrl, format, 'best', outputDir, { useProxy: false, useCookies: true, customCookiesPath: cookiesPath });
+      },
+      isDirectFile: true
+    },
+    {
+      name: 'indown.io scraper',
+      fn: () => tryIndownIo(postUrl),
+      isDirectFile: false
+    },
+    {
+      name: 'SSSInstagram scraper',
+      fn: () => trySSSInstagram(postUrl),
+      isDirectFile: false
+    },
+    {
+      name: 'Cobalt scraper',
+      fn: () => tryCobaltForInstagram(postUrl),
+      isDirectFile: false
+    }
   ];
 
   let lastError = 'Unknown error';
@@ -840,10 +926,18 @@ async function downloadInstagram(postUrl, format, outputDir) {
   for (const strategy of strategies) {
     try {
       console.log(`[Instagram] Trying strategy: ${strategy.name}...`);
+      
+      if (strategy.isDirectFile) {
+        const filePath = await strategy.fn();
+        console.log(`[Instagram] Successfully downloaded via ${strategy.name}: ${filePath}`);
+        return filePath;
+      }
+
+      // If it's a URL-returning strategy, resolve and download
       const mediaUrl = await strategy.fn();
       console.log(`[Instagram] ${strategy.name} resolved URL: ${mediaUrl.substring(0, 80)}...`);
 
-      // Now download the actual media file
+      // Download the resolved media URL
       const dlController = new AbortController();
       const dlTimeout = setTimeout(() => dlController.abort(), 120000);
 
@@ -890,7 +984,7 @@ async function downloadInstagram(postUrl, format, outputDir) {
   }
 
   throw new Error(
-    `Instagram download failed. Instagram blocks server IP access to media.\n\nTried: indown.io, SSSInstagram, Cobalt. All failed.\n\nLast error: ${lastError}\n\nPlease try downloading directly at: https://indown.io or https://snapinsta.app`
+    `Instagram download failed. Instagram blocks server IP access to media.\n\nTried: proxy, cookies, indown.io, SSSInstagram, Cobalt. All failed.\n\nLast error: ${lastError}`
   );
 }
 
