@@ -393,3 +393,59 @@ h1, h2, h3, h4, h5, h6 {
     order: 0;
   }
 }
+
+/* Tool Page Two-Column Grid (Responsive) */
+.tool-page-grid {
+  display: grid;
+  gap: 28px;
+  align-items: start;
+}
+
+@media (min-width: 769px) {
+  .tool-page-grid {
+    grid-template-columns: 1.1fr 0.9fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .tool-page-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Canvas tools responsive */
+@media (max-width: 600px) {
+  canvas {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* Input range slider style */
+input[type="range"] {
+  accent-color: var(--accent-color);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Image lazy loading blur-up */
+img {
+  transition: opacity 0.3s ease;
+}
+
+/* Prevent overflow on mobile */
+@media (max-width: 480px) {
+  .btn {
+    font-size: 14px;
+    padding: 10px 18px;
+  }
+  h1 {
+    font-size: 26px !important;
+  }
+  h2 {
+    font-size: 22px !important;
+  }
+}

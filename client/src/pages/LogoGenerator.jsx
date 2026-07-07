@@ -28,6 +28,50 @@ const COLORS = [
   { name: 'Monochrome', primary: '#0f172a', secondary: '#334155', dark: '#ffffff' }
 ];
 
+// ── Dynamic SVG concept generator based on brand name + industry ──────────────────────
+const generateDynamicConcepts = (brandName, industry, colorPrimary, colorSecondary) => {
+  const seed = brandName.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  const r = (n) => ((seed * 9301 + n * 49297 + 233) % 6271) / 6271;
+
+  const initial = brandName.trim() ? brandName.charAt(0).toUpperCase() : 'A';
+  const initial2 = brandName.trim().length > 1 ? brandName.charAt(1).toUpperCase() : initial;
+
+  // Shape variants driven by brand name seed
+  const variants = [
+    // 1. Abstract Tech — circuit-like icon
+    {
+      id: 'concept-tech', name: 'Abstract Tech', font: 'Inter',
+      svgIcon: `<circle cx="0" cy="${-20 - r(1) * 8}" r="${18 + r(2) * 10}" stroke="PRIMARY_COLOR" stroke-width="5" fill="none"/>
+      <line x1="${-20 + r(3)*5}" y1="${-5 + r(4)*5}" x2="${20 - r(5)*5}" y2="${-5 + r(6)*5}" stroke="SECONDARY_COLOR" stroke-width="3"/>
+      <circle cx="${-15 + r(7)*8}" cy="${5 + r(8)*6}" r="4" fill="PRIMARY_COLOR"/>
+      <circle cx="${15 - r(9)*8}" cy="${5 + r(10)*6}" r="4" fill="SECONDARY_COLOR"/>`
+    },
+    // 2. Monogram — styled initials with dynamic frame
+    {
+      id: 'concept-mono', name: 'Letter Monogram', font: 'Montserrat',
+      svgIcon: `<rect x="${-32+r(11)*5}" y="${-32+r(12)*5}" width="${64-r(13)*4}" height="${64-r(14)*4}" rx="${8+r(15)*12}" fill="none" stroke="PRIMARY_COLOR" stroke-width="4"/>
+      <text x="0" y="14" fill="SECONDARY_COLOR" font-size="${40+r(16)*8}" font-weight="900" text-anchor="middle">${initial}</text>`
+    },
+    // 3. Geometric Emblem — polygon + inner ring combo
+    {
+      id: 'concept-emblem', name: 'Geometric Emblem', font: 'Playfair Display',
+      svgIcon: `<polygon points="0,${-38-r(17)*6} ${34+r(18)*6},${18+r(19)*6} ${-34-r(20)*6},${18+r(21)*6}" fill="none" stroke="PRIMARY_COLOR" stroke-width="4"/>
+      <circle cx="0" cy="${-5+r(22)*5}" r="${18+r(23)*6}" stroke="SECONDARY_COLOR" stroke-width="3" fill="none"/>
+      <text x="0" y="${-1+r(24)*3}" fill="PRIMARY_COLOR" font-size="${14+r(25)*4}" font-weight="800" text-anchor="middle">${initial}${initial2}</text>`
+    },
+    // 4. Corporate Grid — dynamic 4-tile grid logo
+    {
+      id: 'concept-corp', name: 'Corporate Grid', font: 'Outfit',
+      svgIcon: `<rect x="${-26+r(26)*4}" y="${-26+r(27)*4}" width="${18+r(28)*6}" height="${18+r(29)*6}" rx="4" fill="PRIMARY_COLOR"/>
+      <rect x="${5-r(30)*2}" y="${-26+r(31)*4}" width="${18+r(32)*6}" height="${18+r(33)*6}" rx="4" fill="SECONDARY_COLOR" opacity="0.8"/>
+      <rect x="${-26+r(34)*4}" y="${5-r(35)*2}" width="${18+r(36)*6}" height="${18+r(37)*6}" rx="4" fill="SECONDARY_COLOR" opacity="0.8"/>
+      <rect x="${5-r(38)*2}" y="${5-r(39)*2}" width="${18+r(40)*6}" height="${18+r(41)*6}" rx="4" fill="PRIMARY_COLOR"/>`
+    }
+  ];
+
+  return variants;
+};
+
 export default function LogoGenerator({ tool, setView, setActiveTool, navigate, addToast }) {
   const [form, setForm] = useState({
     name: '',
@@ -74,6 +118,18 @@ export default function LogoGenerator({ tool, setView, setActiveTool, navigate, 
   });
 
   const set = (key, val) => setForm(p => ({ ...p, [key]: val }));
+
+  // Auto-refresh local concepts whenever name/industry changes (no AI needed)
+  useEffect(() => {
+    if (!form.name.trim()) return;
+    const color = COLORS[form.colorIdx];
+    const dynamic = generateDynamicConcepts(form.name, form.industry, color.primary, color.secondary);
+    setBrandAssets(prev => ({
+      ...prev,
+      concepts: dynamic,
+      activeConceptIdx: 0
+    }));
+  }, [form.name, form.industry, form.colorIdx]);
 
   const handleGenerate = async () => {
     if (!form.name.trim()) return;
@@ -136,22 +192,6 @@ Slogan: "${form.slogan}"
       setBrandAssets(p => ({ ...p, activeSlogan: form.slogan || p.slogans[0] }));
     }
   }, [form.name]);
-
-  useEffect(() => {
-    if (isGenerated) return;
-    const styleMap = {
-      minimalist: 0,
-      monogram: 1,
-      emblem: 2,
-      corporate: 3
-    };
-    if (styleMap[form.style] !== undefined) {
-      setBrandAssets(prev => ({
-        ...prev,
-        activeConceptIdx: styleMap[form.style]
-      }));
-    }
-  }, [form.style, isGenerated]);
 
   const activeColor = COLORS[form.colorIdx];
   const activeConcept = brandAssets.concepts[brandAssets.activeConceptIdx] || brandAssets.concepts[0];
@@ -247,7 +287,7 @@ Slogan: "${form.slogan}"
       </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '28px', alignItems: 'start' }} className="tool-page-grid">
+      <div className="tool-page-grid">
         
         {/* Left Input form */}
         <div className="glass-panel" style={{ borderRadius: '20px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '18px' }}>

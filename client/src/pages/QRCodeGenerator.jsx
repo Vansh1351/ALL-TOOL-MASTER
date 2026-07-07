@@ -281,7 +281,7 @@ export default function QRCodeGenerator({ tool, setView, setActiveTool, navigate
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '28px', alignItems: 'start' }} className="tool-page-grid">
+      <div className="tool-page-grid">
         
         {/* Left Form controls */}
         <div className="glass-panel" style={{ borderRadius: '20px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '18px' }}>

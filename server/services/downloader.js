@@ -479,10 +479,11 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
 
 async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
   const activeInstances = [
-    'https://dog.kittycat.boo',
-    'https://cobaltapi.kittycat.boo',
-    'https://rue-cobalt.xenon.zone',
-    'https://api.cobalt.liubquanti.click'
+    'https://lime.clxxped.lol',          // 100% uptime (cobalt.clxxped.lol)
+    'https://nuko-c.meowing.de',          // 100% uptime (cobalt.meowing.de)
+    'https://cobalt.alpha.wolfy.love',    // 87% uptime (cobalt.canine.tools)
+    'https://rue-cobalt.xenon.zone',      // 83% uptime (cobalt.xenon.zone)
+    'https://api.cobalt.liubquanti.click' // fallback (cobalt.liubquanti.click)
   ];
 
   const COBALT_TIMEOUT_MS = 10000; // 10 second timeout per request for the metadata phase
