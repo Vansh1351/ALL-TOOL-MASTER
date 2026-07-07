@@ -480,8 +480,9 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir) {
 async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
   const activeInstances = [
     'https://dog.kittycat.boo',
-    'https://fox.kittycat.boo',
-    'https://cobaltapi.kittycat.boo'
+    'https://cobaltapi.kittycat.boo',
+    'https://rue-cobalt.xenon.zone',
+    'https://api.cobalt.liubquanti.click'
   ];
 
   const COBALT_TIMEOUT_MS = 10000; // 10 second timeout per request for the metadata phase
@@ -626,6 +627,26 @@ async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
   }
 }
 
+function getFriendlyErrorMessage(rawError, url) {
+  const err = (rawError || '').toLowerCase();
+  
+  if (url.includes('instagram.com') || url.includes('instagr.am')) {
+    if (err.includes('empty media response') || err.includes('login') || err.includes('cookies') || err.includes('authentication')) {
+      return "Instagram requires account authentication to download this media.\n\nThe server IP is currently restricted by Instagram. If you are the site administrator, please export your Instagram session cookies as a Netscape cookies.txt file and set it in the YOUTUBE_COOKIES environment variable to resume downloads.";
+    }
+  }
+  
+  if (err.includes('confirm you\'re not a bot') || err.includes('sign in to confirm') || err.includes('confirm you are not a bot')) {
+    return "The media platform is blocking the download request (bot detection/rate limit).\n\nIf you are the site administrator, please configure a cookies file (YOUTUBE_COOKIES) or a proxy on the server to bypass this block.";
+  }
+  
+  if (err.includes('private') || err.includes('not available') || err.includes('removed')) {
+    return "This video is private, age-restricted, or deleted. It cannot be downloaded anonymously.";
+  }
+  
+  return `Download failed: ${rawError || 'Unknown extractor error'}`;
+}
+
 export async function downloadMedia(url, format, quality, outputDir) {
   // Strategy: Try Cobalt API first (faster, uses external CDN infrastructure)
   // then fall back to local yt-dlp binary (slower on datacenter IPs but more compatible)
@@ -640,8 +661,9 @@ export async function downloadMedia(url, format, quality, outputDir) {
       return filePath;
     } catch (ytdlpError) {
       console.error(`yt-dlp fallback also failed: ${ytdlpError.message}`);
-      // Throw yt-dlp error as it has more detailed diagnostics
-      throw ytdlpError;
+      // Parse the error message to make it user-friendly
+      const friendlyMsg = getFriendlyErrorMessage(ytdlpError.message, url);
+      throw new Error(friendlyMsg);
     }
   }
 }
