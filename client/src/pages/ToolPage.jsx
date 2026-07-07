@@ -1041,14 +1041,48 @@ Please verify the server status above or try again in a few seconds.`;
             <div style={{ textAlign: 'center', padding: '30px 0' }}>
               <FiAlertCircle size={56} style={{ color: '#ef4444', marginBottom: '16px' }} />
               <h4 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '8px' }}>Operation Failed</h4>
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '24px', whiteSpace: 'pre-wrap' }}>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px', whiteSpace: 'pre-wrap', textAlign: 'left', background: 'var(--bg-grid)', padding: '14px 18px', borderRadius: '10px', lineHeight: '1.7' }}>
                 {errorMessage}
               </p>
+
+              {/* Instagram-specific alternative links */}
+              {(errorMessage || '').toLowerCase().includes('instagram') && (
+                <div style={{ marginBottom: '20px', padding: '16px 18px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.25)', borderRadius: '12px', textAlign: 'left' }}>
+                  <p style={{ fontSize: '13px', fontWeight: '700', color: '#f59e0b', marginBottom: '10px' }}>
+                    ✅ Download this Instagram video for free:
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {[
+                      { label: 'indown.io — Fast & Free', href: 'https://indown.io' },
+                      { label: 'snapinsta.app — No Watermark', href: 'https://snapinsta.app' },
+                      { label: 'sssinsta.com — HD Download', href: 'https://sssinsta.com' }
+                    ].map(({ label, href }) => (
+                      <a
+                        key={href}
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '8px',
+                          padding: '10px 14px', borderRadius: '8px',
+                          background: 'var(--bg-card)', border: '1px solid var(--border-color)',
+                          color: 'var(--accent-color)', textDecoration: 'none',
+                          fontSize: '13px', fontWeight: '600', transition: 'all 0.2s'
+                        }}
+                      >
+                        <FiExternalLink size={14} /> {label}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <button className="btn btn-primary" onClick={() => setStatus('idle')} style={{ width: '100%' }}>
                 Try Again
               </button>
             </div>
           )}
+
         </div>
 
         {/* Right Column: Sticky instruction / Related tools panel */}

@@ -628,6 +628,276 @@ async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════
+// DEDICATED INSTAGRAM DOWNLOADER (bypasses datacenter IP blocks)
+// ═══════════════════════════════════════════════════════════════
+
+function extractInstagramShortcode(url) {
+  // Extract shortcode from all Instagram URL types:
+  // /p/CODE, /reel/CODE, /reels/CODE, /tv/CODE
+  const m = url.match(/instagram\.com\/(?:p|reel|reels|tv)\/([A-Za-z0-9_-]+)/);
+  return m ? m[1] : null;
+}
+
+/**
+ * Strategy 1: Use indown.io free scraper backend
+ * This service reverse-engineers Instagram's internal API and works from any IP
+ */
+async function tryIndownIo(postUrl) {
+  const TIMEOUT = 18000;
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), TIMEOUT);
+
+  try {
+    // Step 1: Get the nonce token from the page
+    const pageRes = await fetch('https://indown.io/', {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Referer': 'https://indown.io/'
+      },
+      signal: controller.signal
+    });
+
+    clearTimeout(t);
+    if (!pageRes.ok) throw new Error(`indown.io page fetch failed: ${pageRes.status}`);
+
+    const pageHtml = await pageRes.text();
+
+    // Extract nonce and referer token from page
+    const nonceMatch = pageHtml.match(/name="nonce"\s+value="([^"]+)"/);
+    const nonce = nonceMatch ? nonceMatch[1] : '';
+
+    // Step 2: Submit the form with the Instagram URL
+    const formData = new URLSearchParams();
+    formData.append('url', postUrl);
+    formData.append('nonce', nonce);
+    formData.append('lang', 'en');
+    formData.append('referer', 'https://indown.io/');
+
+    const controller2 = new AbortController();
+    const t2 = setTimeout(() => controller2.abort(), TIMEOUT);
+
+    const apiRes = await fetch('https://indown.io/', {
+      method: 'POST',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Referer': 'https://indown.io/',
+        'Origin': 'https://indown.io'
+      },
+      body: formData.toString(),
+      signal: controller2.signal
+    });
+
+    clearTimeout(t2);
+    if (!apiRes.ok) throw new Error(`indown.io API response: ${apiRes.status}`);
+
+    const html = await apiRes.text();
+
+    // Extract video download URLs from HTML response
+    const videoMatches = [...html.matchAll(/href="(https?:\/\/[^"]+\.mp4[^"]*)"/gi)];
+    const directMatches = [...html.matchAll(/src="(https?:\/\/[^"]+\.mp4[^"]*)"/gi)];
+    const cdnMatches = [...html.matchAll(/"url"\s*:\s*"(https?:\/\/[^"]+\.mp4[^"]*)"/gi)];
+
+    const allUrls = [
+      ...videoMatches.map(m => m[1]),
+      ...directMatches.map(m => m[1]),
+      ...cdnMatches.map(m => m[1])
+    ].filter(u => u && !u.includes('//w.') && !u.includes('thumb'));
+
+    if (allUrls.length > 0) {
+      // Prefer the first working URL (often best quality)
+      return decodeURIComponent(allUrls[0].replace(/&amp;/g, '&'));
+    }
+
+    // Also look for button download links
+    const btnMatches = [...html.matchAll(/data-url="(https?:\/\/[^"]+)"/gi)];
+    if (btnMatches.length > 0) {
+      return decodeURIComponent(btnMatches[0][1].replace(/&amp;/g, '&'));
+    }
+
+    throw new Error('indown.io: no video URL found in response HTML');
+  } catch (err) {
+    clearTimeout(t);
+    throw err;
+  }
+}
+
+/**
+ * Strategy 2: Use sssinsta.com (SSSInstagram) API
+ * An open Instagram downloader service that works without Instagram auth
+ */
+async function trySSSInstagram(postUrl) {
+  const TIMEOUT = 18000;
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), TIMEOUT);
+
+  try {
+    // SSS provides a JSON API endpoint
+    const params = new URLSearchParams({ url: postUrl });
+    const res = await fetch(`https://sssinsta.com/api/ajaxSearch`, {
+      method: 'POST',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'Accept': 'application/json, text/javascript, */*; q=0.01',
+        'Referer': 'https://sssinsta.com/',
+        'Origin': 'https://sssinsta.com',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: params.toString(),
+      signal: controller.signal
+    });
+
+    clearTimeout(t);
+    if (!res.ok) throw new Error(`SSS API response: ${res.status}`);
+
+    const data = await res.json();
+    
+    if (data.status === 'ok' && data.data) {
+      // Parse the HTML response in data.data for download links
+      const html = data.data;
+      const videoMatches = [...html.matchAll(/href="(https?:\/\/[^"]+\.mp4[^"]*)"/gi)];
+      if (videoMatches.length > 0) {
+        return decodeURIComponent(videoMatches[0][1].replace(/&amp;/g, '&'));
+      }
+    }
+
+    throw new Error('SSS Instagram: no video URL found in API response');
+  } catch (err) {
+    clearTimeout(t);
+    throw err;
+  }
+}
+
+/**
+ * Strategy 3: Use Cobalt instances with Instagram support
+ * Some cobalt instances have working Instagram support
+ */
+async function tryCobaltForInstagram(postUrl) {
+  // Use dedicated instagram-supporting instances only
+  const instaInstances = [
+    'https://lime.clxxped.lol',
+    'https://nuko-c.meowing.de',
+    'https://cobalt.alpha.wolfy.love',
+    'https://rue-cobalt.xenon.zone'
+  ];
+
+  const errors = [];
+  for (const instance of instaInstances) {
+    try {
+      const controller = new AbortController();
+      const t = setTimeout(() => controller.abort(), 12000);
+
+      const res = await fetch(`${instance}/`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          url: postUrl,
+          downloadMode: 'auto',
+          videoQuality: '1080',
+          filenameStyle: 'classic'
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(t);
+      if (!res.ok) { errors.push(`${instance}: HTTP ${res.status}`); continue; }
+
+      const json = await res.json();
+      if (json.status === 'error') { errors.push(`${instance}: ${json.error?.code || 'error'}`); continue; }
+      if (!json.url) { errors.push(`${instance}: no url in response`); continue; }
+
+      console.log(`Instagram Cobalt success via ${instance}`);
+      return json.url;
+    } catch (err) {
+      errors.push(`${instance}: ${err.message}`);
+    }
+  }
+  throw new Error(`All Cobalt instances failed for Instagram: ${errors.join('; ')}`);
+}
+
+/**
+ * Main Instagram download orchestrator
+ * Tries multiple strategies in sequence, downloads the file on success
+ */
+async function downloadInstagram(postUrl, format, outputDir) {
+  const strategies = [
+    { name: 'indown.io', fn: () => tryIndownIo(postUrl) },
+    { name: 'SSSInstagram', fn: () => trySSSInstagram(postUrl) },
+    { name: 'Cobalt', fn: () => tryCobaltForInstagram(postUrl) }
+  ];
+
+  let lastError = 'Unknown error';
+
+  for (const strategy of strategies) {
+    try {
+      console.log(`[Instagram] Trying strategy: ${strategy.name}...`);
+      const mediaUrl = await strategy.fn();
+      console.log(`[Instagram] ${strategy.name} resolved URL: ${mediaUrl.substring(0, 80)}...`);
+
+      // Now download the actual media file
+      const dlController = new AbortController();
+      const dlTimeout = setTimeout(() => dlController.abort(), 120000);
+
+      const fileRes = await fetch(mediaUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          'Referer': 'https://www.instagram.com/'
+        },
+        signal: dlController.signal
+      });
+
+      clearTimeout(dlTimeout);
+
+      if (!fileRes.ok) throw new Error(`Media fetch failed: ${fileRes.status}`);
+
+      const contentType = fileRes.headers.get('content-type') || '';
+      const isVideo = contentType.includes('video') || mediaUrl.includes('.mp4');
+      const ext = format === 'mp3' ? '.mp3' : (isVideo ? '.mp4' : '.mp4');
+      const finalPath = path.join(outputDir, `download_${Date.now()}_instagram${ext}`);
+      const fileStream = fs.createWriteStream(finalPath);
+
+      await new Promise((resolve, reject) => {
+        const readable = Readable.fromWeb(fileRes.body);
+        readable.pipe(fileStream);
+        readable.on('error', (err) => { fileStream.close(); try { fs.unlinkSync(finalPath); } catch {} reject(err); });
+        fileStream.on('finish', () => resolve());
+        fileStream.on('error', (err) => { try { fs.unlinkSync(finalPath); } catch {} reject(err); });
+      });
+
+      // Verify not 0 bytes
+      const stats = fs.statSync(finalPath);
+      if (stats.size === 0) {
+        try { fs.unlinkSync(finalPath); } catch {}
+        throw new Error('Downloaded file is 0 bytes');
+      }
+
+      console.log(`[Instagram] Successfully downloaded via ${strategy.name}: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
+      return finalPath;
+
+    } catch (err) {
+      console.warn(`[Instagram] ${strategy.name} failed: ${err.message}`);
+      lastError = err.message;
+    }
+  }
+
+  throw new Error(
+    `Instagram download failed. Instagram blocks server IP access to media.\n\nTried: indown.io, SSSInstagram, Cobalt. All failed.\n\nLast error: ${lastError}\n\nPlease try downloading directly at: https://indown.io or https://snapinsta.app`
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MAIN EXPORT
+// ═══════════════════════════════════════════════════════════════
+
 function getFriendlyErrorMessage(rawError, url) {
   const err = (rawError || '').toLowerCase();
   
@@ -649,8 +919,39 @@ function getFriendlyErrorMessage(rawError, url) {
 }
 
 export async function downloadMedia(url, format, quality, outputDir) {
-  // Strategy: Try Cobalt API first (faster, uses external CDN infrastructure)
-  // then fall back to local yt-dlp binary (slower on datacenter IPs but more compatible)
+  const isInstagram = url.includes('instagram.com') || url.includes('instagr.am');
+
+  // ── Instagram: use dedicated multi-strategy downloader ──────
+  if (isInstagram) {
+    console.log('[Instagram] Detected Instagram URL. Using dedicated Instagram downloader...');
+    try {
+      const filePath = await downloadInstagram(url, format, outputDir);
+      return filePath;
+    } catch (igError) {
+      console.error(`[Instagram] All dedicated strategies failed: ${igError.message}`);
+      // Last-chance: try yt-dlp with cookies if available
+      const cookiesPath = setupCookies();
+      if (cookiesPath) {
+        console.log('[Instagram] Trying yt-dlp with cookies as absolute last resort...');
+        try {
+          const filePath = await downloadMediaWithYtdlp(url, format, quality, outputDir);
+          return filePath;
+        } catch (ytErr) {
+          console.error(`[Instagram] yt-dlp with cookies also failed: ${ytErr.message}`);
+        }
+      }
+      // Surface a clean, user-friendly error
+      throw new Error(
+        'Instagram download is currently unavailable from this server. Instagram blocks access from cloud server IPs.\n\n' +
+        '✅ You can download it for free at:\n' +
+        '• https://indown.io\n' +
+        '• https://snapinsta.app\n' +
+        '• https://sssinsta.com'
+      );
+    }
+  }
+
+  // ── All other platforms: Cobalt first, then yt-dlp ──────────
   try {
     console.log('Attempting download via Cobalt API (priority)...');
     const filePath = await downloadWithCobalt(url, format, quality, outputDir);
@@ -662,7 +963,6 @@ export async function downloadMedia(url, format, quality, outputDir) {
       return filePath;
     } catch (ytdlpError) {
       console.error(`yt-dlp fallback also failed: ${ytdlpError.message}`);
-      // Parse the error message to make it user-friendly
       const friendlyMsg = getFriendlyErrorMessage(ytdlpError.message, url);
       throw new Error(friendlyMsg);
     }
