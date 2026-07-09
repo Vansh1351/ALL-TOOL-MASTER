@@ -121,6 +121,21 @@ function setupInstagramCookies() {
   }
 }
 
+// Sanitizes and formats proxy URL if provided
+function getSanitizedProxyUrl() {
+  let proxyUrl = process.env.DOWNLOAD_PROXY || process.env.HTTP_PROXY || process.env.HTTPS_PROXY;
+  if (!proxyUrl) return null;
+  
+  proxyUrl = proxyUrl.trim().replace(/^['"]|['"]$/g, '');
+  if (!proxyUrl) return null;
+
+  if (!/^[a-z0-9]+:\/\//i.test(proxyUrl)) {
+    proxyUrl = `http://${proxyUrl}`;
+  }
+  return proxyUrl;
+}
+
+
 // Determine binary name and URL
 let binaryName = 'yt-dlp';
 let downloadUrl = 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp';
@@ -225,7 +240,7 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
 
   // Configure proxy if provided in environment variables and enabled
   if (options.useProxy !== false) {
-    const proxyUrl = process.env.DOWNLOAD_PROXY || process.env.HTTP_PROXY || process.env.HTTPS_PROXY;
+    const proxyUrl = getSanitizedProxyUrl();
     if (proxyUrl) {
       console.log(`Configuring yt-dlp to use proxy: ${proxyUrl}`);
       args.push('--proxy', proxyUrl);
@@ -883,7 +898,7 @@ async function downloadInstagram(postUrl, format, outputDir) {
     {
       name: 'yt-dlp with proxy (Method 1)',
       fn: async () => {
-        const proxyUrl = process.env.DOWNLOAD_PROXY || process.env.HTTP_PROXY || process.env.HTTPS_PROXY;
+        const proxyUrl = getSanitizedProxyUrl();
         if (!proxyUrl) {
           throw new Error('Proxy not configured on server (DOWNLOAD_PROXY environment variable is empty)');
         }
