@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
-  FiArrowLeft, FiSliders, FiDownload, FiZap, FiTrash2, FiPlusCircle, FiRefreshCw, FiUpload, FiMousePointer
+  FiArrowLeft, FiSliders, FiDownload, FiZap, FiTrash2, FiPlusCircle, FiRefreshCw, FiUpload, FiMousePointer, FiSearch
 } from 'react-icons/fi';
 
 const rawBackendUrl = import.meta.env.VITE_API_URL || 'https://vansh135-all-tool-master-backend.hf.space';
@@ -15,9 +15,11 @@ export default function ObjectRemover({ tool, setView, setActiveTool, navigate, 
   const [brushSize, setBrushSize] = useState(28);
   const [isDrawing, setIsDrawing] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [detecting, setDetecting] = useState(false);
   const [scanProgress, setScanProgress] = useState(-1);
   const [polygonPoints, setPolygonPoints] = useState([]);
   const [hoverPos, setHoverPos] = useState(null);
+  const [processingMsg, setProcessingMsg] = useState('Erasing Object & Healing Background...');
 
   const canvasRef = useRef(null);
   const overlayCanvasRef = useRef(null);
@@ -27,12 +29,7 @@ export default function ObjectRemover({ tool, setView, setActiveTool, navigate, 
   const lastYRef = useRef(0);
   const isDrawingRef = useRef(false);
 
-  // Simulated AI detected objects
-  const [detectedObjects, setDetectedObjects] = useState([
-    { id: 1, name: 'Person (Photobomb)', x: 45, y: 30, w: 14, h: 48, selected: true },
-    { id: 2, name: 'Sign Post', x: 15, y: 20, w: 8, h: 32, selected: false },
-    { id: 3, name: 'Vehicle / Car', x: 75, y: 55, w: 20, h: 22, selected: true }
-  ]);
+  const [detectedObjects, setDetectedObjects] = useState([]);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -45,7 +42,6 @@ export default function ObjectRemover({ tool, setView, setActiveTool, navigate, 
         originalImageRef.current = img;
         setImage(img);
         setImageSize({ w: img.width, h: img.height });
-        // Clear mask canvas
         const maskCanvas = maskCanvasRef.current;
         if (maskCanvas) {
           maskCanvas.width = img.width;
@@ -53,11 +49,8 @@ export default function ObjectRemover({ tool, setView, setActiveTool, navigate, 
           const maskCtx = maskCanvas.getContext('2d');
           maskCtx.clearRect(0, 0, img.width, img.height);
         }
-        setDetectedObjects([
-          { id: 1, name: 'Person (Photobomb)', x: 45, y: 30, w: 14, h: 48, selected: true },
-          { id: 2, name: 'Sign Post', x: 15, y: 20, w: 8, h: 32, selected: false },
-          { id: 3, name: 'Vehicle / Car', x: 75, y: 55, w: 20, h: 22, selected: true }
-        ]);
+        setDetectedObjects([]);
+        setPolygonPoints([]);
         addToast('Image uploaded successfully!', 'success');
       };
       img.src = event.target.result;
@@ -318,26 +311,78 @@ export default function ObjectRemover({ tool, setView, setActiveTool, navigate, 
     addToast('Polygon area added to mask.', 'info');
   };
 
-  const triggerScan = () => {
-    if (!image) return;
+  const clearMask = () => {
+    const maskCanvas = maskCanvasRef.current;
+    if (maskCanvas) {
+      maskCanvas.getContext('2d').clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+    }
+    setPolygonPoints([]);
+    drawWorkspace();
+    addToast('Paint cleared.', 'info');
+  };
+
+  const triggerAIScan = async () => {
+    if (!image || !imageFile) return;
+    setDetecting(true);
+    setDetectedObjects([]);
     setScanProgress(0);
+
+    // Animate scan progress bar while waiting for backend
     const interval = setInterval(() => {
       setScanProgress(p => {
-        if (p >= 100) {
-          clearInterval(interval);
-          addToast('AI Scanning completed! Objects detected.', 'success');
-          return -1;
-        }
-        return p + 5;
+        if (p >= 85) { clearInterval(interval); return 85; }
+        return p + 3;
       });
-    }, 50);
+    }, 80);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', imageFile);
+
+      const response = await fetch(`${BACKEND_URL}/api/ai-detect-objects`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      clearInterval(interval);
+      setScanProgress(100);
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || `Detection failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const objects = Array.isArray(data.objects) ? data.objects : [];
+
+      setTimeout(() => {
+        setScanProgress(-1);
+        setDetecting(false);
+        if (objects.length === 0) {
+          addToast('No removable objects detected. Try Manual Paint mode.', 'info');
+        } else {
+          setDetectedObjects(objects.map((o, i) => ({ ...o, id: i + 1, selected: true })));
+          addToast(`AI detected ${objects.length} object(s). Select which to remove.`, 'success');
+        }
+      }, 400);
+
+    } catch (err) {
+      clearInterval(interval);
+      setScanProgress(-1);
+      setDetecting(false);
+      console.error('AI detection failed:', err);
+      addToast(`AI detection failed: ${err.message}`, 'error');
+    }
   };
 
   useEffect(() => {
-    if (image && mode === 'auto') {
-      triggerScan();
+    if (image && mode === 'auto' && imageFile) {
+      triggerAIScan();
     }
-  }, [image, mode]);
+    if (mode === 'manual') {
+      setScanProgress(-1);
+    }
+  }, [mode]);
 
   const toggleObjectSelection = (id) => {
     setDetectedObjects(prev => prev.map(o => o.id === id ? { ...o, selected: !o.selected } : o));
@@ -355,14 +400,23 @@ export default function ObjectRemover({ tool, setView, setActiveTool, navigate, 
       if (mode === 'manual') {
         const maskCanvas = maskCanvasRef.current;
         if (maskCanvas) {
+          // Check pixel-level if user painted anything
+          const pxData = maskCanvas.getContext('2d').getImageData(0, 0, maskCanvas.width, maskCanvas.height).data;
+          const hasContent = pxData.some((v, i) => i % 4 !== 3 && v > 0);
+          if (!hasContent) {
+            setProcessing(false);
+            addToast('Please paint or draw over the area you want to remove first.', 'info');
+            return;
+          }
           const maskBlob = await new Promise((resolve) => {
             maskCanvas.toBlob((blob) => resolve(blob), 'image/png');
           });
           if (maskBlob && maskBlob.size > 100) {
             formData.append('mask', maskBlob, 'mask.png');
+            setProcessingMsg('Erasing painted area & healing background...');
           } else {
             setProcessing(false);
-            addToast('Please paint or select an object to remove first.', 'info');
+            addToast('Paint selection too small. Please paint a larger area.', 'info');
             return;
           }
         }
@@ -370,18 +424,19 @@ export default function ObjectRemover({ tool, setView, setActiveTool, navigate, 
         // Auto Mode
         const selected = detectedObjects.filter(o => o.selected).map((obj, i) => ({
           id: i + 1,
-          type: obj.name,
+          type: obj.name || obj.type || 'Object',
           x: obj.x,
           y: obj.y,
           w: obj.w,
           h: obj.h,
-          confidence: 0.95
+          confidence: obj.confidence || 0.9
         }));
         if (selected.length > 0) {
           formData.append('regions', JSON.stringify(selected));
+          setProcessingMsg(`Removing ${selected.length} selected object(s)...`);
         } else {
           setProcessing(false);
-          addToast('No objects selected for removal.', 'info');
+          addToast('No objects selected for removal. Please select at least one.', 'info');
           return;
         }
       }
@@ -402,16 +457,14 @@ export default function ObjectRemover({ tool, setView, setActiveTool, navigate, 
       const cleanedImg = new Image();
       cleanedImg.onload = () => {
         setImage(cleanedImg);
-        // Clear mask canvas
         const maskCanvas = maskCanvasRef.current;
         if (maskCanvas) {
           maskCanvas.getContext('2d').clearRect(0, 0, maskCanvas.width, maskCanvas.height);
         }
+        setPolygonPoints([]);
         if (mode === 'auto') setDetectedObjects([]);
         setProcessing(false);
-        addToast('Object removed successfully by AI!', 'success');
-        
-        // Clean up object URL after a short delay
+        addToast('Object removed successfully!', 'success');
         setTimeout(() => URL.revokeObjectURL(cleanedUrl), 5000);
       };
       cleanedImg.onerror = () => {
@@ -424,7 +477,7 @@ export default function ObjectRemover({ tool, setView, setActiveTool, navigate, 
     } catch (err) {
       setProcessing(false);
       console.error('Object removal failed:', err);
-      addToast(`Object removal failed: ${err.message}`, 'error');
+      addToast(`Removal failed: ${err.message}`, 'error');
     }
   };
 
@@ -446,11 +499,7 @@ export default function ObjectRemover({ tool, setView, setActiveTool, navigate, 
       if (maskCanvas) {
         maskCanvas.getContext('2d').clearRect(0, 0, maskCanvas.width, maskCanvas.height);
       }
-      setDetectedObjects([
-        { id: 1, name: 'Person (Photobomb)', x: 45, y: 30, w: 14, h: 48, selected: true },
-        { id: 2, name: 'Sign Post', x: 15, y: 20, w: 8, h: 32, selected: false },
-        { id: 3, name: 'Vehicle / Car', x: 75, y: 55, w: 20, h: 22, selected: true }
-      ]);
+      setDetectedObjects([]);
       addToast('Reset completed.', 'info');
     }
   };
@@ -520,14 +569,29 @@ export default function ObjectRemover({ tool, setView, setActiveTool, navigate, 
                 {processing && (
                   <div style={{
                     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'rgba(0,0,0,0.75)', borderRadius: '24px', zIndex: 10,
+                    background: 'rgba(0,0,0,0.75)', borderRadius: '16px', zIndex: 10,
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '14px'
                   }}>
                     <div style={{
                       width: '44px', height: '44px', border: '3px solid #10b981', borderTopColor: 'transparent',
                       borderRadius: '50%', animation: 'spin 1s linear infinite'
                     }} />
-                    <span style={{ fontSize: '15px', fontWeight: '700' }}>Erasing Object &amp; Healing Background...</span>
+                    <span style={{ fontSize: '15px', fontWeight: '700', textAlign: 'center', maxWidth: '200px' }}>{processingMsg}</span>
+                    <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>AI reconstructing background...</span>
+                  </div>
+                )}
+                {detecting && (
+                  <div style={{
+                    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.65)', borderRadius: '16px', zIndex: 10,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px'
+                  }}>
+                    <FiSearch size={36} style={{ color: '#10b981' }} />
+                    <span style={{ fontSize: '15px', fontWeight: '700' }}>AI Scanning Image...</span>
+                    <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>Detecting removable objects</span>
+                    <div style={{ width: '160px', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px' }}>
+                      <div style={{ width: `${Math.max(0, scanProgress)}%`, height: '100%', background: '#10b981', borderRadius: '2px', transition: 'width 0.15s' }} />
+                    </div>
                   </div>
                 )}
                 <canvas
@@ -563,34 +627,55 @@ export default function ObjectRemover({ tool, setView, setActiveTool, navigate, 
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '12px', width: '100%', justifyContent: 'center' }}>
-              <button className="btn btn-primary" onClick={handleRemove} style={{ background: '#10b981', borderColor: '#10b981', minWidth: '160px' }} disabled={processing}>
+            <div style={{ display: 'flex', gap: '10px', width: '100%', flexWrap: 'wrap', justifyContent: 'center' }}>
+              <button className="btn btn-primary" onClick={handleRemove} style={{ background: '#10b981', borderColor: '#10b981', minWidth: '150px' }} disabled={processing || detecting}>
                 <FiZap style={{ marginRight: '6px' }} /> Erase Object
               </button>
               <button className="btn btn-secondary" onClick={resetAll} disabled={processing}>
                 <FiRefreshCw style={{ marginRight: '6px' }} /> Reset
               </button>
+              {mode === 'manual' && (
+                <button className="btn btn-secondary" onClick={clearMask} disabled={processing} title="Clear painted selection">
+                  <FiTrash2 style={{ marginRight: '6px' }} /> Clear Paint
+                </button>
+              )}
+            </div>
+            {/* Tip box */}
+            <div style={{ padding: '10px 14px', borderRadius: '10px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', width: '100%', fontSize: '12.5px', color: 'var(--text-muted)' }}>
+              {mode === 'manual'
+                ? toolType === 'polygon'
+                  ? '💡 Click to add anchor points on the image. Click "Fill Polygon" when done.'
+                  : toolType === 'eraser'
+                    ? '💡 Eraser mode: remove parts of your painted selection.'
+                    : '💡 Paint over the object you want to erase, then click "Erase Object".'
+                : detectedObjects.length > 0
+                  ? '💡 Click objects in the list to toggle. Red = will be removed, Green = will be kept.'
+                  : '💡 Switch to Manual Paint mode to draw the area yourself.'}
             </div>
           </div>
 
           <div className="glass-panel" style={{ borderRadius: '20px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <h3 style={{ fontWeight: '800', fontSize: '18px', color: '#10b981' }}>Controls</h3>
-            
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button
-                onClick={() => setMode('manual')}
-                className={`btn ${mode === 'manual' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ flex: 1, background: mode === 'manual' ? '#10b981' : 'transparent', borderColor: '#10b981' }}
-              >
-                Manual Select
-              </button>
-              <button
-                onClick={() => setMode('auto')}
-                className={`btn ${mode === 'auto' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ flex: 1, background: mode === 'auto' ? '#10b981' : 'transparent', borderColor: '#10b981' }}
-              >
-                Auto Detect (AI)
-              </button>
+            <h3 style={{ fontWeight: '800', fontSize: '18px', color: '#10b981', margin: 0 }}>Controls</h3>
+
+            <div>
+              <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>SELECTION MODE</span>
+              <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                <button
+                  onClick={() => setMode('manual')}
+                  className={`btn ${mode === 'manual' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ flex: 1, background: mode === 'manual' ? '#10b981' : 'transparent', borderColor: '#10b981', fontSize: '13px' }}
+                >
+                  <FiMousePointer style={{ marginRight: '5px' }} /> Manual Paint
+                </button>
+                <button
+                  onClick={() => setMode('auto')}
+                  className={`btn ${mode === 'auto' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ flex: 1, background: mode === 'auto' ? '#10b981' : 'transparent', borderColor: '#10b981', fontSize: '13px' }}
+                  disabled={detecting}
+                >
+                  <FiSearch style={{ marginRight: '5px' }} /> AI Detect
+                </button>
+              </div>
             </div>
 
             {mode === 'manual' ? (
@@ -644,39 +729,85 @@ export default function ObjectRemover({ tool, setView, setActiveTool, navigate, 
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <span style={{ fontSize: '12.5px', color: 'var(--text-muted)', fontWeight: '700' }}>DETECTED OBJECTS</span>
-                {detectedObjects.length === 0 ? (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>DETECTED OBJECTS</span>
+                  <button
+                    className="btn btn-secondary"
+                    onClick={triggerAIScan}
+                    disabled={detecting || !imageFile}
+                    style={{ fontSize: '11px', padding: '4px 10px' }}
+                  >
+                    <FiRefreshCw style={{ marginRight: '4px' }} /> Re-scan
+                  </button>
+                </div>
+                {detecting ? (
+                  <div style={{ padding: '16px', textAlign: 'center', borderRadius: '10px', background: 'rgba(16,185,129,0.05)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', marginBottom: '10px' }}>
+                      <div style={{ width: '16px', height: '16px', border: '2px solid #10b981', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                      <span style={{ fontSize: '13px', fontWeight: '600' }}>Scanning for objects...</span>
+                    </div>
+                    <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px' }}>
+                      <div style={{ width: `${Math.max(0, scanProgress)}%`, height: '100%', background: '#10b981', borderRadius: '2px', transition: 'width 0.2s' }} />
+                    </div>
+                  </div>
+                ) : detectedObjects.length === 0 ? (
                   <div style={{ padding: '14px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', textAlign: 'center', fontSize: '12.5px', color: 'var(--text-muted)' }}>
-                    No objects detected.
+                    No objects detected yet. Click Re-scan or switch to Manual Paint.
                   </div>
                 ) : (
                   detectedObjects.map(obj => (
-                     <div
+                    <div
                       key={obj.id}
                       onClick={() => toggleObjectSelection(obj.id)}
                       style={{
-                        padding: '12px 16px', borderRadius: '12px', border: `1px solid ${obj.selected ? '#10b981' : 'var(--border-color)'}`,
-                        background: obj.selected ? 'rgba(16, 185, 129, 0.08)' : 'transparent', cursor: 'pointer',
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                        padding: '12px 14px', borderRadius: '12px',
+                        border: `1px solid ${obj.selected ? '#ef4444' : 'var(--border-color)'}`,
+                        background: obj.selected ? 'rgba(239, 68, 68, 0.08)' : 'transparent',
+                        cursor: 'pointer',
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        transition: 'all 0.15s ease'
                       }}
                     >
-                      <span style={{ fontSize: '13px', fontWeight: '700' }}>{obj.name}</span>
-                      <span style={{ fontSize: '11px', color: obj.selected ? '#10b981' : 'var(--text-muted)' }}>
-                        {obj.selected ? 'To Remove' : 'Keep'}
-                      </span>
+                      <span style={{ fontSize: '13px', fontWeight: '700' }}>{obj.name || obj.type}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {obj.confidence && (
+                          <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{Math.round(obj.confidence * 100)}%</span>
+                        )}
+                        <span style={{
+                          fontSize: '11px', fontWeight: '700',
+                          color: obj.selected ? '#ef4444' : '#10b981',
+                          padding: '2px 8px', borderRadius: '6px',
+                          background: obj.selected ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)'
+                        }}>
+                          {obj.selected ? 'Remove' : 'Keep'}
+                        </span>
+                      </div>
                     </div>
                   ))
                 )}
               </div>
             )}
 
-            <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <span style={{ fontSize: '12.5px', color: 'var(--text-muted)', fontWeight: '700' }}>EXPORT FILE</span>
+            <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '700', letterSpacing: '0.05em' }}>EXPORT FILE</span>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-                <button className="btn btn-secondary" style={{ padding: '8px 0' }} onClick={() => handleDownload('png')}>PNG</button>
-                <button className="btn btn-secondary" style={{ padding: '8px 0' }} onClick={() => handleDownload('jpg')}>JPG</button>
-                <button className="btn btn-secondary" style={{ padding: '8px 0' }} onClick={() => handleDownload('webp')}>WEBP</button>
+                <button className="btn btn-secondary" style={{ padding: '8px 0', fontSize: '13px' }} onClick={() => handleDownload('png')}>PNG</button>
+                <button className="btn btn-secondary" style={{ padding: '8px 0', fontSize: '13px' }} onClick={() => handleDownload('jpg')}>JPG</button>
+                <button className="btn btn-secondary" style={{ padding: '8px 0', fontSize: '13px' }} onClick={() => handleDownload('webp')}>WEBP</button>
               </div>
+            </div>
+
+            {/* Upload another image */}
+            <div style={{ position: 'relative' }}>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
+              />
+              <button className="btn btn-secondary" style={{ width: '100%', fontSize: '13px' }}>
+                <FiUpload style={{ marginRight: '6px' }} /> Upload New Image
+              </button>
             </div>
           </div>
         </div>

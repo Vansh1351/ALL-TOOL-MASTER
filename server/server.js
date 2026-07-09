@@ -237,6 +237,63 @@ app.post('/api/ai', upload.single('file'), async (req, res) => {
 });
 
 /**
+ * AI Object Detection API
+ * Accepts: image file
+ * Returns: JSON array of detected removable objects with bounding boxes
+ */
+app.post('/api/ai-detect-objects', upload.single('file'), async (req, res) => {
+  const imageFile = req.file;
+  if (!imageFile) {
+    return res.status(400).json({ error: 'No image file uploaded.' });
+  }
+
+  try {
+    const { processAiTool } = await import('./services/aiService.js');
+    const result = await processAiTool({
+      tool: 'watermark-remover',
+      filePath: imageFile.path,
+      mimeType: imageFile.mimetype,
+      textContent: null,
+      apiKey: req.body?.apiKey || null,
+      uploadsDir,
+    });
+
+    // Clean up uploaded file
+    try { fs.unlinkSync(imageFile.path); } catch (e) {}
+
+    // Parse the JSON result - it should be an array of detected regions
+    let objects = [];
+    try {
+      const parsed = JSON.parse(result);
+      if (Array.isArray(parsed)) {
+        // Map watermark format to object format: rename 'type' to 'name'
+        objects = parsed.map((o, i) => ({
+          id: i + 1,
+          name: o.type || 'Detected Object',
+          type: o.type || 'Detected Object',
+          x: o.x || 0,
+          y: o.y || 0,
+          w: o.w || 10,
+          h: o.h || 10,
+          confidence: o.confidence || 0.8,
+          selected: true
+        }));
+      }
+    } catch (parseErr) {
+      // If no valid JSON array was returned, return empty
+      objects = [];
+    }
+
+    return res.json({ objects });
+
+  } catch (error) {
+    console.error('[AI Detect Objects] Error:', error.message);
+    try { fs.unlinkSync(imageFile.path); } catch (e) {}
+    return res.status(400).json({ error: error.message });
+  }
+});
+
+/**
  * AI Watermark Removal API
  * Accepts: image file + optional mask + region data
  * Returns: cleaned image file
@@ -247,6 +304,7 @@ app.post('/api/watermark-remove', upload.fields([
 ]), async (req, res) => {
   const imageFile = req.files?.file?.[0];
   const maskFile = req.files?.mask?.[0];
+
 
   if (!imageFile) {
     if (maskFile) try { fs.unlinkSync(maskFile.path); } catch (e) {}
