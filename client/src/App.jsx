@@ -281,6 +281,30 @@ export default function App() {
     if (viewId === 'tool-page' && tool) {
       addRecentlyUsed(tool.id);
     }
+
+    // Push browser history state for clean URL synchronization
+    let targetUrl = '/';
+    if (viewId === 'portfolio') targetUrl = '/portfolio';
+    else if (viewId === 'about') targetUrl = '/about';
+    else if (viewId === 'contact') targetUrl = '/contact';
+    else if (viewId === 'privacy') targetUrl = '/privacy';
+    else if (viewId === 'terms') targetUrl = '/terms';
+    else if (viewId === 'disclaimer') targetUrl = '/disclaimer';
+    else if (viewId === 'dmca') targetUrl = '/dmca';
+    else if (viewId === 'faqs') targetUrl = '/faqs';
+    else if (viewId === 'editorial-policy') targetUrl = '/editorial-policy';
+    else if (viewId === 'cookie-policy') targetUrl = '/cookie-policy';
+    else if (viewId === 'accessibility') targetUrl = '/accessibility';
+    else if (viewId === 'affiliate-disclosure') targetUrl = '/affiliate-disclosure';
+    else if (viewId === 'author') targetUrl = '/author/vansh-shah';
+    else if (viewId === 'deals') targetUrl = '/deals';
+    else if (viewId === 'blog-list') targetUrl = category ? `/blog/category/${category}` : '/blog';
+    else if (viewId === 'blog-post' && slug) targetUrl = `/blog/${slug}`;
+    else if (viewId === 'tool-page' && tool && tool.routes && tool.routes[0]) targetUrl = tool.routes[0];
+
+    if (typeof window !== 'undefined' && window.location.pathname !== targetUrl) {
+      window.history.pushState({ view: viewId }, '', targetUrl);
+    }
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };

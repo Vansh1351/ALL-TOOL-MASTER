@@ -25,7 +25,7 @@ export default function PortfolioPage({ navigate }) {
     }
 
     // Scroll to top on mount
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    window.scrollTo(0, 0);
   }, []);
 
   return (
