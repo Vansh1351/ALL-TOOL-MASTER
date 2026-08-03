@@ -92,7 +92,7 @@ function getInitialRouteState() {
   };
 
   // Portfolio Page
-  if (path === '/portfolio' || path.startsWith('/portfolio/')) {
+  if (path === '/portfolio' || path === '/portfolio.html' || path.startsWith('/portfolio')) {
     return { view: 'portfolio', activeTool: null, selectedBlogSlug: null, selectedBlogCategory: null, searchVal: '' };
   }
 
@@ -306,7 +306,7 @@ export default function App() {
       };
 
       // Portfolio Page
-      if (path === '/portfolio' || path.startsWith('/portfolio/')) {
+      if (path === '/portfolio' || path === '/portfolio.html' || path.startsWith('/portfolio')) {
         setView('portfolio');
         setActiveTool(null);
         setSelectedBlogSlug(null);

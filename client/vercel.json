@@ -1,16 +1,9 @@
 {
   "cleanUrls": true,
-  "routes": [
+  "rewrites": [
     {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/portfolio.*",
-      "dest": "/portfolio.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/:path*",
+      "destination": "/index.html"
     }
   ]
 }
