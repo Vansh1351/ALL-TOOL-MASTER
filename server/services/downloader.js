@@ -38,6 +38,16 @@ try {
   console.error("Failed to copy ffmpeg/ffprobe binaries to bin folder:", err);
 }
 
+function withHardTimeout(promise, ms, name = 'Operation') {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`${name} timed out after ${ms}ms`)), ms);
+    promise.then(
+      val => { clearTimeout(timer); resolve(val); },
+      err => { clearTimeout(timer); reject(err); }
+    );
+  });
+}
+
 function isLocalDesktopRuntime() {
   if (process.env.ALLOW_BROWSER_COOKIES === 'true') {
     return true;
@@ -90,7 +100,7 @@ function setupCookies() {
 
 // Helper to configure dedicated Instagram cookies for yt-dlp
 function setupInstagramCookies() {
-  const envCookies = process.env.INSTAGRAM_COOKIES || process.env.YOUTUBE_COOKIES;
+  const envCookies = process.env.INSTAGRAM_COOKIES;
   const cookiesPath = path.join(binDir, 'instagram_cookies.txt');
 
   if (!envCookies) {
@@ -98,8 +108,9 @@ function setupInstagramCookies() {
     if (fs.existsSync(rootCookies)) {
       return rootCookies;
     }
-    const yCookies = setupCookies();
-    if (yCookies) return yCookies;
+    if (fs.existsSync(cookiesPath)) {
+      return cookiesPath;
+    }
     return null;
   }
 
@@ -123,6 +134,9 @@ function setupInstagramCookies() {
 
 // Sanitizes and formats proxy URL if provided
 function getSanitizedProxyUrl() {
+  if (process.env.DISABLE_DOWNLOAD_PROXY === 'true' || process.env.DISABLE_PROXY === 'true') {
+    return null;
+  }
   let proxyUrl = process.env.DOWNLOAD_PROXY || process.env.HTTP_PROXY || process.env.HTTPS_PROXY;
   if (!proxyUrl) return null;
   
@@ -266,13 +280,15 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
     '--socket-timeout', '8'  // Fail fast in 8s on dead/unresponsive proxy or connection
   ];
 
-  // Configure proxy if provided in environment variables and enabled
-  if (options.useProxy !== false) {
+  // Configure proxy ONLY if explicitly requested in options (defaults to false for speed & reliability)
+  if (options.useProxy === true) {
     const proxyUrl = getSanitizedProxyUrl();
     if (proxyUrl) {
       console.log(`Configuring yt-dlp to use proxy: ${proxyUrl}`);
       args.push('--proxy', proxyUrl);
     }
+  } else {
+    console.log(`yt-dlp running with DIRECT connection (proxy disabled for maximum speed).`);
   }
 
   // Use cached impersonate target check
@@ -297,17 +313,22 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
   if (format === 'mp3') {
     args.push('-x', '--audio-format', 'mp3', '--audio-quality', '0');
   } else {
-    // mp4 video
-    let formatArg = 'bestvideo+bestaudio/best';
+    const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
+    
+    // Non-YouTube platforms (TikTok, FB, Twitter, Vimeo, Dailymotion, Reddit) serve single merged streams.
+    // Searching for separate 'bestvideo+bestaudio' on non-YouTube sites causes format failures and timeouts.
+    let formatArg = isYouTube ? 'bestvideo+bestaudio/best' : 'b/best';
     if (quality === '720p') {
-      formatArg = 'bestvideo[height<=720]+bestaudio/best[height<=720]/best';
+      formatArg = isYouTube ? 'bestvideo[height<=720]+bestaudio/best[height<=720]/best' : 'b[height<=720]/best';
     } else if (quality === '480p') {
-      formatArg = 'bestvideo[height<=480]+bestaudio/best[height<=480]/best';
+      formatArg = isYouTube ? 'bestvideo[height<=480]+bestaudio/best[height<=480]/best' : 'b[height<=480]/best';
     } else if (quality === '360p') {
-      formatArg = 'bestvideo[height<=360]+bestaudio/best[height<=360]/best';
+      formatArg = isYouTube ? 'bestvideo[height<=360]+bestaudio/best[height<=360]/best' : 'b[height<=360]/best';
     }
     args.push('-f', formatArg);
-    args.push('-S', 'res,vcodec:h264,acodec:m4a');
+    if (isYouTube) {
+      args.push('-S', 'res,vcodec:h264,acodec:m4a');
+    }
     // remux-video is instant (repackage streams) vs recode-video (re-encode, takes minutes)
     args.push('--remux-video', 'mp4');
   }
@@ -357,58 +378,52 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
     };
 
 
-    // ── Optimized attempt queue: mixes Proxy and Direct (non-proxy) attempts ──
-    // If proxy is dead/timing out, the proxy failure detector will strip --proxy
-    // and attempt 2 (direct) will finish in 3-5 seconds!
+    const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
 
-    // 1. Android/iOS client (WITH proxy if configured)
-    if (options.useProxy !== false && getSanitizedProxyUrl()) {
-      addAttempt("Android+iOS client (with proxy)", [
-        ...filterArgs([...baseArgs], ['-f', '-S']),
-        '-f', format === 'mp3' ? 'ba/b' : 'best',
-        '--extractor-args', 'youtube:player_client=android,ios'
-      ], true);
+    // ── Direct (non-proxy) attempts prioritized for maximum speed ──
+    // Direct connection resolves URLs in ~2-4 seconds!
+
+    // 1. Primary Direct Client
+    const attempt1Args = [
+      ...filterArgs([...baseArgs], ['-f', '-S', '--proxy']),
+      '-f', format === 'mp3' ? 'ba/b' : (isYouTube ? 'bestvideo+bestaudio/best' : 'b/best')
+    ];
+    if (isYouTube) {
+      attempt1Args.push('--extractor-args', 'youtube:player_client=android,ios');
     }
+    addAttempt(isYouTube ? "Android+iOS client (direct)" : "Universal direct client", attempt1Args, true);
 
-    // 2. Android/iOS client (DIRECT without proxy — super fast 3s execution)
-    addAttempt("Android+iOS client (direct)", [
+    // 2. Fallback Direct Client
+    const attempt2Args = [
       ...filterArgs([...baseArgs], ['-f', '-S', '--proxy']),
-      '-f', format === 'mp3' ? 'ba/b' : 'best',
-      '--extractor-args', 'youtube:player_client=android,ios'
-    ], true);
+      '-f', format === 'mp3' ? 'ba/b' : 'b/best'
+    ];
+    if (isYouTube) {
+      attempt2Args.push('--extractor-args', 'youtube:player_client=tv_simply,default,-tv');
+    }
+    addAttempt("Universal fallback client", attempt2Args, true);
 
-    // 3. TV client (DIRECT without proxy)
-    addAttempt("TV client (direct)", [
-      ...filterArgs([...baseArgs], ['-f', '-S', '--proxy']),
-      '-f', format === 'mp3' ? 'ba/b' : 'best',
-      '--extractor-args', 'youtube:player_client=tv_simply,default,-tv'
-    ], true);
-
-    // 4. With cookies (if available)
+    // 3. With cookies (if available)
     if (resolvedCookiesPath) {
       addAttempt("With cookies (direct)", addCookies(filterArgs([...baseArgs], ['--proxy'])), false);
     }
 
-    // 5. Default client (DIRECT without proxy)
-    addAttempt("Default client (direct)", filterArgs([...baseArgs], ['-f', '-S', '--proxy']), false);
+    // 4. Default client (DIRECT)
+    addAttempt("Default client (direct)", filterArgs([...baseArgs], ['--proxy']), false);
+
+    // 5. Proxy fallback (only if explicitly enabled in options)
+    if (options.useProxy === true && getSanitizedProxyUrl()) {
+      addAttempt("Proxy client fallback", [
+        ...filterArgs([...baseArgs], []),
+        '-f', format === 'mp3' ? 'ba/b' : (isYouTube ? 'bestvideo+bestaudio/best' : 'b/best')
+      ], false);
+    }
 
 
-    // Now sort/reorder them based on isLocalDesktopRuntime() and cookie availability
-    const attempts = [];
-    if (resolvedCookiesPath) {
-      console.log("Cookies are available. Prioritizing cookie-based player configurations...");
-      // First, attempts that use cookies
-      attempts.push(...attemptsList.filter(a => a.name.includes('with cookies')));
-      // Then, the remaining non-cookie attempts
-      attempts.push(...attemptsList.filter(a => !a.name.includes('with cookies')));
-    } else if (!isLocalDesktopRuntime()) {
-      console.log("Datacenter/production runtime detected. Prioritizing TV and Android/iOS fallback configs to prevent bot blocks...");
-      // First, put all attempts marked as priorityOnServer
-      attempts.push(...attemptsList.filter(a => a.priorityOnServer));
-      // Then, the remaining ones
-      attempts.push(...attemptsList.filter(a => !a.priorityOnServer));
-    } else {
-      attempts.push(...attemptsList);
+    // Priority order: Android/iOS direct FIRST (fastest 3s execution on datacenters), then TV client, then Cookies fallback
+    let attempts = [...attemptsList];
+    if (options.singleAttempt) {
+      attempts = [attempts[0]];
     }
 
     // Filter duplicates to optimize runs (e.g. if resolvedCookiesPath is null, with/without cookies are identical)
@@ -440,8 +455,9 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
 
       console.log(`[Attempt ${currentAttemptIndex + 1}/${uniqueAttempts.length}] Running: ${attempt.name}`);
 
-      // 25s hard timeout per yt-dlp process — prevents any attempt from hanging
-      execFile(binary, attempt.args, { maxBuffer: 1024 * 1024 * 10, timeout: 25000 }, (error, stdout, stderr) => {
+      // 15s hard timeout with SIGKILL (SIGKILL forces immediate uncatchable process termination on Linux)
+      const execTimeout = options.singleAttempt ? 8000 : 15000;
+    execFile(binary, attempt.args, { maxBuffer: 1024 * 1024 * 10, timeout: execTimeout, killSignal: 'SIGKILL' }, (error, stdout, stderr) => {
         if (error) {
           const errMessage = (stderr || error.message).trim();
           lastErrorMsg = errMessage;
@@ -493,7 +509,7 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
                 const fallbackArgs = filterArgs(attempt.args, ['--cookies', '--cookies-from-browser']);
                 fallbackArgs.push('--cookies-from-browser', browser);
                 
-                execFile(binary, fallbackArgs, { maxBuffer: 1024 * 1024 * 10, timeout: 60000 }, (err, subStdout, subStderr) => {
+                execFile(binary, fallbackArgs, { maxBuffer: 1024 * 1024 * 10, timeout: 15000, killSignal: 'SIGKILL' }, (err, subStdout, subStderr) => {
                   if (err) {
                     console.warn(`Failed with cookies from browser ${browser}: ${subStderr || err.message}`);
                     return tryBrowserCookies(browserList, index + 1);
@@ -718,7 +734,7 @@ function extractInstagramShortcode(url) {
  * This service reverse-engineers Instagram's internal API and works from any IP
  */
 async function tryIndownIo(postUrl) {
-  const TIMEOUT = 18000;
+  const TIMEOUT = 6000;
   const controller = new AbortController();
   const t = setTimeout(() => controller.abort(), TIMEOUT);
 
@@ -806,7 +822,7 @@ async function tryIndownIo(postUrl) {
  * An open Instagram downloader service that works without Instagram auth
  */
 async function trySSSInstagram(postUrl) {
-  const TIMEOUT = 18000;
+  const TIMEOUT = 6000;
   const controller = new AbortController();
   const t = setTimeout(() => controller.abort(), TIMEOUT);
 
@@ -853,7 +869,6 @@ async function trySSSInstagram(postUrl) {
  * Some cobalt instances have working Instagram support
  */
 async function tryCobaltForInstagram(postUrl) {
-  // Use dedicated instagram-supporting instances only
   const instaInstances = [
     'https://lime.clxxped.lol',
     'https://nuko-c.meowing.de',
@@ -861,12 +876,11 @@ async function tryCobaltForInstagram(postUrl) {
     'https://rue-cobalt.xenon.zone'
   ];
 
-  const errors = [];
-  for (const instance of instaInstances) {
-    try {
-      const controller = new AbortController();
-      const t = setTimeout(() => controller.abort(), 12000);
+  const promises = instaInstances.map(async (instance) => {
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), 4000);
 
+    try {
       const res = await fetch(`${instance}/`, {
         method: 'POST',
         headers: {
@@ -883,19 +897,24 @@ async function tryCobaltForInstagram(postUrl) {
       });
 
       clearTimeout(t);
-      if (!res.ok) { errors.push(`${instance}: HTTP ${res.status}`); continue; }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       const json = await res.json();
-      if (json.status === 'error') { errors.push(`${instance}: ${json.error?.code || 'error'}`); continue; }
-      if (!json.url) { errors.push(`${instance}: no url in response`); continue; }
+      if (json.status === 'error') throw new Error(json.error?.code || 'error');
+      if (!json.url) throw new Error('no url');
 
-      console.log(`Instagram Cobalt success via ${instance}`);
       return json.url;
     } catch (err) {
-      errors.push(`${instance}: ${err.message}`);
+      clearTimeout(t);
+      throw err;
     }
+  });
+
+  try {
+    return await Promise.any(promises);
+  } catch (err) {
+    throw new Error('All Instagram Cobalt instances failed');
   }
-  throw new Error(`All Cobalt instances failed for Instagram: ${errors.join('; ')}`);
 }
 
 /**
@@ -906,68 +925,37 @@ async function tryCobaltForInstagram(postUrl) {
  * 3. Scrapers fallback: indown.io, SSSInstagram, Cobalt
  */
 async function downloadInstagram(postUrl, format, outputDir) {
-  const strategies = [
-    {
-      name: 'yt-dlp with proxy (Method 1)',
-      fn: async () => {
-        const proxyUrl = getSanitizedProxyUrl();
-        if (!proxyUrl) {
-          throw new Error('Proxy not configured on server (DOWNLOAD_PROXY environment variable is empty)');
-        }
-        console.log(`[Instagram] Executing yt-dlp with proxy: ${proxyUrl}`);
-        return await downloadMediaWithYtdlp(postUrl, format, 'best', outputDir, { useProxy: true, useCookies: false });
-      },
-      isDirectFile: true
-    },
-    {
-      name: 'yt-dlp with cookies (Method 2)',
-      fn: async () => {
-        const cookiesPath = setupInstagramCookies();
-        if (!cookiesPath) {
-          throw new Error('Instagram cookies not configured on server (YOUTUBE_COOKIES/INSTAGRAM_COOKIES environment variables are empty)');
-        }
-        console.log(`[Instagram] Executing yt-dlp with cookies: ${cookiesPath}`);
-        return await downloadMediaWithYtdlp(postUrl, format, 'best', outputDir, { useProxy: false, useCookies: true, customCookiesPath: cookiesPath });
-      },
-      isDirectFile: true
-    },
-    {
-      name: 'indown.io scraper',
-      fn: () => tryIndownIo(postUrl),
-      isDirectFile: false
-    },
-    {
-      name: 'SSSInstagram scraper',
-      fn: () => trySSSInstagram(postUrl),
-      isDirectFile: false
-    },
-    {
-      name: 'Cobalt scraper',
-      fn: () => tryCobaltForInstagram(postUrl),
-      isDirectFile: false
-    }
+  // ── 1. Run online scrapers (indown.io, SSSInstagram, Cobalt) in PARALLEL first for instant 1-2s response ──
+  const scrapers = [
+    { name: 'indown.io', fn: () => tryIndownIo(postUrl) },
+    { name: 'SSSInstagram', fn: () => trySSSInstagram(postUrl) },
+    { name: 'Cobalt', fn: () => tryCobaltForInstagram(postUrl) }
   ];
 
-  let lastError = 'Unknown error';
+  let mediaUrl;
+  let winningScraper;
 
-  for (const strategy of strategies) {
+  try {
+    console.log(`[Instagram] Launching parallel scrapers (3.5s max)...`);
+    const promises = scrapers.map(async (scraper) => {
+      const url = await withHardTimeout(scraper.fn(), 3500, scraper.name);
+      return { url, name: scraper.name };
+    });
+
+    const result = await Promise.any(promises);
+    mediaUrl = result.url;
+    winningScraper = result.name;
+    console.log(`[Instagram] ${winningScraper} resolved URL in parallel: ${mediaUrl.slice(0, 80)}...`);
+  } catch (parallelErr) {
+    console.warn(`[Instagram] Parallel scrapers failed or timed out. Falling back to yt-dlp...`);
+  }
+
+  // Stream media URL to output file with fast 6s timeout max
+  if (mediaUrl) {
+    const dlController = new AbortController();
+    const dlTimeout = setTimeout(() => dlController.abort(), 6000);
+
     try {
-      console.log(`[Instagram] Trying strategy: ${strategy.name}...`);
-      
-      if (strategy.isDirectFile) {
-        const filePath = await strategy.fn();
-        console.log(`[Instagram] Successfully downloaded via ${strategy.name}: ${filePath}`);
-        return filePath;
-      }
-
-      // If it's a URL-returning strategy, resolve and download
-      const mediaUrl = await strategy.fn();
-      console.log(`[Instagram] ${strategy.name} resolved URL: ${mediaUrl.substring(0, 80)}...`);
-
-      // Download the resolved media URL
-      const dlController = new AbortController();
-      const dlTimeout = setTimeout(() => dlController.abort(), 120000);
-
       const fileRes = await fetch(mediaUrl, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
@@ -975,7 +963,6 @@ async function downloadInstagram(postUrl, format, outputDir) {
         },
         signal: dlController.signal
       });
-
       clearTimeout(dlTimeout);
 
       if (!fileRes.ok) throw new Error(`Media fetch failed: ${fileRes.status}`);
@@ -994,25 +981,129 @@ async function downloadInstagram(postUrl, format, outputDir) {
         fileStream.on('error', (err) => { try { fs.unlinkSync(finalPath); } catch {} reject(err); });
       });
 
-      // Verify not 0 bytes
       const stats = fs.statSync(finalPath);
-      if (stats.size === 0) {
-        try { fs.unlinkSync(finalPath); } catch {}
-        throw new Error('Downloaded file is 0 bytes');
+      if (stats.size > 0) {
+        console.log(`[Instagram] Successfully downloaded via ${winningScraper}: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
+        return finalPath;
       }
-
-      console.log(`[Instagram] Successfully downloaded via ${strategy.name}: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
-      return finalPath;
-
-    } catch (err) {
-      console.warn(`[Instagram] ${strategy.name} failed: ${err.message}`);
-      lastError = err.message;
+      try { fs.unlinkSync(finalPath); } catch {}
+    } catch (streamErr) {
+      clearTimeout(dlTimeout);
+      console.warn(`[Instagram] Media stream download failed: ${streamErr.message}. Falling back to yt-dlp...`);
     }
   }
 
+  // ── 2. Fallback: Cookie-authenticated yt-dlp (if INSTAGRAM_COOKIES configured) ──
+  const cookiesPath = setupInstagramCookies();
+  if (cookiesPath) {
+    try {
+      console.log(`[Instagram] Trying Cookie-authenticated yt-dlp (5s max)...`);
+      const filePath = await withHardTimeout(
+        downloadMediaWithYtdlp(postUrl, format, 'best', outputDir, { 
+          useProxy: false, 
+          useCookies: true, 
+          customCookiesPath: cookiesPath,
+          singleAttempt: true
+        }),
+        5000,
+        'Cookie yt-dlp'
+      );
+      console.log(`[Instagram] Cookie strategy succeeded: ${filePath}`);
+      return filePath;
+    } catch (cookieErr) {
+      console.warn(`[Instagram] Cookie strategy failed: ${cookieErr.message}`);
+    }
+  }
+
+  // ── 3. Fallback: Direct yt-dlp (5s max) ──
+  try {
+    console.log(`[Instagram] Trying Direct yt-dlp (5s max)...`);
+    const filePath = await withHardTimeout(
+      downloadMediaWithYtdlp(postUrl, format, 'best', outputDir, { 
+        useProxy: false, 
+        useCookies: false,
+        singleAttempt: true
+      }),
+      5000,
+      'Direct yt-dlp'
+    );
+    console.log(`[Instagram] Direct yt-dlp succeeded: ${filePath}`);
+    return filePath;
+  } catch (directErr) {
+    console.warn(`[Instagram] Direct yt-dlp failed: ${directErr.message}`);
+  }
+
   throw new Error(
-    `Instagram download failed. Instagram blocks server IP access to media.\n\nTried: proxy, cookies, indown.io, SSSInstagram, Cobalt. All failed.\n\nLast error: ${lastError}`
+    'Instagram download is currently unavailable. Instagram actively blocks cloud server IPs from accessing media.\n\n' +
+    '✅ You can download this post for free at:\n' +
+    '• https://indown.io\n' +
+    '• https://snapinsta.app\n' +
+    '• https://sssinsta.com'
   );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DEDICATED VIMEO DOWNLOADER (0.5s open player config resolution)
+// ═══════════════════════════════════════════════════════════════
+
+async function downloadVimeo(vimeoUrl, format, outputDir) {
+  const m = vimeoUrl.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (!m) throw new Error('Invalid Vimeo URL format.');
+  const id = m[1];
+
+  console.log(`[Vimeo] Resolving direct Vimeo stream for video ID: ${id}...`);
+  const configRes = await fetch(`https://player.vimeo.com/video/${id}/config`, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      'Referer': 'https://vimeo.com/'
+    }
+  });
+
+  if (!configRes.ok) {
+    throw new Error(`Vimeo player API returned HTTP ${configRes.status}`);
+  }
+
+  const json = await configRes.json();
+  const rawTitle = json.video?.title || 'vimeo_video';
+  const cleanTitle = rawTitle.replace(/[^a-zA-Z0-9_-]/g, '_').trim();
+  const files = json.request?.files?.progressive || [];
+
+  if (files.length === 0) {
+    throw new Error('No direct progressive MP4 streams found for this Vimeo video.');
+  }
+
+  // Sort by quality height (descending) -> pick highest quality stream
+  files.sort((a, b) => (parseInt(b.quality) || 0) - (parseInt(a.quality) || 0));
+  const bestStream = files[0];
+  const streamUrl = bestStream.url;
+
+  console.log(`[Vimeo] Selected ${bestStream.quality} stream for "${cleanTitle}". Downloading...`);
+
+  const dlRes = await fetch(streamUrl);
+  if (!dlRes.ok) {
+    throw new Error(`Failed to stream Vimeo media file: HTTP ${dlRes.status}`);
+  }
+
+  const ext = format === 'mp3' ? '.mp3' : '.mp4';
+  const finalPath = path.join(outputDir, `download_${Date.now()}_vimeo_${cleanTitle}${ext}`);
+  const fileStream = fs.createWriteStream(finalPath);
+
+  await new Promise((resolve, reject) => {
+    const readable = Readable.fromWeb(dlRes.body);
+    readable.pipe(fileStream);
+    readable.on('error', (err) => { fileStream.close(); try { fs.unlinkSync(finalPath); } catch {} reject(err); });
+    fileStream.on('finish', () => resolve());
+    fileStream.on('error', (err) => { try { fs.unlinkSync(finalPath); } catch {} reject(err); });
+  });
+
+  const stats = fs.statSync(finalPath);
+  if (stats.size === 0) {
+    try { fs.unlinkSync(finalPath); } catch {}
+    throw new Error('Vimeo download produced a 0-byte file.');
+  }
+
+  console.log(`[Vimeo] Successfully downloaded: ${finalPath} (${(stats.size / 1024 / 1024).toFixed(2)} MB)`);
+  return finalPath;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1039,42 +1130,56 @@ function getFriendlyErrorMessage(rawError, url) {
   return `Download failed: ${rawError || 'Unknown extractor error'}`;
 }
 
-function normalizeYoutubeUrl(rawUrl) {
+function normalizeUrl(rawUrl) {
   if (!rawUrl) return rawUrl;
-  const match = rawUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([a-zA-Z0-9_-]{11})/);
+  let clean = rawUrl.trim();
+
+  // Normalize x.com to twitter.com for yt-dlp Twitter extractor compatibility
+  if (clean.includes('x.com/')) {
+    clean = clean.replace('x.com/', 'twitter.com/');
+  }
+
+  // Normalize Vimeo URLs to player embed format to bypass broken macos OAuth token check
+  const vimeoMatch = clean.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (vimeoMatch) {
+    return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+  }
+
+  // Normalize YouTube shortlinks
+  const match = clean.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([a-zA-Z0-9_-]{11})/);
   if (match) {
     return `https://www.youtube.com/watch?v=${match[1]}`;
   }
-  return rawUrl;
+  return clean;
 }
 
 export async function downloadMedia(rawUrl, format, quality, outputDir) {
-  const url = normalizeYoutubeUrl(rawUrl);
+  const url = normalizeUrl(rawUrl);
   const isInstagram = url.includes('instagram.com') || url.includes('instagr.am');
+  const isVimeo = url.includes('vimeo.com');
 
-  // ── Instagram: use dedicated multi-strategy downloader ──────
+  // ── Vimeo: dedicated fast open player config scraper (1s resolution) ──────
+  if (isVimeo) {
+    console.log('[Vimeo] Detected Vimeo URL. Using dedicated fast Vimeo resolver...');
+    try {
+      const filePath = await downloadVimeo(url, format, outputDir);
+      return filePath;
+    } catch (vimeoErr) {
+      console.warn(`[Vimeo] Dedicated resolver failed (${vimeoErr.message}). Falling back to yt-dlp...`);
+    }
+  }
+
+  // ── Instagram: dedicated multi-strategy downloader ──────
   if (isInstagram) {
     console.log('[Instagram] Detected Instagram URL. Using dedicated Instagram downloader...');
     try {
       const filePath = await downloadInstagram(url, format, outputDir);
       return filePath;
     } catch (igError) {
-      console.error(`[Instagram] All dedicated strategies failed: ${igError.message}`);
-      // Last-chance: try yt-dlp with cookies if available
-      const cookiesPath = setupCookies();
-      if (cookiesPath) {
-        console.log('[Instagram] Trying yt-dlp with cookies as absolute last resort...');
-        try {
-          const filePath = await downloadMediaWithYtdlp(url, format, quality, outputDir);
-          return filePath;
-        } catch (ytErr) {
-          console.error(`[Instagram] yt-dlp with cookies also failed: ${ytErr.message}`);
-        }
-      }
-      // Surface a clean, user-friendly error
+      console.error(`[Instagram] Dedicated strategies failed: ${igError.message}`);
       throw new Error(
-        'Instagram download is currently unavailable from this server. Instagram blocks access from cloud server IPs.\n\n' +
-        '✅ You can download it for free at:\n' +
+        'Instagram media access is currently restricted by Instagram on this cloud server.\n\n' +
+        '✅ You can download this post for free at:\n' +
         '• https://indown.io\n' +
         '• https://snapinsta.app\n' +
         '• https://sssinsta.com'
