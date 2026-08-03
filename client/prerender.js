@@ -62,6 +62,7 @@ function prerender() {
   const tools = getToolsData();
   
   const staticRoutes = [
+    { path: '/portfolio', view: 'portfolio' },
     { path: '/about', view: 'about' },
     { path: '/contact', view: 'contact' },
     { path: '/faqs', view: 'faqs' },
@@ -96,6 +97,7 @@ function prerender() {
   ];
 
   const infoPageTitles = {
+    portfolio: "Vansh Hemanshu Shah — Creative Developer Portfolio",
     about: "About All Tool Master — Free Online Tools for Everyone",
     contact: "Contact All Tool Master — Get in Touch",
     faqs: "FAQs — Frequently Asked Questions | All Tool Master",
@@ -107,6 +109,7 @@ function prerender() {
   };
 
   const infoPageDescs = {
+    portfolio: "Creative Developer specializing in Frontend Development, Motion Graphics, Video Editing, VFX, AI Applications, and Web Engineering.",
     about: "All Tool Master is a free platform built for students, professionals and content creators who need fast, reliable online tools with no signup.",
     contact: "Have a question or suggestion? Contact the All Tool Master team. We respond to all inquiries.",
     faqs: "Answers to common questions about All Tool Master's free file converters, video downloaders and AI note-taking tools.",

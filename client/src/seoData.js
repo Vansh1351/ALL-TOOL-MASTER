@@ -2,6 +2,12 @@ import { SEO_DATA_CREATIVE_STUDIO } from './seoDataCreativeStudio.js';
 
 export const SEO_DATA = {
   ...SEO_DATA_CREATIVE_STUDIO,
+  'portfolio': {
+    title: 'Vansh Hemanshu Shah | Creative Developer Portfolio',
+    description: 'Creative Developer specializing in Frontend Development, Motion Graphics, Video Editing, VFX, AI Applications, and Web Engineering.',
+    h1: 'Vansh Hemanshu Shah — Creative Developer & AI Engineer',
+    introduction: 'Portfolio showcasing full-stack web applications, motion graphics, video post-production reels, VFX rotoscoping & tracking breakdowns, and generative AI tools.'
+  },
   'youtube-downloader': {
     title: 'YouTube Video Downloader Online Free - YouTube Shorts & MP4 | All Tool Master',
     description: 'Download YouTube videos & shorts instantly without app or watermark. Convert YouTube link to MP4 or extract audio with our fast YouTube MP3 downloader.',

@@ -24,7 +24,8 @@ Built with a glassmorphic UI, responsive layouts, teal color schemes, and dual d
 │       ├── index.css          # Design system & CSS animations
 │       ├── App.jsx            # State coordinator & page layouts
 │       ├── components/        # UI components (Navbar, Hero, ToolModal, etc.)
-│       └── pages/             # Informational pages (About, Contact, Privacy)
+│       │   └── portfolio/     # Luxury Portfolio showcase suite (/portfolio)
+│       └── pages/             # Informational pages & PortfolioPage (/portfolio)
 └── server/                    # Node.js + Express Backend
     ├── package.json
     ├── server.js              # Express app coordination

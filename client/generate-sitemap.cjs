@@ -48,6 +48,7 @@ const generateSitemap = () => {
   
   const staticRoutes = [
     '/',
+    '/portfolio',
     '/about',
     '/contact',
     '/faqs',

@@ -44,6 +44,7 @@ const EditorialPolicy = React.lazy(() => import('./pages/EditorialPolicy'));
 const CookiePolicy = React.lazy(() => import('./pages/CookiePolicy'));
 const AccessibilityStatement = React.lazy(() => import('./pages/AccessibilityStatement'));
 const AffiliateDisclosure = React.lazy(() => import('./pages/AffiliateDisclosure'));
+const PortfolioPage = React.lazy(() => import('./pages/PortfolioPage'));
 
 import { BLOG_POSTS } from './blogData';
 import { SEO_DATA } from './seoData';
@@ -89,6 +90,11 @@ function getInitialRouteState() {
     '/accessibility': 'accessibility',
     '/affiliate-disclosure': 'affiliate-disclosure'
   };
+
+  // Portfolio Page
+  if (path === '/portfolio' || path.startsWith('/portfolio/')) {
+    return { view: 'portfolio', activeTool: null, selectedBlogSlug: null, selectedBlogCategory: null, searchVal: '' };
+  }
 
   // Author page
   if (path === '/author/vansh-shah' || path === '/author') {
@@ -298,6 +304,15 @@ export default function App() {
         '/accessibility': 'accessibility',
         '/affiliate-disclosure': 'affiliate-disclosure'
       };
+
+      // Portfolio Page
+      if (path === '/portfolio' || path.startsWith('/portfolio/')) {
+        setView('portfolio');
+        setActiveTool(null);
+        setSelectedBlogSlug(null);
+        setSelectedBlogCategory(null);
+        return;
+      }
 
       // Author page
       if (path === '/author/vansh-shah' || path === '/author') {
@@ -952,6 +967,14 @@ export default function App() {
     { title: "AI-Powered Analysis", desc: "Leverage Gemini to summarize documents and media verbatim.", icon: FiCpu },
     { title: "No Registration Required", desc: "Start converting instantly. No signups, no credit cards.", icon: FiUserCheck }
   ];
+
+  if (view === 'portfolio') {
+    return (
+      <React.Suspense fallback={<SkeletonLoader />}>
+        <PortfolioPage navigate={navigate} />
+      </React.Suspense>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>

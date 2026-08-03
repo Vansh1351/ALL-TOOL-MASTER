@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FiLayers, FiYoutube, FiLinkedin, FiSend, FiMail, FiPhone } from 'react-icons/fi';
+import { FiLayers, FiYoutube, FiLinkedin, FiSend, FiMail, FiPhone, FiBriefcase } from 'react-icons/fi';
 import { TOOLS_DATA } from './ToolGrid';
 
 export default function Footer({ setView, navigate }) {
@@ -106,6 +106,7 @@ export default function Footer({ setView, navigate }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', color: 'var(--text-muted)' }}>
               <a href="mailto:vhshah1711@gmail.com" style={{ color: 'var(--text-muted)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}><FiMail size={13} /> vhshah1711@gmail.com</a>
               <a href="tel:+919820901789" style={{ color: 'var(--text-muted)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}><FiPhone size={13} /> +91 98209 01789</a>
+              <a href="/portfolio" onClick={(e) => { e.preventDefault(); handleLinkClick('portfolio'); }} style={{ color: 'var(--accent-color)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px', opacity: 0.9, marginTop: '2px', fontWeight: 600 }}><FiBriefcase size={13} /> Portfolio</a>
             </div>
           </div>
 
