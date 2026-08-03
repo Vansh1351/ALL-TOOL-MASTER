@@ -263,7 +263,7 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
     '--restrict-filenames',
     '--no-check-certificate',
     '-4',
-    '--socket-timeout', '30'
+    '--socket-timeout', '15'  // Reduced from 30s — fail fast on dead connections
   ];
 
   // Configure proxy if provided in environment variables and enabled
@@ -308,7 +308,8 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
     }
     args.push('-f', formatArg);
     args.push('-S', 'res,vcodec:h264,acodec:m4a');
-    args.push('--recode-video', 'mp4');
+    // remux-video is instant (repackage streams) vs recode-video (re-encode, takes minutes)
+    args.push('--remux-video', 'mp4');
   }
 
   return new Promise((resolve, reject) => {
@@ -355,74 +356,34 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
       attemptsList.push({ name, args: attemptArgs, priorityOnServer });
     };
 
-    // 1. Default player client, with cookies
-    if (options.useCookies !== false && resolvedCookiesPath) {
-      addAttempt("Default player client (with cookies)", addCookies([...baseArgs]), false);
+
+    // ── Trimmed to 5 highest-success-rate attempts (was 12 sequential attempts) ──
+    // On datacenter IPs, Android/iOS client consistently bypasses bot detection.
+    // Cookies take priority if available.
+
+    // 1. With cookies (highest success rate if configured)
+    if (resolvedCookiesPath) {
+      addAttempt("With cookies (best format)", addCookies([...baseArgs]), false);
+      addAttempt("With cookies (any format)", addCookies(filterArgs([...baseArgs], ['-f', '-S'])), false);
     }
 
-    // 2. Default player client, without cookies
-    addAttempt("Default player client (without cookies)", [...baseArgs], false);
-
-    // 3. Fallback format (no -f/-S restrictions), with cookies
-    if (options.useCookies !== false && resolvedCookiesPath) {
-      addAttempt("Fallback format selection (with cookies)", addCookies(filterArgs([...baseArgs], ['-f', '-S'])), false);
-    }
-
-    // 4. Fallback format (no -f/-S restrictions), without cookies
-    addAttempt("Fallback format selection (without cookies)", filterArgs([...baseArgs], ['-f', '-S']), false);
-
-
-    // 5. TV client fallback, without cookies
-    addAttempt("TV player client fallback (without cookies)", [
-      ...filterArgs([...baseArgs], ['-f', '-S']),
-      '--extractor-args', 'youtube:player_client=tv_simply,default,-tv'
-    ], true);
-
-    // 6. Web Embedded client fallback, without cookies
-    addAttempt("Web Embedded player client fallback (without cookies)", [
-      ...filterArgs([...baseArgs], ['-f', '-S']),
-      '--extractor-args', 'youtube:player_client=web_embedded,web_safari,default'
-    ], false);
-
-    // 7. Android/iOS client fallback, with cookies
-    addAttempt("Android/iOS player client fallback (with cookies)", addCookies([
-      ...filterArgs([...baseArgs], ['-f', '-S']),
-      '--extractor-args', 'youtube:player_client=android,ios'
-    ]), false);
-
-    // 8. Android/iOS client fallback, without cookies
-    addAttempt("Android/iOS player client fallback (without cookies)", [
-      ...filterArgs([...baseArgs], ['-f', '-S']),
-      '--extractor-args', 'youtube:player_client=android,ios'
-    ], true);
-
-    // 9. Android/iOS client legacy format fallback, with cookies
-    addAttempt("Android/iOS legacy format fallback (with cookies)", addCookies([
-      ...filterArgs([...baseArgs], ['-f', '-S']),
-      '-f', format === 'mp3' ? 'ba/b' : 'best',
-      '--extractor-args', 'youtube:player_client=android,ios'
-    ]), false);
-
-    // 10. Android/iOS client legacy format fallback, without cookies (high success rate on datacenters)
-    addAttempt("Android/iOS legacy format fallback (without cookies)", [
+    // 2. Android/iOS client — highest datacenter success rate (bypasses bot-detection best)
+    addAttempt("Android+iOS client (best format)", [
       ...filterArgs([...baseArgs], ['-f', '-S']),
       '-f', format === 'mp3' ? 'ba/b' : 'best',
       '--extractor-args', 'youtube:player_client=android,ios'
     ], true);
 
-    // 11. TV player client legacy format fallback, without cookies
-    addAttempt("TV legacy format fallback (without cookies)", [
+    // 3. TV client — second-best for datacenter IPs
+    addAttempt("TV client (any format)", [
       ...filterArgs([...baseArgs], ['-f', '-S']),
       '-f', format === 'mp3' ? 'ba/b' : 'best',
       '--extractor-args', 'youtube:player_client=tv_simply,default,-tv'
     ], true);
 
-    // 12. Web Embedded player client legacy format fallback, without cookies
-    addAttempt("Web Embedded legacy format fallback (without cookies)", [
-      ...filterArgs([...baseArgs], ['-f', '-S']),
-      '-f', format === 'mp3' ? 'ba/b' : 'best',
-      '--extractor-args', 'youtube:player_client=web_embedded,web_safari,default'
-    ], false);
+    // 4. Default client without restrictions (last resort)
+    addAttempt("Default client (any format)", filterArgs([...baseArgs], ['-f', '-S']), false);
+
 
     // Now sort/reorder them based on isLocalDesktopRuntime() and cookie availability
     const attempts = [];
@@ -462,9 +423,10 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
       }
 
       const attempt = uniqueAttempts[currentAttemptIndex];
-      console.log(`[Attempt ${currentAttemptIndex + 1}/${uniqueAttempts.length}] Running yt-dlp command: ${binary} ${attempt.args.join(' ')}`);
+      console.log(`[Attempt ${currentAttemptIndex + 1}/${uniqueAttempts.length}] Running: ${attempt.name}`);
 
-      execFile(binary, attempt.args, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
+      // 60s hard timeout per yt-dlp process — prevents indefinite hangs
+      execFile(binary, attempt.args, { maxBuffer: 1024 * 1024 * 10, timeout: 60000 }, (error, stdout, stderr) => {
         if (error) {
           const errMessage = (stderr || error.message).trim();
           lastErrorMsg = errMessage;
@@ -501,7 +463,7 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
                 const fallbackArgs = filterArgs(attempt.args, ['--cookies', '--cookies-from-browser']);
                 fallbackArgs.push('--cookies-from-browser', browser);
                 
-                execFile(binary, fallbackArgs, { maxBuffer: 1024 * 1024 * 10 }, (err, subStdout, subStderr) => {
+                execFile(binary, fallbackArgs, { maxBuffer: 1024 * 1024 * 10, timeout: 60000 }, (err, subStdout, subStderr) => {
                   if (err) {
                     console.warn(`Failed with cookies from browser ${browser}: ${subStderr || err.message}`);
                     return tryBrowserCookies(browserList, index + 1);
@@ -568,7 +530,7 @@ async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
     'https://api.cobalt.liubquanti.click' // fallback (cobalt.liubquanti.click)
   ];
 
-  const COBALT_TIMEOUT_MS = 10000; // 10 second timeout per request for the metadata phase
+  const COBALT_TIMEOUT_MS = 7000; // 7s timeout — fail fast so we can fall back to yt-dlp quickly
   
   // 1. Resolve media URL using the fastest working instance in parallel
   const promises = activeInstances.map(async (instance) => {

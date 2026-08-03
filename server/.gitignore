@@ -2,3 +2,7 @@ node_modules/
 bin/
 uploads/
 .env
+scratch/output/
+scratch/*.mp4
+scratch/*.mp3
+scratch/*.webm

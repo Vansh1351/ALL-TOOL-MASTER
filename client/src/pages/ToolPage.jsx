@@ -127,8 +127,12 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
   const [downloadFilename, setDownloadFilename] = useState('');
   const [dragActive, setDragActive] = useState(false);
   const [openFAQIndex, setOpenFAQIndex] = useState(null);
+  const [processingStage, setProcessingStage] = useState(0);
+  const [elapsedSecs, setElapsedSecs] = useState(0);
 
   const fileInputRef = useRef(null);
+  const timerRef = useRef(null);
+  const startTimeRef = useRef(null);
 
   // Set default format on tool change
   useEffect(() => {
@@ -415,6 +419,19 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
     setStatus('processing');
     setProgress(20);
     setErrorMessage('');
+    setProcessingStage(0);
+    setElapsedSecs(0);
+    startTimeRef.current = Date.now();
+
+    // Start elapsed-time counter
+    timerRef.current = setInterval(() => {
+      setElapsedSecs(Math.floor((Date.now() - startTimeRef.current) / 1000));
+    }, 1000);
+
+    // Advance stage labels to give user feedback during server-side processing
+    const stageTimings = [3000, 8000, 18000, 35000]; // ms when each stage kicks in
+    stageTimings.forEach((ms, idx) => setTimeout(() => setProcessingStage(s => Math.max(s, idx + 1)), ms));
+
     const apiKey = localStorage.getItem('gemini_api_key') || '';
 
     const makeRequestWithFallback = async (method, path, data, config = {}) => {
@@ -480,6 +497,7 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
         setStatus('success');
         setProgress(100);
         if (addToast) addToast(`Video downloaded successfully! (${(validatedBlob.size / 1024 / 1024).toFixed(1)} MB)`, 'success');
+        clearInterval(timerRef.current);
         if (incrementConversion) incrementConversion();
         addToHistory({
           toolTitle: tool.title,
@@ -536,6 +554,7 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
         setStatus('success');
         setProgress(100);
         if (addToast) addToast('File processed successfully!', 'success');
+        clearInterval(timerRef.current);
         if (incrementConversion) incrementConversion();
         addToHistory({
           toolTitle: tool.title,
@@ -572,6 +591,7 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
         setStatus('success');
         setProgress(100);
         if (addToast) addToast('AI report generated successfully!', 'success');
+        clearInterval(timerRef.current);
         if (incrementConversion) incrementConversion();
         addToHistory({
           toolTitle: tool.title,
@@ -581,6 +601,7 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
         });
       }
     } catch (err) {
+      clearInterval(timerRef.current);
       console.error(err);
       let errMsg = 'Something went wrong during processing. Please try again.';
       if (err.message && err.message.toLowerCase().includes('network error')) {
@@ -678,7 +699,6 @@ Please verify the server status above or try again in a few seconds.`;
           <option value="png">PNG Image</option>
           <option value="jpg">JPG Image</option>
           <option value="webp">WEBP Image</option>
-          <option value="webg">WEBG Image</option>
           <option value="gif">GIF Image</option>
           <option value="tiff">TIFF Image</option>
           <option value="bmp">BMP Image</option>
@@ -960,29 +980,71 @@ Please verify the server status above or try again in a few seconds.`;
             </div>
           )}
 
-          {/* Processing State */}
-          {status === 'processing' && (
-            <div style={{ textAlign: 'center', padding: '40px 0' }}>
-              <div style={{
-                width: '50px',
-                height: '50px',
-                border: '4px solid var(--border-color)',
-                borderTop: '4px solid var(--accent-color)',
-                borderRadius: '50%',
-                margin: '0 auto 20px auto',
-                animation: 'spin 1s linear infinite'
-              }} className="loading-spinner" />
-              <h4 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '8px' }}>Analyzing & Converting</h4>
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '20px' }}>
-                Your file is processing on our secure server. Please keep this page open.
-              </p>
-              
-              <div style={{ width: '100%', height: '8px', background: 'var(--bg-grid)', borderRadius: '10px', overflow: 'hidden', marginBottom: '10px' }}>
-                <div style={{ width: `${progress}%`, height: '100%', background: 'var(--primary-gradient)', borderRadius: '10px', transition: 'width 0.4s ease-out', boxShadow: 'var(--accent-glow)' }} />
+          {/* Processing State — animated stages with elapsed timer */}
+          {status === 'processing' && (() => {
+            const isDownloader = tool.category === 'Downloader';
+            const stages = isDownloader
+              ? ['🔗 Connecting to server...', '🔍 Extracting media info...', '⬇️ Downloading content...', '🔧 Processing & packaging...', '📦 Almost done...']
+              : ['📤 Uploading file...', '🔍 Analyzing format...', '⚙️ Converting file...', '🔧 Finalizing output...', '📦 Almost done...'];
+            const currentStage = stages[Math.min(processingStage, stages.length - 1)];
+
+            return (
+              <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                {/* Spinner */}
+                <div style={{
+                  width: '54px',
+                  height: '54px',
+                  border: '4px solid var(--border-color)',
+                  borderTop: '4px solid var(--accent-color)',
+                  borderRadius: '50%',
+                  margin: '0 auto 20px auto',
+                  animation: 'spin 0.9s linear infinite'
+                }} />
+
+                {/* Stage label */}
+                <h4 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '6px', color: 'var(--text-main)' }}>
+                  {currentStage}
+                </h4>
+
+                {/* Elapsed timer */}
+                <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}>
+                  {elapsedSecs < 5
+                    ? 'Hang tight, this usually takes 10–30 seconds...'
+                    : elapsedSecs < 30
+                    ? `Working... ${elapsedSecs}s elapsed`
+                    : elapsedSecs < 60
+                    ? `Still processing... ${elapsedSecs}s — large files take longer`
+                    : `${Math.floor(elapsedSecs / 60)}m ${elapsedSecs % 60}s — almost there!`}
+                </p>
+
+                {/* Progress bar */}
+                <div style={{ width: '100%', height: '8px', background: 'var(--bg-grid)', borderRadius: '10px', overflow: 'hidden', marginBottom: '10px' }}>
+                  <div style={{
+                    width: `${progress}%`,
+                    height: '100%',
+                    background: 'var(--primary-gradient)',
+                    borderRadius: '10px',
+                    transition: 'width 0.6s ease-out',
+                    boxShadow: 'var(--accent-glow)'
+                  }} />
+                </div>
+                <span style={{ fontSize: '12px', color: 'var(--accent-color)', fontWeight: '700' }}>
+                  {Math.round(progress)}% — Keep this page open
+                </span>
+
+                {/* Stage dots */}
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '20px' }}>
+                  {stages.map((_, i) => (
+                    <div key={i} style={{
+                      width: '8px', height: '8px', borderRadius: '50%',
+                      background: i <= processingStage ? 'var(--accent-color)' : 'var(--border-color)',
+                      transition: 'background 0.4s ease'
+                    }} />
+                  ))}
+                </div>
               </div>
-              <span style={{ fontSize: '12px', color: 'var(--accent-color)', fontWeight: '700' }}>{Math.round(progress)}% Complete</span>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Success State */}
           {status === 'success' && (
