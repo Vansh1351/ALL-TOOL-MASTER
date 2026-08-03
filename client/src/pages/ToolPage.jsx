@@ -149,7 +149,7 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
     else if (path === '/convert/zip-extractor') setTargetFormat('unzip');
     else {
       // General fallbacks
-      if (tool.id === 'mp4-to-mp3') setTargetFormat('mp4');
+      if (tool.id === 'mp4-to-mp3') setTargetFormat('mp3');
       else if (tool.id === 'image-converter') setTargetFormat('png');
       else if (tool.id === 'pdf-converter') setTargetFormat('docx');
       else if (tool.id === 'zip-extractor') setTargetFormat('unzip');
@@ -169,6 +169,14 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
 
     // Scroll to top of page
     window.scrollTo({ top: 0, behavior: 'instant' });
+
+    // Cleanup: revoke any previously created blob URL to prevent memory leaks
+    return () => {
+      setDownloadBlobUrl(prev => {
+        if (prev) window.URL.revokeObjectURL(prev);
+        return '';
+      });
+    };
   }, [tool]);
 
   const handlePaste = async () => {
@@ -229,7 +237,6 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
         { value: 'mp3', label: 'MP3 Audio' },
         { value: 'wav', label: 'WAV Audio' },
         { value: 'ogg', label: 'OGG Audio' },
-        { value: 'oog', label: 'OOG Audio' },
         { value: 'zip', label: 'ZIP Archive' }
       ];
     }
@@ -238,7 +245,6 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
         { value: 'png', label: 'PNG Image' },
         { value: 'jpg', label: 'JPG Image' },
         { value: 'webp', label: 'WEBP Image' },
-        { value: 'webg', label: 'WEBG Image' },
         { value: 'eps', label: 'EPS Vector' },
         { value: 'ps', label: 'PS PostScript' },
         { value: 'ai', label: 'AI Illustrator' },

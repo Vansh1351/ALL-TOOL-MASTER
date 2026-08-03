@@ -21,7 +21,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors({ origin: '*', exposedHeaders: ['Content-Disposition'] })); // Allow React dev server or production hosting
+app.use(cors({ origin: '*', exposedHeaders: ['Content-Disposition'] }));
 
 // Normalize request URLs to resolve double-slash issues (e.g. //api/download -> /api/download)
 app.use((req, res, next) => {
@@ -42,13 +42,12 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Multer Config for uploads (limit 100MB files)
+// Multer Config for uploads (limit 500MB files)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {
-    // Retain clean names
     const cleanName = file.originalname.replace(/[^a-zA-Z0-9.]/g, '_');
     cb(null, `${Date.now()}_${cleanName}`);
   }
@@ -61,14 +60,13 @@ const upload = multer({
 // Warmup ytdlp binary on start
 ensureYtdlp().catch(err => console.error("yt-dlp auto-download failed:", err));
 
-// Health-check routes (prevents "Cannot GET /" on Hugging Face / Render)
+// Health-check routes
 app.get('/', (req, res) => {
   res.json({ status: 'ok', service: 'All Tool Master API', version: '1.0.0' });
 });
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() });
 });
-
 
 
 /**
@@ -81,7 +79,6 @@ app.post('/api/convert', upload.single('file'), async (req, res) => {
 
   const { targetFormat } = req.body;
   if (!targetFormat) {
-    // clean uploaded file
     try { fs.unlinkSync(req.file.path); } catch (e) {}
     return res.status(400).json({ error: "Target format is required." });
   }
@@ -95,39 +92,25 @@ app.post('/api/convert', upload.single('file'), async (req, res) => {
   try {
     const outputPath = await performConversion(inputPath, inputMime, targetFormat, uploadsDir, originalName);
     
-    // Build download filename from the ORIGINAL uploaded file name + new extension
     const origBaseName = path.parse(originalName).name;
-    // Sanitize for filesystem safety
     const safeName = origBaseName.replace(/[<>:"\/\\|?*\x00-\x1F]/g, '_').trim() || 'converted_file';
     const downloadFilename = `${safeName}.${targetFormat}`;
     
     res.download(outputPath, downloadFilename, (err) => {
-      // Clean up files after sending
       try {
         fs.unlinkSync(inputPath);
-        if (fs.existsSync(outputPath)) {
-          fs.unlinkSync(outputPath);
-        }
+        if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
       } catch (e) {
         console.error("File cleanup error:", e);
       }
-
-      if (global.gc) {
-        try { global.gc(); } catch (e) {}
-      }
-
-      if (err) {
-        console.error("Error sending converted file:", err);
-      }
+      if (global.gc) { try { global.gc(); } catch (e) {} }
+      if (err) console.error("Error sending converted file:", err);
     });
 
   } catch (error) {
     console.error("Conversion failed:", error);
-    // Cleanup uploaded file
     try { fs.unlinkSync(inputPath); } catch (e) {}
-    if (global.gc) {
-      try { global.gc(); } catch (e) {}
-    }
+    if (global.gc) { try { global.gc(); } catch (e) {} }
     res.status(400).json({ error: `Conversion failed: ${error.message}` });
   }
 });
@@ -149,39 +132,25 @@ app.post('/api/download', async (req, res) => {
   try {
     const outputPath = await downloadMedia(url, targetFormat, targetQuality, uploadsDir);
     
-    // Extract a meaningful filename: strip the download_ timestamp prefix
     let downloadFilename = path.basename(outputPath).replace(/^download_\d+_/, '');
-    // If still generic (e.g. "video.mp4"), try to keep it but ensure it has an extension
     if (!downloadFilename || downloadFilename === `video.${targetFormat}`) {
       downloadFilename = `downloaded_video.${targetFormat}`;
     }
-    // Sanitize for safe Content-Disposition header
     downloadFilename = downloadFilename.replace(/[<>:"\/\\|?*\x00-\x1F]/g, '_').trim();
     
     res.download(outputPath, downloadFilename, (err) => {
-      // Clean up file after download
       try {
-        if (fs.existsSync(outputPath)) {
-          fs.unlinkSync(outputPath);
-        }
+        if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
       } catch (e) {
         console.error("Download cleanup error:", e);
       }
-
-      if (global.gc) {
-        try { global.gc(); } catch (e) {}
-      }
-
-      if (err) {
-        console.error("Error sending downloaded file:", err);
-      }
+      if (global.gc) { try { global.gc(); } catch (e) {} }
+      if (err) console.error("Error sending downloaded file:", err);
     });
 
   } catch (error) {
     console.error("Download failed:", error);
-    if (global.gc) {
-      try { global.gc(); } catch (e) {}
-    }
+    if (global.gc) { try { global.gc(); } catch (e) {} }
     res.status(400).json({ error: `Download failed: ${error.message}` });
   }
 });
@@ -192,9 +161,7 @@ app.post('/api/download', async (req, res) => {
 app.post('/api/ai', upload.single('file'), async (req, res) => {
   const { tool, textContent, apiKey } = req.body;
   if (!tool) {
-    if (req.file) {
-      try { fs.unlinkSync(req.file.path); } catch (e) {}
-    }
+    if (req.file) { try { fs.unlinkSync(req.file.path); } catch (e) {} }
     return res.status(400).json({ error: "AI tool selection is required." });
   }
 
@@ -213,14 +180,10 @@ app.post('/api/ai', upload.single('file'), async (req, res) => {
       uploadsDir
     });
 
-    // Cleanup uploaded file immediately
     if (filePath && fs.existsSync(filePath)) {
       try { fs.unlinkSync(filePath); } catch (e) {}
     }
-
-    if (global.gc) {
-      try { global.gc(); } catch (e) {}
-    }
+    if (global.gc) { try { global.gc(); } catch (e) {} }
 
     res.json({ result: aiResult });
 
@@ -229,9 +192,7 @@ app.post('/api/ai', upload.single('file'), async (req, res) => {
     if (filePath && fs.existsSync(filePath)) {
       try { fs.unlinkSync(filePath); } catch (e) {}
     }
-    if (global.gc) {
-      try { global.gc(); } catch (e) {}
-    }
+    if (global.gc) { try { global.gc(); } catch (e) {} }
     res.status(400).json({ error: error.message });
   }
 });
@@ -248,7 +209,7 @@ app.post('/api/ai-detect-objects', upload.single('file'), async (req, res) => {
   }
 
   try {
-    const { processAiTool } = await import('./services/aiService.js');
+    // Use already-imported processAiTool (no redundant dynamic import)
     const result = await processAiTool({
       tool: 'watermark-remover',
       filePath: imageFile.path,
@@ -258,15 +219,12 @@ app.post('/api/ai-detect-objects', upload.single('file'), async (req, res) => {
       uploadsDir,
     });
 
-    // Clean up uploaded file
     try { fs.unlinkSync(imageFile.path); } catch (e) {}
 
-    // Parse the JSON result - it should be an array of detected regions
     let objects = [];
     try {
       const parsed = JSON.parse(result);
       if (Array.isArray(parsed)) {
-        // Map watermark format to object format: rename 'type' to 'name'
         objects = parsed.map((o, i) => ({
           id: i + 1,
           name: o.type || 'Detected Object',
@@ -280,7 +238,6 @@ app.post('/api/ai-detect-objects', upload.single('file'), async (req, res) => {
         }));
       }
     } catch (parseErr) {
-      // If no valid JSON array was returned, return empty
       objects = [];
     }
 
@@ -304,7 +261,6 @@ app.post('/api/watermark-remove', upload.fields([
 ]), async (req, res) => {
   const imageFile = req.files?.file?.[0];
   const maskFile = req.files?.mask?.[0];
-
 
   if (!imageFile) {
     if (maskFile) try { fs.unlinkSync(maskFile.path); } catch (e) {}
@@ -334,7 +290,6 @@ app.post('/api/watermark-remove', upload.fields([
       uploadsDir,
     });
 
-    // Clean up uploaded files
     try { fs.unlinkSync(imageFile.path); } catch (e) {}
     if (maskFile) try { fs.unlinkSync(maskFile.path); } catch (e) {}
 
@@ -342,42 +297,22 @@ app.post('/api/watermark-remove', upload.fields([
       return res.status(500).json({ error: 'Cleaned image file not found after processing.' });
     }
 
-    // Send the cleaned image back
     res.setHeader('Content-Type', result.mimeType || 'image/png');
     res.setHeader('Content-Disposition', `inline; filename="cleaned_image.${result.mimeType?.includes('png') ? 'png' : 'jpg'}"`);
 
     const stream = fs.createReadStream(result.outputPath);
-    stream.on('end', () => {
-      try { fs.unlinkSync(result.outputPath); } catch (e) {}
-    });
-    stream.on('error', () => {
-      try { fs.unlinkSync(result.outputPath); } catch (e) {}
-    });
+    stream.on('end', () => { try { fs.unlinkSync(result.outputPath); } catch (e) {} });
+    stream.on('error', () => { try { fs.unlinkSync(result.outputPath); } catch (e) {} });
     stream.pipe(res);
 
   } catch (error) {
     console.error("[Watermark Remove] Error:", error.message);
-    // Clean up uploaded files
     try { fs.unlinkSync(imageFile.path); } catch (e) {}
     if (maskFile) try { fs.unlinkSync(maskFile.path); } catch (e) {}
-
-    if (global.gc) {
-      try { global.gc(); } catch (e) {}
-    }
-
+    if (global.gc) { try { global.gc(); } catch (e) {} }
     res.status(400).json({ error: error.message });
   }
 });
-
-// Serve frontend static build if in production
-// (In dev, React will run separately)
-const clientBuildPath = path.join(__dirname, '..', 'client', 'dist');
-if (fs.existsSync(clientBuildPath)) {
-  app.use(express.static(clientBuildPath));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(clientBuildPath, 'index.html'));
-  });
-}
 
 /**
  * Real File Compressor API
@@ -387,7 +322,7 @@ if (fs.existsSync(clientBuildPath)) {
  *   - 'compressionLevel': 1 (fast) | 5 (balanced) | 9 (maximum)
  *
  * Returns:
- *   - Single file  → same format, same name (e.g. video.mp4 → compressed video.mp4)
+ *   - Single file  → same format, same name
  *   - Multi  files → ZIP containing each file in its original format & name
  */
 app.post('/api/compress', upload.array('files', 20), async (req, res) => {
@@ -398,8 +333,7 @@ app.post('/api/compress', upload.array('files', 20), async (req, res) => {
 
   const level = Math.min(9, Math.max(1, parseInt(req.body.compressionLevel || '5', 10)));
 
-  // ── 1. Compress each uploaded file ──────────────────────────────────────────
-  const compressedFiles = []; // { outputPath, originalName }
+  const compressedFiles = [];
 
   for (const file of files) {
     const originalName = file.originalname;
@@ -410,14 +344,12 @@ app.post('/api/compress', upload.array('files', 20), async (req, res) => {
       compressedFiles.push({ outputPath, originalName });
     } catch (err) {
       console.error(`Compression failed for ${originalName}:`, err.message);
-      // Fallback: send original file unchanged rather than failing
       try {
         fs.copyFileSync(file.path, outputPath);
         compressedFiles.push({ outputPath, originalName });
       } catch {}
     }
 
-    // Clean up uploaded temp file
     try { fs.unlinkSync(file.path); } catch {}
   }
 
@@ -425,16 +357,13 @@ app.post('/api/compress', upload.array('files', 20), async (req, res) => {
     return res.status(500).json({ error: 'All files failed to compress. Please try again.' });
   }
 
-  // ── 2. Send result ──────────────────────────────────────────────────────────
   const cleanup = (paths) => {
     for (const p of paths) { try { fs.unlinkSync(p); } catch {} }
   };
 
   if (compressedFiles.length === 1) {
-    // ── Single file: return in original format ─────────────────────────────
     const { outputPath, originalName } = compressedFiles[0];
 
-    // Guess MIME type from extension
     const ext = path.extname(originalName).toLowerCase();
     const MIME_MAP = {
       '.mp4': 'video/mp4', '.mov': 'video/quicktime', '.avi': 'video/x-msvideo',
@@ -464,7 +393,6 @@ app.post('/api/compress', upload.array('files', 20), async (req, res) => {
     stream.pipe(res);
 
   } else {
-    // ── Multiple files: pack them all into one ZIP (each in original format) ─
     const zipPath = path.join(uploadsDir, `compressed_${Date.now()}.zip`);
 
     try {
@@ -499,6 +427,16 @@ app.post('/api/compress', upload.array('files', 20), async (req, res) => {
   }
 });
 
+
+// ─── IMPORTANT: Serve frontend static build AFTER all API routes ───────────
+// (Must be last to avoid shadowing /api/* routes in production)
+const clientBuildPath = path.join(__dirname, '..', 'client', 'dist');
+if (fs.existsSync(clientBuildPath)) {
+  app.use(express.static(clientBuildPath));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(clientBuildPath, 'index.html'));
+  });
+}
 
 // Global error handler - catches multer and other errors, returns clean JSON
 app.use((err, req, res, next) => {

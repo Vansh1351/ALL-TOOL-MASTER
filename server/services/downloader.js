@@ -150,6 +150,36 @@ if (process.platform === 'win32') {
 
 const binaryPath = path.join(binDir, binaryName);
 
+// ── Module-level capability caches (populated after first download) ──────────
+let _cachedHasGlobalFfmpeg = null;  // null = not yet checked
+let _cachedImpersonateTarget = undefined; // undefined = not yet checked
+
+async function checkGlobalFfmpeg() {
+  if (_cachedHasGlobalFfmpeg !== null) return _cachedHasGlobalFfmpeg;
+  _cachedHasGlobalFfmpeg = await new Promise(resolve => {
+    execFile('ffmpeg', ['-version'], (err) => resolve(!err));
+  });
+  console.log(`[Cache] Global ffmpeg available: ${_cachedHasGlobalFfmpeg}`);
+  return _cachedHasGlobalFfmpeg;
+}
+
+async function checkImpersonateTarget(binary) {
+  if (_cachedImpersonateTarget !== undefined) return _cachedImpersonateTarget;
+  _cachedImpersonateTarget = await new Promise(resolve => {
+    execFile(binary, ['--list-impersonate-targets'], { maxBuffer: 1024 * 1024 }, (err, stdout, stderr) => {
+      if (err) return resolve(null);
+      const targetList = `${stdout || ''}\n${stderr || ''}`;
+      const chromeTarget = targetList
+        .split(/\r?\n/)
+        .map(line => line.trim().split(/\s+/)[0])
+        .find(target => /^chrome(?:-\d+)?$/i.test(target));
+      resolve(chromeTarget || null);
+    });
+  });
+  console.log(`[Cache] yt-dlp Chrome impersonate target: ${_cachedImpersonateTarget}`);
+  return _cachedImpersonateTarget;
+}
+
 /**
  * Automatically downloads yt-dlp binary if it doesn't exist.
  */
@@ -217,15 +247,13 @@ export async function ensureYtdlp() {
 async function downloadMediaWithYtdlp(url, format, quality, outputDir, options = {}) {
   const binary = await ensureYtdlp();
   
-  // Create output path format
-  const outputPattern = path.join(outputDir, `download_${Date.now()}_%(title)s.%(ext)s`);
+  // Unique session token prevents concurrent downloads from picking up each other's output files
+  const sessionId = `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  const outputPattern = path.join(outputDir, `download_${sessionId}_%(title)s.%(ext)s`);
+  const sessionPrefix = `download_${sessionId}_`;
   
-  // Check if ffmpeg is globally available in system PATH
-  const hasGlobalFfmpeg = await new Promise(resolve => {
-    execFile('ffmpeg', ['-version'], (err) => {
-      resolve(!err);
-    });
-  });
+  // Use cached capability checks (avoids ~400ms overhead per download)
+  const hasGlobalFfmpeg = await checkGlobalFfmpeg();
 
   const args = [
     url,
@@ -247,28 +275,14 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
     }
   }
 
-  // Check if the binary supports the requested browser impersonation target.
-  const chromeImpersonateTarget = await new Promise(resolve => {
-    execFile(binary, ['--list-impersonate-targets'], { maxBuffer: 1024 * 1024 }, (err, stdout, stderr) => {
-      if (err) {
-        return resolve(null);
-      }
-
-      const targetList = `${stdout || ''}\n${stderr || ''}`;
-      const chromeTarget = targetList
-        .split(/\r?\n/)
-        .map(line => line.trim().split(/\s+/)[0])
-        .find(target => /^chrome(?:-\d+)?$/i.test(target));
-
-      resolve(chromeTarget || null);
-    });
-  });
+  // Use cached impersonate target check
+  const chromeImpersonateTarget = await checkImpersonateTarget(binary);
 
   if (chromeImpersonateTarget) {
-    console.log(`yt-dlp binary "${binary}" supports Chrome TLS impersonation. Enabling ${chromeImpersonateTarget} impersonation.`);
+    console.log(`yt-dlp: Enabling Chrome TLS impersonation (${chromeImpersonateTarget}).`);
     args.push('--impersonate', chromeImpersonateTarget);
   } else {
-    console.log(`yt-dlp binary "${binary}" does not list Chrome as an impersonation target. Bypassing impersonate argument.`);
+    console.log(`yt-dlp: Chrome impersonation not supported by this binary. Skipping.`);
   }
 
   if (!hasGlobalFfmpeg) {
@@ -456,8 +470,14 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
           lastErrorMsg = errMessage;
           console.error(`Attempt "${attempt.name}" failed:`, errMessage);
 
-          const isBotBlock = errMessage.toLowerCase().includes("confirm you're not a bot") || 
-                              errMessage.toLowerCase().includes("sign in to confirm");
+          const isBotBlock = errMessage.toLowerCase().includes("confirm you're not a bot") ||
+                              errMessage.toLowerCase().includes("sign in to confirm") ||
+                              errMessage.toLowerCase().includes("precondition check failed") ||
+                              errMessage.toLowerCase().includes("http error 403") ||
+                              errMessage.toLowerCase().includes("video unavailable") ||
+                              errMessage.toLowerCase().includes("this video is not available") ||
+                              errMessage.toLowerCase().includes("private video") ||
+                              errMessage.toLowerCase().includes("403 forbidden");
 
           // Local browser cookies fallback
           if (isBotBlock && !triedBrowserCookies) {
@@ -509,9 +529,9 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
     };
 
     const resolveFile = () => {
-      // Find the most recently modified file starting with 'download_'
+      // Find files matching THIS session's unique prefix to prevent cross-request collisions
       const files = fs.readdirSync(outputDir);
-      const matches = files.filter(f => f.startsWith(`download_`));
+      const matches = files.filter(f => f.startsWith(sessionPrefix));
       
       if (matches.length === 0) {
         return reject(new Error('File not found after yt-dlp finished processing.'));

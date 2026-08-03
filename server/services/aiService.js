@@ -52,7 +52,7 @@ export async function processAiTool({ tool, filePath, mimeType, textContent, api
     try {
       await convertMedia(filePath, audioPath, 'mp3');
       processedFilePath = audioPath;
-      processedMimeType = 'audio/mp3';
+      processedMimeType = 'audio/mpeg';
     } catch (e) {
       console.error("Failed to extract audio, falling back to original video file:", e);
       processedFilePath = filePath;
