@@ -1,17 +1,16 @@
 {
   "cleanUrls": true,
-  "rewrites": [
+  "routes": [
     {
-      "source": "/portfolio",
-      "destination": "/portfolio/index.html"
+      "handle": "filesystem"
     },
     {
-      "source": "/portfolio/(.*)",
-      "destination": "/portfolio/index.html"
+      "src": "/portfolio.*",
+      "dest": "/portfolio.html"
     },
     {
-      "source": "/((?!assets/|public/|favicon.ico|robots.txt|sitemap.xml|ads.txt|BingSiteAuth.xml|icons.svg|googleb3cb58dd0aa48fe7.html).*)",
-      "destination": "/index.html"
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
