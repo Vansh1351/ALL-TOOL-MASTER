@@ -423,13 +423,18 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
     setElapsedSecs(0);
     startTimeRef.current = Date.now();
 
-    // Start elapsed-time counter
+    // Start elapsed-time counter & smooth progress simulation
     timerRef.current = setInterval(() => {
       setElapsedSecs(Math.floor((Date.now() - startTimeRef.current) / 1000));
-    }, 1000);
+      setProgress(prev => {
+        if (prev >= 92) return prev;
+        const bump = Math.random() * 3 + 1;
+        return Math.min(92, prev + bump);
+      });
+    }, 500);
 
     // Advance stage labels to give user feedback during server-side processing
-    const stageTimings = [3000, 8000, 18000, 35000]; // ms when each stage kicks in
+    const stageTimings = [2500, 6000, 12000, 22000]; // ms when each stage kicks in
     stageTimings.forEach((ms, idx) => setTimeout(() => setProcessingStage(s => Math.max(s, idx + 1)), ms));
 
     const apiKey = localStorage.getItem('gemini_api_key') || '';

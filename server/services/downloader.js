@@ -263,7 +263,7 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
     '--restrict-filenames',
     '--no-check-certificate',
     '-4',
-    '--socket-timeout', '15'  // Reduced from 30s — fail fast on dead connections
+    '--socket-timeout', '8'  // Fail fast in 8s on dead/unresponsive proxy or connection
   ];
 
   // Configure proxy if provided in environment variables and enabled
@@ -357,32 +357,40 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
     };
 
 
-    // ── Trimmed to 5 highest-success-rate attempts (was 12 sequential attempts) ──
-    // On datacenter IPs, Android/iOS client consistently bypasses bot detection.
-    // Cookies take priority if available.
+    // ── Optimized attempt queue: mixes Proxy and Direct (non-proxy) attempts ──
+    // If proxy is dead/timing out, the proxy failure detector will strip --proxy
+    // and attempt 2 (direct) will finish in 3-5 seconds!
 
-    // 1. With cookies (highest success rate if configured)
-    if (resolvedCookiesPath) {
-      addAttempt("With cookies (best format)", addCookies([...baseArgs]), false);
-      addAttempt("With cookies (any format)", addCookies(filterArgs([...baseArgs], ['-f', '-S'])), false);
+    // 1. Android/iOS client (WITH proxy if configured)
+    if (options.useProxy !== false && getSanitizedProxyUrl()) {
+      addAttempt("Android+iOS client (with proxy)", [
+        ...filterArgs([...baseArgs], ['-f', '-S']),
+        '-f', format === 'mp3' ? 'ba/b' : 'best',
+        '--extractor-args', 'youtube:player_client=android,ios'
+      ], true);
     }
 
-    // 2. Android/iOS client — highest datacenter success rate (bypasses bot-detection best)
-    addAttempt("Android+iOS client (best format)", [
-      ...filterArgs([...baseArgs], ['-f', '-S']),
+    // 2. Android/iOS client (DIRECT without proxy — super fast 3s execution)
+    addAttempt("Android+iOS client (direct)", [
+      ...filterArgs([...baseArgs], ['-f', '-S', '--proxy']),
       '-f', format === 'mp3' ? 'ba/b' : 'best',
       '--extractor-args', 'youtube:player_client=android,ios'
     ], true);
 
-    // 3. TV client — second-best for datacenter IPs
-    addAttempt("TV client (any format)", [
-      ...filterArgs([...baseArgs], ['-f', '-S']),
+    // 3. TV client (DIRECT without proxy)
+    addAttempt("TV client (direct)", [
+      ...filterArgs([...baseArgs], ['-f', '-S', '--proxy']),
       '-f', format === 'mp3' ? 'ba/b' : 'best',
       '--extractor-args', 'youtube:player_client=tv_simply,default,-tv'
     ], true);
 
-    // 4. Default client without restrictions (last resort)
-    addAttempt("Default client (any format)", filterArgs([...baseArgs], ['-f', '-S']), false);
+    // 4. With cookies (if available)
+    if (resolvedCookiesPath) {
+      addAttempt("With cookies (direct)", addCookies(filterArgs([...baseArgs], ['--proxy'])), false);
+    }
+
+    // 5. Default client (DIRECT without proxy)
+    addAttempt("Default client (direct)", filterArgs([...baseArgs], ['-f', '-S', '--proxy']), false);
 
 
     // Now sort/reorder them based on isLocalDesktopRuntime() and cookie availability
@@ -416,6 +424,7 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
 
     let currentAttemptIndex = 0;
     let lastErrorMsg = '';
+    let proxyIsDead = false;
 
     const runNextAttempt = (triedBrowserCookies = false) => {
       if (currentAttemptIndex >= uniqueAttempts.length) {
@@ -423,23 +432,44 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
       }
 
       const attempt = uniqueAttempts[currentAttemptIndex];
+
+      // If proxy was detected dead, dynamically strip --proxy from remaining attempts
+      if (proxyIsDead) {
+        attempt.args = filterArgs(attempt.args, ['--proxy']);
+      }
+
       console.log(`[Attempt ${currentAttemptIndex + 1}/${uniqueAttempts.length}] Running: ${attempt.name}`);
 
-      // 60s hard timeout per yt-dlp process — prevents indefinite hangs
-      execFile(binary, attempt.args, { maxBuffer: 1024 * 1024 * 10, timeout: 60000 }, (error, stdout, stderr) => {
+      // 25s hard timeout per yt-dlp process — prevents any attempt from hanging
+      execFile(binary, attempt.args, { maxBuffer: 1024 * 1024 * 10, timeout: 25000 }, (error, stdout, stderr) => {
         if (error) {
           const errMessage = (stderr || error.message).trim();
           lastErrorMsg = errMessage;
           console.error(`Attempt "${attempt.name}" failed:`, errMessage);
 
-          const isBotBlock = errMessage.toLowerCase().includes("confirm you're not a bot") ||
-                              errMessage.toLowerCase().includes("sign in to confirm") ||
-                              errMessage.toLowerCase().includes("precondition check failed") ||
-                              errMessage.toLowerCase().includes("http error 403") ||
-                              errMessage.toLowerCase().includes("video unavailable") ||
-                              errMessage.toLowerCase().includes("this video is not available") ||
-                              errMessage.toLowerCase().includes("private video") ||
-                              errMessage.toLowerCase().includes("403 forbidden");
+          const lowerErr = errMessage.toLowerCase();
+
+          // Auto-detect dead proxy (curl 28 timeout, connection refused, gateway error)
+          const isProxyError = lowerErr.includes("connection timed out") ||
+                               lowerErr.includes("curl: (28)") ||
+                               lowerErr.includes("proxy") ||
+                               lowerErr.includes("tunnel connection") ||
+                               lowerErr.includes("connection refused") ||
+                               lowerErr.includes("host unreachable");
+
+          if (isProxyError && !proxyIsDead) {
+            console.warn(`[Proxy Dead] Proxy server timed out or failed (${errMessage}). Disabling proxy for all remaining attempts!`);
+            proxyIsDead = true;
+          }
+
+          const isBotBlock = lowerErr.includes("confirm you're not a bot") ||
+                              lowerErr.includes("sign in to confirm") ||
+                              lowerErr.includes("precondition check failed") ||
+                              lowerErr.includes("http error 403") ||
+                              lowerErr.includes("video unavailable") ||
+                              lowerErr.includes("this video is not available") ||
+                              lowerErr.includes("private video") ||
+                              lowerErr.includes("403 forbidden");
 
           // Local browser cookies fallback
           if (isBotBlock && !triedBrowserCookies) {
@@ -1009,7 +1039,17 @@ function getFriendlyErrorMessage(rawError, url) {
   return `Download failed: ${rawError || 'Unknown extractor error'}`;
 }
 
-export async function downloadMedia(url, format, quality, outputDir) {
+function normalizeYoutubeUrl(rawUrl) {
+  if (!rawUrl) return rawUrl;
+  const match = rawUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([a-zA-Z0-9_-]{11})/);
+  if (match) {
+    return `https://www.youtube.com/watch?v=${match[1]}`;
+  }
+  return rawUrl;
+}
+
+export async function downloadMedia(rawUrl, format, quality, outputDir) {
+  const url = normalizeYoutubeUrl(rawUrl);
   const isInstagram = url.includes('instagram.com') || url.includes('instagr.am');
 
   // ── Instagram: use dedicated multi-strategy downloader ──────
