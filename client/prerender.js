@@ -472,13 +472,16 @@ function prerender() {
       // Homepage directly overwrites dist/index.html
       fs.writeFileSync(indexHtmlPath, html, 'utf8');
     } else {
-      // E.g., /about -> dist/about.html (using cleanUrls: true)
-      // or /convert/pdf-to-word -> dist/convert/pdf-to-word.html
       const relativeDestPath = `${page.path.replace(/^\//, '')}.html`;
       const destFilePath = path.join(distDir, relativeDestPath);
       
       fs.mkdirSync(path.dirname(destFilePath), { recursive: true });
       fs.writeFileSync(destFilePath, html, 'utf8');
+
+      // Also save as directory index.html for Vercel static routing compatibility
+      const dirDestPath = path.join(distDir, page.path.replace(/^\//, ''), 'index.html');
+      fs.mkdirSync(path.dirname(dirDestPath), { recursive: true });
+      fs.writeFileSync(dirDestPath, html, 'utf8');
     }
   });
 

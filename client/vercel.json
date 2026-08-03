@@ -2,6 +2,14 @@
   "cleanUrls": true,
   "rewrites": [
     {
+      "source": "/portfolio",
+      "destination": "/portfolio/index.html"
+    },
+    {
+      "source": "/portfolio/(.*)",
+      "destination": "/portfolio/index.html"
+    },
+    {
       "source": "/((?!assets/|public/|favicon.ico|robots.txt|sitemap.xml|ads.txt|BingSiteAuth.xml|icons.svg|googleb3cb58dd0aa48fe7.html).*)",
       "destination": "/index.html"
     }
