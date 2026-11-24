@@ -4,7 +4,8 @@ import {
   FiFolderPlus, FiVideo, FiMic, FiCompass, 
   FiBookOpen, FiClock, FiSettings, FiVolume2,
   FiStar, FiBriefcase, FiPenTool, FiScissors,
-  FiSliders, FiEdit3, FiGrid, FiCamera, FiCommand
+  FiSliders, FiEdit3, FiGrid, FiCamera, FiCommand,
+  FiInstagram, FiTwitter, FiShare2
 } from 'react-icons/fi';
 
 export const TOOLS_DATA = [
@@ -40,30 +41,69 @@ export const TOOLS_DATA = [
   },
   {
     id: 'url-to-mp4',
-    title: 'URL to MP4',
-    desc: 'Download videos from FB, Instagram, TikTok, Vimeo, or Twitter directly to MP4.',
+    title: 'Universal URL to MP4 & MP3 Converter Free',
+    desc: 'Convert streaming video or audio links from any website directly to high-speed MP4 or 320kbps MP3.',
     icon: FiCompass,
     color: '#06b6d4',
     category: 'Downloader',
-    routes: ['/downloader/facebook', '/downloader/instagram', '/downloader/tiktok', '/downloader/twitter'],
+    routes: [
+      '/url-to-mp4-converter',
+      '/url-to-mp3-converter',
+      '/url-to-mp4-mp3-converter',
+      '/url-to-mp4',
+      '/url-to-mp3',
+      '/downloader/url-to-mp4',
+      '/downloader/url-to-mp3'
+    ],
     keywords: [
-      'url to mp4', 'facebook downloader', 'fb downloader', 'instagram downloader', 'ig downloader', 
-      'tiktok downloader', 'vimeo downloader', 'twitter downloader', 'url to mp4/mp3 converter', 'video downloader', 
-      'facebook video url to mp4 converter', 'instagram url to mp4 converter download', 'mobile url to mp4 converter app', 
-      'tiktok url to mp4 converter no watermark', 'download reel video online from link', 'save public videos online free', 
-      'download short video online from url', 'convert url to mp4 online free', 'best url to mp4 converter without watermark', 
-      'download video from url as mp4', 'paste link and download mp4', 'free online url to mp4 downloader', 
-      'convert website video to mp4 online', 'direct video url to mp4 converter', 'save streaming video as mp4', 
-      'social media url to mp4 converter', 'hd mp4 downloader from link', 'convert video link into mp4', 
-      'online video downloader mp4 free', 'convert web video to mp4 instantly', 'fast url to mp4 converter 2026', 
-      'mobile url to mp4 downloader', 'browser based mp4 converter online', 'convert tiktok url to mp4', 
-      'convert instagram link to mp4', 'facebook video url to mp4', 'twitter video downloader mp4', 
-      'vimeo video to mp4 converter', 'youtube shorts to mp4 online', 'no signup url to mp4 converter', 
-      'unlimited mp4 video downloader', 'high quality mp4 converter online', 'url video downloader', 
-      'mp4 downloader online', 'online video downloader free', 'hd mp4 video downloader', 
-      'save online video as mp4', 'video url converter', 'direct mp4 downloader', 'social media video downloader', 
-      'website video downloader', 'convert website video to mp4', 'url to mp4 converter free', 
-      'best url to mp4 converter', 'convert url to mp4 online', 'download video from url'
+      'url to mp4', 'url to mp3', 'url to mp4 converter', 'url to mp3 converter', 'url to mp4 mp3 converter',
+      'convert url to mp4', 'convert url to mp3', 'video url converter', 'online link converter',
+      'url video downloader', 'mp4 downloader online', 'online video downloader free', 'hd mp4 video downloader',
+      'save online video as mp4', 'direct mp4 downloader', 'social media video downloader',
+      'website video downloader', 'convert website video to mp4', 'url to mp4 converter free',
+      'best url to mp4 converter', 'convert url to mp4 online', 'download video from url',
+      'paste link and download mp4', 'free online url to mp4 downloader', 'convert website video to mp4 online',
+      'direct video url to mp4 converter', 'save streaming video as mp4', 'convert web video to mp4 instantly',
+      'browser based mp4 converter online', 'no signup url to mp4 converter', 'unlimited mp4 video downloader'
+    ]
+  },
+  {
+    id: 'instagram-downloader',
+    title: 'Instagram Video & Reels Downloader',
+    desc: 'Download Instagram Reels, public post videos, stories, and audio in 1080p Full HD MP4 format.',
+    icon: FiInstagram,
+    color: '#e1306c',
+    category: 'Downloader',
+    routes: [
+      '/downloader/instagram',
+      '/downloader/instagram-reels',
+      '/downloader/ig-downloader',
+      '/downloader/instagram-video',
+      '/downloader/reels'
+    ],
+    keywords: [
+      'instagram downloader', 'instagram reel downloader', 'download instagram video', 'ig reels download',
+      'instagram video to mp4', 'instagram story downloader', 'save instagram reels free', 'snapinsta alternative',
+      'indown alternative', 'download ig reels online', 'instagram video download full hd', 'instagram audio download',
+      'download reel video online from link', 'save public videos online free', 'instagram url to mp4 converter'
+    ]
+  },
+  {
+    id: 'twitter-downloader',
+    title: 'Twitter / X Video Downloader',
+    desc: 'Download videos, GIFs, and media clips from Twitter (X) tweets in crisp 1080p and 720p HD MP4.',
+    icon: FiTwitter,
+    color: '#1da1f2',
+    category: 'Downloader',
+    routes: [
+      '/downloader/twitter',
+      '/downloader/x-downloader',
+      '/downloader/twitter-video'
+    ],
+    keywords: [
+      'twitter downloader', 'x video downloader', 'download twitter video', 'twitter to mp4',
+      'save twitter video', 'twitter gif downloader', 'download x video online', 'twitter video saver hd',
+      'twdown alternative', 'twitter media downloader', 'download tweet video free'
     ]
   },
   {

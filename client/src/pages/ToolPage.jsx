@@ -754,11 +754,11 @@ Please verify the server status above or try again in a few seconds.`;
         </select>
       );
     }
-    if (['tiktok-downloader', 'facebook-downloader', 'pinterest-downloader'].includes(tool.id)) {
+    if (['tiktok-downloader', 'facebook-downloader', 'instagram-downloader', 'twitter-downloader', 'pinterest-downloader', 'url-to-mp4'].includes(tool.id)) {
       return (
         <select className="select-field" value={targetFormat} onChange={(e) => setTargetFormat(e.target.value)}>
           <option value="mp4">MP4 Video (HD)</option>
-          <option value="mp3">MP3 Audio</option>
+          <option value="mp3">MP3 Audio (320kbps)</option>
         </select>
       );
     }
@@ -956,8 +956,11 @@ Please verify the server status above or try again in a few seconds.`;
                         placeholder={
                           tool.id === 'tiktok-downloader' ? "e.g. https://www.tiktok.com/@user/video/..." :
                           tool.id === 'facebook-downloader' ? "e.g. https://www.facebook.com/watch/?v=... or reels link" :
+                          tool.id === 'instagram-downloader' ? "e.g. https://www.instagram.com/reel/... or post link" :
+                          tool.id === 'twitter-downloader' ? "e.g. https://x.com/user/status/..." :
                           tool.id === 'pinterest-downloader' ? "e.g. https://www.pinterest.com/pin/..." :
                           tool.id === 'soundcloud-downloader' ? "e.g. https://soundcloud.com/artist/track..." :
+                          tool.id === 'url-to-mp4' ? "e.g. paste any video or audio link to convert to MP4/MP3..." :
                           "e.g. https://www.youtube.com/watch?v=..."
                         }
                         value={url}

@@ -1870,6 +1870,136 @@ Animated GIFs are the universal language of online communication, social comment
   '/convert/mp4-to-gif': {
     title: 'Convert MP4 to Animated GIF Free | All Tool Master',
     description: 'Make animated GIFs from MP4 video clips in seconds. Free, fast, and no watermark.'
+  },
+
+  // --- Universal URL to MP4 & MP3 Converter Dedicated SEO Routes ---
+  '/url-to-mp4-converter': {
+    title: 'URL to MP4 Converter Free Online - Convert Video Links to MP4 | All Tool Master',
+    description: 'Convert any video URL to clean, watermark-free MP4 format online for free. Fast link converter with no signup or software required.',
+    h1: 'Universal URL to MP4 Converter Free',
+    introduction: 'Need to convert a video link into a downloadable MP4 video file? All Tool Master\'s free online URL to MP4 converter extracts direct streaming video from web links in high resolution up to 1080p Full HD. Paste any valid streaming link and download clean, virus-free MP4 files instantly.'
+  },
+  '/url-to-mp3-converter': {
+    title: 'URL to MP3 Converter Free Online - Extract 320kbps Audio | All Tool Master',
+    description: 'Convert any video or audio URL into high-quality 320kbps MP3 audio files. Free online audio extractor with no software installation.',
+    h1: 'Universal URL to MP3 Converter Free',
+    introduction: 'Extract pure, high-fidelity 320kbps MP3 audio from any streaming video or web link. All Tool Master converts video links to MP3 in seconds, allowing you to save songs, podcasts, speeches, and interviews for offline listening.'
+  },
+  '/url-to-mp4-mp3-converter': {
+    title: 'URL to MP4 & MP3 Converter Online Free | All Tool Master',
+    description: 'Universal media URL converter. Easily convert streaming links to MP4 video or MP3 audio with max quality and zero watermark.',
+    h1: 'Universal URL to MP4 & MP3 Converter',
+    introduction: 'The all-in-one web utility to convert video and audio links to MP4 video or MP3 audio in seconds without watermarks or software installation.'
+  },
+  '/url-to-mp4': {
+    title: 'Convert URL to MP4 Online Free | All Tool Master',
+    description: 'Paste any video link and download high-definition MP4 video directly to your phone or computer.'
+  },
+  '/url-to-mp3': {
+    title: 'Convert URL to MP3 Online Free | All Tool Master',
+    description: 'Extract clean MP3 audio from web video links with high-speed direct downloads.'
+  },
+  '/downloader/url-to-mp4': {
+    title: 'Direct URL to MP4 Downloader | All Tool Master',
+    description: 'Fast online URL to MP4 video downloader with no watermarks and no limits.'
+  },
+  '/downloader/url-to-mp3': {
+    title: 'Direct URL to MP3 Downloader | All Tool Master',
+    description: 'Download audio streams directly from web URLs in 320kbps MP3 format.'
+  },
+
+  // --- Dedicated Instagram Video & Reels Downloader ---
+  'instagram-downloader': {
+    title: 'Instagram Video & Reels Downloader - Download IG Reels Online | All Tool Master',
+    description: 'Download Instagram Reels, videos, stories, and IGTV clips in 1080p Full HD MP4 without watermarks. Free online Instagram downloader with zero limits.',
+    h1: 'Instagram Video & Reels Downloader',
+    introduction: 'Download Instagram Reels, public post videos, stories, and carousel clips in original 1080p Full HD resolution. All Tool Master provides a fast, watermark-free Instagram downloader that works seamlessly on iPhone, Android, Mac, and PC without requiring an Instagram login or third-party app installation.',
+    howTo: [
+      'Open the Instagram app or website and copy the link of the Reel, Video, or Post.',
+      'Paste the Instagram link into the URL input box above.',
+      'Select MP4 Video (or MP3 Audio extract) and choose your preferred quality.',
+      'Click "Process Command" to retrieve the clean, watermark-free media.',
+      'Click "Download File" to save the high-speed video directly to your gallery.'
+    ],
+    features: [
+      { title: 'Instagram Reels Downloader HD', desc: 'Download vertical 9:16 Instagram Reels in crisp 1080p and 720p HD MP4 format.' },
+      { title: 'Zero Watermark Branding', desc: 'Saves clean video files without platform logos, handles, or distracting stamps.' },
+      { title: 'Extract Audio to MP3', desc: 'Extract viral trending Instagram audio tracks and background songs to 320kbps MP3.' },
+      { title: 'No Account or Login Required', desc: '100% anonymous and secure. Never requires your Instagram credentials or password.' }
+    ],
+    article: `
+### Free Instagram Video & Reels Downloader Without App
+Instagram is the primary home of creative video reels, fitness routines, recipe tutorials, and comedy shorts. However, the official app does not provide a direct button to save videos with full audio to your local camera roll. All Tool Master\'s **Instagram Video & Reels Downloader** bridges this gap, giving creators and students a simple, secure way to archive public reels and videos in original quality.
+
+### Download Instagram Reels With Audio
+Unlike generic screen recording workarounds that lose audio quality, our direct scraper grabs the original video and stereo sound stream directly from Instagram\'s CDN, preserving the vibrant colors and full dynamic range.
+`,
+    faqs: [
+      { question: 'Is this Instagram downloader free to use?', answer: 'Yes, All Tool Master offers unlimited free Instagram video and reel downloads with no subscriptions or paywalls.' },
+      { question: 'Do I need to sign in with my Instagram account?', answer: 'No. You never need to provide your Instagram username, password, or login credentials.' },
+      { question: 'Can I download private Instagram posts?', answer: 'No. For privacy and security reasons, our tool only downloads public Instagram reels and videos.' },
+      { question: 'Does this work on iPhone and Android?', answer: 'Yes, it works smoothly in Safari on iOS (saves to Files / Camera Roll) and Chrome on Android.' }
+    ]
+  },
+  '/downloader/instagram': {
+    title: 'Instagram Video & Reels Downloader Online Free | All Tool Master',
+    description: 'Download Instagram videos and Reels in 1080p Full HD MP4. Free, fast, no login needed.'
+  },
+  '/downloader/instagram-reels': {
+    title: 'Instagram Reels Downloader HD Free | All Tool Master',
+    description: 'Save Instagram Reels in high-definition video with full audio directly to your device.'
+  },
+  '/downloader/ig-downloader': {
+    title: 'IG Video & Reels Downloader Free Online | All Tool Master',
+    description: 'Fast online Instagram saver for reels, stories, and video posts without watermarks.'
+  },
+  '/downloader/instagram-video': {
+    title: 'Download Instagram Video HD Online | All Tool Master',
+    description: 'Extract and download Instagram video posts and clips in high resolution MP4.'
+  },
+  '/downloader/reels': {
+    title: 'Reels Downloader — Save Instagram & FB Reels Free | All Tool Master',
+    description: 'Download viral social media reels in 1080p HD MP4 format for free online.'
+  },
+
+  // --- Dedicated Twitter / X Video Downloader ---
+  'twitter-downloader': {
+    title: 'Twitter (X) Video Downloader - Download Twitter Videos & GIFs | All Tool Master',
+    description: 'Download Twitter (X) videos, GIFs, and media clips in 1080p/720p HD MP4. Free online Twitter video saver with instant downloads.',
+    h1: 'Twitter / X Video Downloader',
+    introduction: 'Save videos, animated GIFs, and news clips from Twitter (X) tweets in full high-definition MP4. All Tool Master\'s Twitter Downloader parses tweet links and extracts the original media stream directly, letting you download videos safely without ads, watermarks, or third-party extensions.',
+    howTo: [
+      'Copy the link of the tweet containing the video or GIF from Twitter / X.',
+      'Paste the tweet URL into the input field above.',
+      'Click "Process Command" to parse the media streams.',
+      'Click "Download File" to save the high-speed video directly to your storage.'
+    ],
+    features: [
+      { title: 'Full HD Resolutions', desc: 'Offers multiple resolution tiers up to 1080p Full HD video quality.' },
+      { title: 'Save Twitter GIFs as MP4', desc: 'Converts looping Twitter GIFs into universal, lightweight MP4 video files.' },
+      { title: '1-Click Direct Download', desc: 'Fast processing with zero pop-up ads, malware, or redirect loops.' },
+      { title: 'Mobile & Desktop Friendly', desc: 'Works on iPhone, Android, iPad, Windows, and Mac browsers seamlessly.' }
+    ],
+    article: `
+### High-Speed Twitter / X Video Downloader
+Twitter (X) is the epicenter of breaking news, sports highlights, and viral memes. All Tool Master ensures you never lose an important video clip. Simply copy any tweet URL and download the video directly to your gallery in seconds.
+`,
+    faqs: [
+      { question: 'Can I download Twitter GIFs as video files?', answer: 'Yes, Twitter stores GIFs as looping MP4 files. Our tool downloads them directly as clean MP4 videos.' },
+      { question: 'Do I need a Twitter / X account to use this tool?', answer: 'No, you do not need an account or login to download media from public tweets.' }
+    ]
+  },
+  '/downloader/twitter': {
+    title: 'Twitter Video Downloader — Save X Videos Online Free | All Tool Master',
+    description: 'Download Twitter (X) videos and GIFs in 1080p HD MP4. Fast, secure, and completely free.'
+  },
+  '/downloader/x-downloader': {
+    title: 'X Video Downloader Online Free — Download Videos from X | All Tool Master',
+    description: 'Save videos and clips from X (formerly Twitter) tweets directly to your device.'
+  },
+  '/downloader/twitter-video': {
+    title: 'Download Twitter Videos Free HD | All Tool Master',
+    description: 'Online tool to convert and download video tweets into high quality MP4 files.'
   }
 
 };
