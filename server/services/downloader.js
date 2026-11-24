@@ -602,7 +602,7 @@ export async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
     'https://api.cobalt.liubquanti.click', // Active & high uptime
   ];
 
-  const COBALT_TIMEOUT_MS = 5000; // 5s timeout — resolves instantly in ~1-2s
+  const COBALT_TIMEOUT_MS = 18000; // 18s timeout for Cobalt parallel stream resolution
   
   // 1. Resolve media URL using the fastest working instance in parallel
   const promises = activeInstances.map(async (instance) => {
@@ -1233,7 +1233,7 @@ export async function downloadMedia(rawUrl, format, quality, outputDir) {
     } catch (ytdlpError) {
       console.error(`[Media Engine] yt-dlp fallback also failed: ${ytdlpError.message}`);
       const friendlyMsg = getFriendlyErrorMessage(ytdlpError.message, url);
-      throw new Error(friendlyMsg);
+      throw new Error(`${friendlyMsg} [Cobalt detail: ${cobaltError.message}]`);
     }
   }
 }
