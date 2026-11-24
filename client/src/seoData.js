@@ -1440,7 +1440,436 @@ Simply provide a title, select your script type and genre, and write a brief pre
   '/utility/cv-builder': {
     title: 'Free Online CV Builder | All Tool Master',
     description: 'Create a professional ATS-friendly CV online for free. Real-time preview, instant PDF download.'
+  },
+
+  // --- 11 New Tools SEO & Routing Data ---
+  'tiktok-downloader': {
+    title: 'TikTok Video Downloader Without Watermark - Fast HD MP4 | All Tool Master',
+    description: 'Download TikTok videos without watermark in HD 1080p. Free online TikTok MP4 downloader and MP3 audio extractor with no app or login.',
+    h1: 'TikTok Video Downloader (No Watermark)',
+    introduction: 'Download clean, watermark-free TikTok videos and sounds in crisp 1080p resolution. All Tool Master removes the TikTok logo and floating creator handles automatically, giving you pristine MP4 video files ready for offline archiving, video editing, or reposting across social channels. Completely free with unlimited downloads and no app installation.',
+    howTo: [
+      'Copy the link of any public TikTok video from the TikTok app or web browser.',
+      'Paste the TikTok link into the downloader input field above.',
+      'Select your output format (MP4 for video or MP3 for audio only) and choose max quality.',
+      'Click "Process Command" to extract the clean, watermark-free media.',
+      'Click "Download File" to save the high-speed video directly to your gallery.'
+    ],
+    features: [
+      { title: 'Zero Watermark Overlay', desc: 'Removes the TikTok bouncing watermark and end logo animation cleanly.' },
+      { title: 'Full 1080p & 720p HD Quality', desc: 'Downloads the highest original bitrate available from TikTok CDN servers.' },
+      { title: 'Extract Audio to MP3', desc: 'Download background audio tracks, sounds, and viral music directly to 320kbps MP3.' },
+      { title: 'Cross-Device Compatible', desc: 'Works effortlessly on iPhone, iPad, Android, Windows, and Mac without installing third-party apps.' }
+    ],
+    article: `
+### Free TikTok Video Downloader Without Watermark
+TikTok is the home of viral video creativity, educational clips, and trending sounds. However, downloading videos directly from the TikTok app leaves a distracting watermark and creator badge bouncing across the frame. All Tool Master offers a fast, safe, and completely free **TikTok Video Downloader** that strips all watermarks automatically.
+
+### Download TikTok Sounds & Audio MP3
+Found a viral song or sound on TikTok that you want to save? Simply switch the format to MP3 to extract pure, crystal-clear 320kbps audio from any TikTok clip without software.
+`,
+    faqs: [
+      { question: 'Is downloading TikTok videos without watermark free?', answer: 'Yes, All Tool Master is 100% free with no limits, hidden paywalls, or daily caps.' },
+      { question: 'Where do downloaded TikTok videos get saved?', answer: 'Videos save directly to your browser default download folder (or Photos app / Files app on iOS and Android).' },
+      { question: 'Do I need to install an app or extension?', answer: 'No software, APK, or browser extension is required. Everything runs in your browser.' },
+      { question: 'Can I download private TikTok videos?', answer: 'No, only public TikTok videos can be extracted due to platform privacy protections.' }
+    ]
+  },
+  '/downloader/tiktok': {
+    title: 'TikTok Video Downloader Without Watermark | All Tool Master',
+    description: 'Download clean, watermark-free TikTok videos and MP3 sounds in high-definition MP4 online.'
+  },
+  '/downloader/tiktok-no-watermark': {
+    title: 'TikTok Downloader No Watermark HD 1080p | All Tool Master',
+    description: 'Free online TikTok video downloader without watermark. Save viral videos and audios instantly.'
+  },
+
+  'facebook-downloader': {
+    title: 'Facebook Video Downloader - Download FB Reels & Videos Online | All Tool Master',
+    description: 'Download Facebook videos and FB Reels in 1080p/720p HD MP4 format. Free online Facebook video saver with high-speed direct downloads.',
+    h1: 'Facebook Video & Reels Downloader',
+    introduction: 'Save public Facebook videos, FB Reels, and live replay streams directly to your phone or desktop. Our Facebook Downloader retrieves the highest resolution stream available—up to 1080p Full HD—without video compression or watermark overlays. Enjoy unlimited downloads with no account registration required.',
+    howTo: [
+      'Copy the link of the Facebook video, Reel, or post from your app or browser.',
+      'Paste the link into the URL input box above.',
+      'Choose MP4 Video (or MP3 Audio extract) and select your preferred quality.',
+      'Click "Process Command" to parse the media stream.',
+      'Click "Download File" to save the MP4 video directly to your storage.'
+    ],
+    features: [
+      { title: 'FB Reels Downloader HD', desc: 'Download high-definition Facebook Reels in vertical 9:16 aspect ratio.' },
+      { title: 'Full 1080p Resolution', desc: 'Extracts crisp 1080p and 720p HD versions without quality loss.' },
+      { title: 'Extract Audio to MP3', desc: 'Convert Facebook video talks, speeches, and music into clean MP3 files.' },
+      { title: '100% Free & Unlimited', desc: 'No daily limits, bandwidth throttling, or account sign-ups required.' }
+    ],
+    article: `
+### High-Speed Facebook Video & Reels Downloader
+Facebook hosts billions of informative tutorials, viral comedy reels, and memorable family videos. All Tool Master lets you preserve these videos locally in original HD resolution. Our server bypasses intrusive ads and converts Facebook links into direct MP4 video downloads in seconds.
+`,
+    faqs: [
+      { question: 'Can I download Facebook Reels with this tool?', answer: 'Yes! Both standard Facebook feed videos and Facebook Reels are fully supported.' },
+      { question: 'Is this Facebook video downloader free?', answer: 'Yes, All Tool Master is completely free to use with zero limitations.' },
+      { question: 'Does this tool work on mobile devices?', answer: 'Yes, it works smoothly on Safari on iOS and Chrome on Android devices.' }
+    ]
+  },
+  '/downloader/facebook': {
+    title: 'Facebook Video Downloader Online Free | All Tool Master',
+    description: 'Download Facebook videos and FB Reels in 1080p HD MP4. Free, fast, and no app needed.'
+  },
+  '/downloader/fb-reels': {
+    title: 'Facebook Reels Downloader HD Free | All Tool Master',
+    description: 'Save Facebook Reels directly to your phone or PC in crisp high-definition quality.'
+  },
+
+  'pinterest-downloader': {
+    title: 'Pinterest Video Downloader - Download Pinterest Pins & GIFs | All Tool Master',
+    description: 'Download Pinterest videos, idea pins, GIFs, and high-res images directly in HD MP4. Fast, free, and unlimited Pinterest downloader.',
+    h1: 'Pinterest Video & Pin Downloader',
+    introduction: 'Pinterest is the world\'s premier catalog of aesthetic inspirations, DIY tutorials, and art showcases. With All Tool Master\'s Pinterest Video Downloader, you can save any public Pinterest video, animated GIF, or Idea Pin directly to your device gallery in crystal-clear MP4 video format. No watermark, no signup, and zero speed limits.',
+    howTo: [
+      'Copy the link of the Pinterest pin from the Pinterest app share menu or your browser bar.',
+      'Paste the link into the URL input above.',
+      'Click "Process Command" to fetch the high-resolution pin stream.',
+      'Click "Download File" to save the pin media to your local gallery.'
+    ],
+    features: [
+      { title: 'Original HD Quality', desc: 'Fetches the uncompressed 1080p/720p MP4 stream directly from Pinterest servers.' },
+      { title: 'Idea Pins & GIFs Supported', desc: 'Download animated Pinterest GIFs and multi-page Idea Pins seamlessly.' },
+      { title: 'No Watermarks', desc: 'Saves clean, original video files without any branding stamps.' },
+      { title: 'Instant In-Browser Tool', desc: 'No plugins, browser extensions, or software installations required.' }
+    ],
+    article: `
+### Save Pinterest Videos and GIFs in Seconds
+Whether you\'re compiling recipe videos, workout routines, or aesthetic design reels, All Tool Master provides the easiest way to download high-resolution Pinterest videos and pins directly to your storage for offline inspiration.
+`,
+    faqs: [
+      { question: 'Can I download Pinterest GIFs as MP4 video?', answer: 'Yes, our engine extracts animated Pinterest GIFs and videos into universal MP4 files.' },
+      { question: 'Does this tool require a Pinterest account?', answer: 'No, you do not need to log into Pinterest to download public pins.' }
+    ]
+  },
+  '/downloader/pinterest': {
+    title: 'Pinterest Video Downloader Online | All Tool Master',
+    description: 'Download Pinterest videos, idea pins, and GIFs in HD MP4 for free online.'
+  },
+  '/downloader/pinterest-video': {
+    title: 'Pinterest Pin Video Downloader Free | All Tool Master',
+    description: 'Save Pinterest aesthetic videos, DIY guides, and animated clips to your device.'
+  },
+
+  'soundcloud-downloader': {
+    title: 'SoundCloud to MP3 Downloader - 320kbps High Quality Audio | All Tool Master',
+    description: 'Convert SoundCloud tracks, songs, and music links to crystal-clear 320kbps MP3 audio files. Free online SoundCloud downloader.',
+    h1: 'SoundCloud to MP3 Downloader',
+    introduction: 'Extract and download your favorite songs, DJ mixes, podcasts, and indie tracks from SoundCloud in studio-grade 320kbps MP3 audio. All Tool Master delivers high-fidelity sound reproduction, preserves audio tags, and lets you listen to SoundCloud music offline on any smartphone, car stereo, or media player.',
+    howTo: [
+      'Copy the track or song URL from the SoundCloud app or website.',
+      'Paste the link into the SoundCloud Downloader input field above.',
+      'Select MP3 Audio (or WAV) and click "Process Command".',
+      'Download your pristine 320kbps MP3 song file directly to your device.'
+    ],
+    features: [
+      { title: '320kbps Studio Audio', desc: 'Extracts SoundCloud audio at the maximum bit rate for audiophile clarity.' },
+      { title: 'DJ Sets & Podcasts', desc: 'Supports long-form sets, electronic mixes, and full podcast episodes.' },
+      { title: 'Universal MP3 Format', desc: 'Plays on any iPhone, Android, computer, iPod, or offline media player.' },
+      { title: 'Unlimited & Ad-Free', desc: 'Zero downloads caps, zero subscription fees, and no pop-up malware.' }
+    ],
+    article: `
+### High-Fidelity SoundCloud to MP3 Audio Extraction
+SoundCloud is the world\'s biggest hub for unreleased remixes, indie artists, and live DJ sets. With All Tool Master\'s **SoundCloud to MP3 Downloader**, you can take your favorite music anywhere offline without mobile data or streaming dropouts.
+`,
+    faqs: [
+      { question: 'What audio bitrate does this SoundCloud downloader provide?', answer: 'It extracts at the highest available stream rate, up to full 320kbps MP3 audio.' },
+      { question: 'Can I download full DJ sets and podcasts?', answer: 'Yes, multi-hour mixes and live sets are fully supported without file size limits.' }
+    ]
+  },
+  '/downloader/soundcloud': {
+    title: 'SoundCloud to MP3 Downloader Free | All Tool Master',
+    description: 'Convert and download SoundCloud songs and tracks to 320kbps MP3 audio online.'
+  },
+  '/downloader/soundcloud-to-mp3': {
+    title: 'SoundCloud Music to MP3 Converter Online | All Tool Master',
+    description: 'Free SoundCloud audio extractor. Save tracks, mixes, and songs in high-quality MP3.'
+  },
+
+  'ai-subtitles': {
+    title: 'AI Subtitle & Caption Generator - Free .SRT & .VTT Export | All Tool Master',
+    description: 'Generate synchronized subtitles and timed captions from video and audio. Export .SRT and .VTT files for YouTube, TikTok, and Premiere Pro.',
+    h1: 'AI Subtitle & Caption Generator',
+    introduction: 'Create perfectly synchronized, verbatim subtitles and closed captions (.SRT & .VTT) from any video or audio file in seconds. Powered by advanced speech recognition AI, All Tool Master generates accurate timestamps, sentence splits, and readable line breaks ready for YouTube Studio, TikTok, Instagram Reels, and Adobe Premiere Pro.',
+    howTo: [
+      'Upload your video (MP4, MOV) or audio (MP3, WAV) recording above.',
+      'Click "Process Command" to transcribe dialogue and calculate millisecond timestamps.',
+      'Preview your timed captions in the interactive result box.',
+      'Click "Download .SRT" or "Download .VTT" to save your subtitle file, or click "Copy Text".'
+    ],
+    features: [
+      { title: 'Direct .SRT & .VTT Downloads', desc: 'Download standard SubRip (.srt) and WebVTT (.vtt) files with 1 click.' },
+      { title: 'Millisecond Synchronization', desc: 'Precise timestamps (00:00:01,250 --> 00:00:04,500) aligned with speech cadence.' },
+      { title: 'Social Video Optimized', desc: 'Short, punchy line breaks designed for mobile vertical videos and Reels.' },
+      { title: 'Multilingual Accuracy', desc: 'Accurately recognizes English, Hinglish, Spanish, Hindi, and 50+ languages.' }
+    ],
+    article: `
+### Automated Subtitles for Video Creators & Editors
+Studies show that over 80% of social media videos on TikTok, Instagram, and LinkedIn are watched on mute. Having accurate closed captions and subtitles is essential to maximize watch time, viewer retention, and SEO discovery. All Tool Master\'s **AI Subtitle Generator** turns speech into standard, import-ready .SRT and .VTT files in seconds.
+`,
+    faqs: [
+      { question: 'What file formats can I download for subtitles?', answer: 'You can download both SubRip (.SRT) files for video editors/YouTube, and WebVTT (.VTT) files for web players.' },
+      { question: 'Can I upload both video and audio files?', answer: 'Yes, we accept MP4, MOV, MKV, MP3, WAV, M4A, and WebM files up to 100MB.' }
+    ]
+  },
+  '/ai-notes/subtitles': {
+    title: 'AI Subtitle Generator Online Free (.SRT & .VTT) | All Tool Master',
+    description: 'Generate timed subtitles and closed captions from video and audio. Free .SRT download.'
+  },
+  '/ai-notes/caption-generator': {
+    title: 'Free AI Video Caption Generator (.SRT Export) | All Tool Master',
+    description: 'Auto-generate video captions and subtitles with precise timestamps online for free.'
+  },
+  '/ai-notes/srt-generator': {
+    title: 'Audio & Video to SRT Generator Free Online | All Tool Master',
+    description: 'Convert speech to SubRip .SRT subtitle files instantly with AI speech recognition.'
+  },
+
+  'ai-humanizer': {
+    title: 'AI Humanizer & Text Paraphraser - Bypass AI Detectors Free | All Tool Master',
+    description: 'Humanize AI text to sound 100% natural and bypass AI detectors. High perplexity and burstiness text paraphraser with authentic human voice.',
+    h1: 'AI Humanizer & Text Paraphraser',
+    introduction: 'Transform rigid, predictable AI text from ChatGPT, Claude, and Gemini into rich, engaging, and genuinely human writing. Our AI Humanizer restructures repetitive syntax, removes robotic buzzwords, and varies sentence lengths to maximize perplexity and burstiness—consistently passing AI content detectors like Turnitin, GPTZero, and Originality.ai while keeping your core message intact.',
+    howTo: [
+      'Paste your AI-generated draft, essay, or copy into the text area above.',
+      'Click "Process Command" to initiate humanizing paraphrasing.',
+      'Review the rewritten human text in the result box.',
+      'Click "Copy Text" to use your natural, undetectable content anywhere.'
+    ],
+    features: [
+      { title: 'Bypass AI Detectors', desc: 'Engineered to score 100% human on leading AI detection software.' },
+      { title: 'High Burstiness & Perplexity', desc: 'Mixes short rhythmic sentences with descriptive structures for natural cadence.' },
+      { title: 'Eliminates AI Buzzwords', desc: 'Removes cliches like "delve into", "tapestry", "in conclusion", and formulaic syntax.' },
+      { title: 'Preserves Original Meaning', desc: 'Maintains all facts, technical concepts, and key arguments with zero distortion.' }
+    ],
+    article: `
+### Why AI Humanization Matters in 2026
+Standard AI text often sounds monotone, overly formal, and repetitive, leading search engines to demote generic content and detection tools to flag student essays or client copy. All Tool Master\'s **AI Humanizer** re-infuses your writing with natural flow, varied cadence, and authentic human perspective.
+`,
+    faqs: [
+      { question: 'Will the rewritten text pass AI detectors?', answer: 'Yes, our paraphrasing engine is tuned to produce human-level perplexity and burstiness that reads authentically.' },
+      { question: 'Is my text kept confidential?', answer: 'Yes. All Tool Master processes text in temporary server memory and never stores or trains models on your content.' }
+    ]
+  },
+  '/ai-notes/humanizer': {
+    title: 'AI Humanizer — Rewrite AI Text to Human Free | All Tool Master',
+    description: 'Convert ChatGPT and AI text into authentic, undetectable human prose for free.'
+  },
+  '/ai-notes/text-paraphraser': {
+    title: 'Free AI Text Paraphraser & Humanizer Online | All Tool Master',
+    description: 'Paraphrase and rewrite text with human tone, high perplexity, and no robotic cliches.'
+  },
+  '/ai-notes/bypass-ai': {
+    title: 'Bypass AI Detectors Free — AI to Human Text Converter | All Tool Master',
+    description: 'Make your AI essays, articles, and copy undetectable with natural human flow.'
+  },
+
+  'ai-resume-reviewer': {
+    title: 'AI Resume Reviewer & ATS Scorer Online Free | All Tool Master',
+    description: 'Audit your resume against ATS algorithms. Get instant 0-100 score, formatting critique, missing keyword gaps, and Google XYZ bullet rewrites.',
+    h1: 'AI Resume Reviewer & ATS Scorer',
+    introduction: 'Over 75% of job applications are automatically filtered out by Applicant Tracking Systems (ATS) before a human recruiter ever sees them. All Tool Master\'s AI Resume Reviewer simulates Fortune 500 ATS scanners, evaluating your CV for formatting readability, keyword density, and bullet point impact. Get an instant 0-100 score and metric-driven rewrites using the Google XYZ formula.',
+    howTo: [
+      'Upload your resume in PDF or DOCX format, or paste your resume text above.',
+      'Click "Process Command" to run the comprehensive ATS audit.',
+      'Review your detailed breakdown: ATS Score, Keyword Gaps, and Bullet Rewrites.',
+      'Copy the optimized bullet points directly into your resume to boost callbacks.'
+    ],
+    features: [
+      { title: 'Instant 0-100 ATS Score', desc: 'Clear benchmarking against modern corporate candidate evaluation algorithms.' },
+      { title: 'Google XYZ Bullet Rewrites', desc: 'Transforms weak duties into "Accomplished [X] measured by [Y] doing [Z]" power bullets.' },
+      { title: 'Keyword Gap Analysis', desc: 'Identifies critical missing industry hard skills and software competencies.' },
+      { title: 'Formatting Health Audit', desc: 'Detects unparseable tables, custom fonts, and multi-column parsing traps.' }
+    ],
+    article: `
+### Beat the Applicant Tracking System (ATS)
+Modern hiring relies heavily on software like Workday, Taleo, and Greenhouse to screen candidates. Without the right balance of active verbs, quantified results, and recognized skill keywords, qualified candidates get rejected. Our **AI Resume Reviewer** provides actionable, executive-level recruitment advice in seconds.
+`,
+    faqs: [
+      { question: 'What formats can I upload for resume review?', answer: 'You can upload PDF or DOCX files, or simply paste the raw text of your resume.' },
+      { question: 'Does this tool store my personal information?', answer: 'Never. Your resume is parsed strictly in-memory and wiped immediately upon analysis completion.' }
+    ]
+  },
+  '/ai-notes/resume-reviewer': {
+    title: 'AI Resume Reviewer & ATS Checker Online Free | All Tool Master',
+    description: 'Free AI resume audit. Get ATS score, keyword gap analysis, and Google XYZ bullet rewrites.'
+  },
+  '/ai-notes/ats-scorer': {
+    title: 'ATS Resume Scorer & Checker Free Online | All Tool Master',
+    description: 'Test your resume against ATS filters and optimize your CV for job applications.'
+  },
+  '/ai-notes/resume-score': {
+    title: 'Check Resume ATS Score Online Free | All Tool Master',
+    description: 'Instant resume scoring and bullet point optimization for tech, finance, and corporate jobs.'
+  },
+
+  'ai-cover-letter': {
+    title: 'AI Cover Letter & Job Application Email Generator | All Tool Master',
+    description: 'Generate tailored, high-impact job application cover letters and executive cold outreach emails in seconds with AI. Free online generator.',
+    h1: 'AI Email & Cover Letter Generator',
+    introduction: 'Stand out from hundreds of applicants with customized, persuasive cover letters and cold outreach emails. Paste the target job description and your background or resume, and All Tool Master crafts a professional, tailored application letter, a high-converting cold email for recruiters, and a polite follow-up template ready to send.',
+    howTo: [
+      'Enter the job title, company name, and job requirements (or upload your resume).',
+      'Click "Process Command" to generate your custom application suite.',
+      'Review your tailored cover letter, hiring manager cold email, and follow-up note.',
+      'Copy and customize the bracketed placeholders [like this] before sending.'
+    ],
+    features: [
+      { title: 'Tailored to Target Job', desc: 'Directly aligns candidate accomplishments with the employer\'s posted challenges.' },
+      { title: 'Cold Outreach Email Included', desc: 'Includes an under-150-word high-open-rate email for LinkedIn or recruiter inboxes.' },
+      { title: 'Follow-Up Template', desc: 'Pre-written polite follow-up note timed for 5-7 days after submission.' },
+      { title: 'Executive Tone & Formatting', desc: 'Polished corporate tone designed to make a confident, lasting impression.' }
+    ],
+    article: `
+### Craft Winning Job Application Letters in Seconds
+Generic, copy-pasted cover letters get ignored by recruiters. All Tool Master\'s **AI Cover Letter Generator** analyzes the core responsibilities of any job posting and pairs them with your key skills, producing a compelling letter that proves your value from the first sentence.
+`,
+    faqs: [
+      { question: 'Can I generate emails for LinkedIn outreach too?', answer: 'Yes! The generator includes a concise cold outreach email template optimized for recruiter DMs.' },
+      { question: 'Is this cover letter builder completely free?', answer: 'Yes, generate as many customized letters and emails as you need without signup or payment.' }
+    ]
+  },
+  '/ai-notes/cover-letter': {
+    title: 'AI Cover Letter Generator Free Online | All Tool Master',
+    description: 'Generate tailored job application cover letters and outreach emails in seconds.'
+  },
+  '/ai-notes/email-generator': {
+    title: 'AI Job Application & Recruiter Email Generator | All Tool Master',
+    description: 'Create high-response cold emails and follow-up templates for job hunting.'
+  },
+  '/ai-notes/job-application-letter': {
+    title: 'Free Job Application Letter Maker with AI | All Tool Master',
+    description: 'Generate professional cover letters matching any job description online free.'
+  },
+
+  'pdf-suite': {
+    title: 'PDF Suite - Free Merge, Split, Compress & Rotate PDFs | All Tool Master',
+    description: 'All-in-one PDF Suite to merge multiple PDFs, extract pages, compress file size, and rotate orientations securely in your browser.',
+    h1: 'PDF Suite (Merge, Split & Optimize)',
+    introduction: 'Manage all your PDF tasks in one unified, high-speed workspace. All Tool Master\'s PDF Suite allows you to combine multiple documents into a single organized PDF, compress bloated file sizes for email sharing, rotate upside-down pages, or convert documents to Word DOCX without uploading sensitive files to unsafe third parties.',
+    howTo: [
+      'Select or drop your PDF document into the upload zone above.',
+      'Choose your desired action: Compress & Optimize, Rotate Pages, or Convert to DOCX.',
+      'Click "Process Command" to execute the transformation.',
+      'Download your processed, optimized PDF file immediately.'
+    ],
+    features: [
+      { title: 'Compress & Optimize Size', desc: 'Shrinks large PDF file sizes while maintaining sharp vector text and image clarity.' },
+      { title: 'Rotate Document Pages', desc: 'Fix rotated scans with 90-degree clockwise batch page rotation.' },
+      { title: 'Fast & Secure In-Memory', desc: 'Files are processed safely in sandboxed memory and never saved permanently.' },
+      { title: 'No Watermarks or Limits', desc: 'Enjoy clean, professional PDF outputs without banner stamps or page restrictions.' }
+    ],
+    article: `
+### Complete Browser-Based PDF Management
+Whether you need to reduce a heavy scanned document for government upload portals, rotate misaligned contract scans, or convert PDF pages to editable Word text, All Tool Master\'s **PDF Suite** provides a secure, instantaneous solution without expensive Adobe subscriptions.
+`,
+    faqs: [
+      { question: 'Will compressing my PDF reduce text readability?', answer: 'No, our optimization removes redundant font definitions and compresses images while keeping text razor-sharp.' },
+      { question: 'Is it safe to process confidential contracts here?', answer: 'Yes, files are processed in encrypted temporary memory and deleted immediately after you download them.' }
+    ]
+  },
+  '/utility/pdf-suite': {
+    title: 'Free PDF Suite — Merge, Split & Compress Online | All Tool Master',
+    description: 'All-in-one PDF tools. Compress, rotate, convert, and optimize PDFs for free online.'
+  },
+  '/utility/pdf-merge': {
+    title: 'Merge PDF Files Online Free — Combine PDFs | All Tool Master',
+    description: 'Combine multiple PDF documents into one single file quickly and safely online.'
+  },
+  '/utility/pdf-split': {
+    title: 'Split & Extract PDF Pages Online Free | All Tool Master',
+    description: 'Extract pages from your PDF documents without software or watermarks.'
+  },
+  '/utility/merge-pdf': {
+    title: 'Free PDF Merger Online No Limits | All Tool Master',
+    description: 'Merge and combine multiple PDF files in seconds with zero watermark overlays.'
+  },
+
+  'vocal-remover': {
+    title: 'Audio Vocal Remover & Karaoke Maker Online Free | All Tool Master',
+    description: 'Separate vocals and instrumental music from any song. Create clean karaoke tracks and isolated acapella vocals in high-quality MP3.',
+    h1: 'Audio Vocal Remover & Karaoke Maker',
+    introduction: 'Isolate crystal-clear vocals or create seamless instrumental karaoke backtracks from any song or audio recording. All Tool Master uses stereo center-channel phase extraction and acoustic DSP filtering to remove lead vocals for karaoke parties, or isolate clean acapella tracks for DJs, music producers, and remixers.',
+    howTo: [
+      'Upload your song or music track (MP3, WAV, AAC, M4A, or MP4) above.',
+      'Select your target output: "Instrumental / Karaoke" or "Vocals Only / Acapella".',
+      'Click "Process Command" to separate the audio channels.',
+      'Download your isolated MP3 track directly to your device.'
+    ],
+    features: [
+      { title: 'Clean Karaoke Backtracks', desc: 'Removes center-panned lead vocals while preserving stereo drums, bass, and guitars.' },
+      { title: 'Isolated Acapella Vocals', desc: 'Isolates dialogue and singing vocals for music remixes and podcast soundbites.' },
+      { title: 'Fast DSP Processing', desc: 'Advanced audio algorithms process your songs in seconds without cloud wait queues.' },
+      { title: '320kbps MP3 Output', desc: 'Delivers full dynamic range audio downloads ready for DJ decks and stage performances.' }
+    ],
+    article: `
+### High-Speed Karaoke Maker & Vocal Isolator
+Finding high-quality karaoke versions of obscure songs, indie tracks, or brand-new releases can be frustrating. All Tool Master\'s **Audio Vocal Remover** allows any singer, karaoke host, or producer to generate custom instrumental backing tracks or acapella vocals instantly from any MP3 or WAV file.
+`,
+    faqs: [
+      { question: 'What audio formats are supported for vocal removal?', answer: 'We support MP3, WAV, FLAC, M4A, AAC, and even video uploads like MP4 and MOV.' },
+      { question: 'Does this tool work on live recordings or mono tracks?', answer: 'Center-channel vocal removal works best on studio stereo recordings with centered lead vocals.' }
+    ]
+  },
+  '/utility/vocal-remover': {
+    title: 'Vocal Remover Online Free — Remove Vocals from Song | All Tool Master',
+    description: 'Isolate vocals or create karaoke backtracks from any audio file for free online.'
+  },
+  '/convert/vocal-remover': {
+    title: 'Audio Vocal Remover & Voice Isolator Free | All Tool Master',
+    description: 'Separate speech and singing from background music in high-quality MP3.'
+  },
+  '/convert/karaoke-maker': {
+    title: 'Online Karaoke Maker Free — Create Backing Tracks | All Tool Master',
+    description: 'Make clean instrumental karaoke tracks from any song instantly with no watermark.'
+  },
+  '/utility/karaoke-maker': {
+    title: 'Free Karaoke Track Generator Online | All Tool Master',
+    description: 'Turn any MP3 into a karaoke backing track ready for singing or performances.'
+  },
+
+  'video-to-gif': {
+    title: 'Video to GIF Maker - Convert MP4 to Animated GIF | All Tool Master',
+    description: 'Turn any video clip into an animated, high-quality GIF with custom size and frame rate. Free online MP4 to GIF converter with zero watermarks.',
+    h1: 'Video to GIF Maker',
+    introduction: 'Convert video clips from MP4, MOV, WEBM, or AVI into lightweight, high-frame-rate animated GIFs. All Tool Master uses Lanczos scaling and two-pass color palette generation to create smooth, vivid GIFs without grainy dithering or huge file bloat. Perfect for Discord emotes, reaction GIFs, Twitter posts, and blog embeds.',
+    howTo: [
+      'Upload your video clip (MP4, MOV, WEBM, AVI, etc.) into the dropzone above.',
+      'Select "High-Quality Animated GIF" as your target format.',
+      'Click "Process Command" to compile the animated palette.',
+      'Download your finished .GIF file to your device or share it online.'
+    ],
+    features: [
+      { title: 'Smooth 15fps & 30fps Playback', desc: 'Optimized frame rates ensure buttery motion without sluggish frame skips.' },
+      { title: 'Adaptive Palette Generation', desc: 'Uses advanced color quantization for crisp, vivid visuals free of color banding.' },
+      { title: 'Zero Watermark Branding', desc: 'Clean animated GIFs with no logos, watermarks, or branding stamps.' },
+      { title: 'Optimized for Social Sharing', desc: 'Engineered for fast loading on Discord, Slack, WhatsApp, and Reddit.' }
+    ],
+    article: `
+### Convert MP4 Video to Animated GIF Online
+Animated GIFs are the universal language of online communication, social commentary, and documentation. All Tool Master makes converting short video moments into clean, loopable GIFs effortless. With built-in palette optimization, your animations remain vibrant and compact.
+`,
+    faqs: [
+      { question: 'What video formats can be converted to GIF?', answer: 'We support MP4, MOV, WEBM, MKV, AVI, and FLV video files.' },
+      { question: 'Will my GIF have a watermark?', answer: 'Never. All Tool Master outputs 100% clean, watermark-free animated GIFs.' }
+    ]
+  },
+  '/utility/video-to-gif': {
+    title: 'Video to GIF Maker Online Free — Convert MP4 to GIF | All Tool Master',
+    description: 'Convert any video clip into a smooth animated GIF online with no watermarks.'
+  },
+  '/convert/video-to-gif': {
+    title: 'MP4 to GIF Converter Free Online | All Tool Master',
+    description: 'Turn MP4 videos into high-quality animated GIFs with crisp colors and fast loading.'
+  },
+  '/convert/mp4-to-gif': {
+    title: 'Convert MP4 to Animated GIF Free | All Tool Master',
+    description: 'Make animated GIFs from MP4 video clips in seconds. Free, fast, and no watermark.'
   }
+
 };
-
-

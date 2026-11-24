@@ -469,6 +469,161 @@ export const TOOLS_DATA = [
       'youtube thumbnail maker', 'custom youtube cover creator', 'high ctr thumbnail generator',
       'thumbnail editor online free', 'youtube banner maker', 'add text outline to image thumbnail'
     ]
+  },
+  {
+    id: 'tiktok-downloader',
+    title: 'TikTok Video Downloader (No Watermark)',
+    desc: 'Download clean, watermark-free TikTok videos and high-definition MP4 media in seconds.',
+    icon: FiVideo,
+    color: '#00f2fe',
+    category: 'Downloader',
+    routes: ['/downloader/tiktok', '/downloader/tiktok-no-watermark'],
+    keywords: [
+      'tiktok downloader', 'tiktok video downloader', 'tiktok no watermark', 'download tiktok video',
+      'tiktok to mp4', 'tiktok video download without watermark', 'tiktok saver', 'save tiktok video',
+      'snaptik alternative', 'ssstik alternative', 'tiktok hd downloader', 'tiktok audio download',
+      'free tiktok downloader online', 'tiktok downloader no watermark hd 1080p', 'tiktok reel saver'
+    ]
+  },
+  {
+    id: 'facebook-downloader',
+    title: 'Facebook Video & Reels Downloader',
+    desc: 'Download public Facebook videos, Reels, and watch stories in full 1080p or 720p HD MP4 format.',
+    icon: FiVideo,
+    color: '#1877f2',
+    category: 'Downloader',
+    routes: ['/downloader/facebook', '/downloader/fb-reels'],
+    keywords: [
+      'facebook downloader', 'fb video downloader', 'download facebook video', 'facebook reel downloader',
+      'fb reels download', 'facebook video to mp4', 'fb video saver', 'save facebook video online',
+      'fdown alternative', 'getfvid alternative', 'facebook story downloader', 'fb video download full hd',
+      'free facebook video downloader online', 'download private facebook videos'
+    ]
+  },
+  {
+    id: 'pinterest-downloader',
+    title: 'Pinterest Video & Pin Downloader',
+    desc: 'Download high-resolution Pinterest videos, GIFs, images, and idea pins directly to your device.',
+    icon: FiCamera,
+    color: '#e60023',
+    category: 'Downloader',
+    routes: ['/downloader/pinterest', '/downloader/pinterest-video'],
+    keywords: [
+      'pinterest downloader', 'pinterest video downloader', 'download pinterest video', 'pinterest pin downloader',
+      'save pinterest video', 'pinterest to mp4', 'pinterest gif downloader', 'pinterest video download hd',
+      'pinterest idea pin downloader', 'pinterest image saver', 'free pinterest video downloader online'
+    ]
+  },
+  {
+    id: 'soundcloud-downloader',
+    title: 'SoundCloud to MP3 Downloader',
+    desc: 'Extract clean 320kbps MP3 audio tracks and songs from SoundCloud links with high-fidelity sound.',
+    icon: FiMusic,
+    color: '#ff5500',
+    category: 'Downloader',
+    routes: ['/downloader/soundcloud', '/downloader/soundcloud-to-mp3'],
+    keywords: [
+      'soundcloud downloader', 'soundcloud to mp3', 'download soundcloud songs', 'soundcloud track downloader',
+      'soundcloud music downloader', 'soundcloud mp3 320kbps', 'soundcloud audio downloader',
+      'sclouddownloader alternative', 'klickaud alternative', 'free soundcloud to mp3 converter'
+    ]
+  },
+  {
+    id: 'ai-subtitles',
+    title: 'AI Subtitle & Caption Generator',
+    desc: 'Generate accurate, timed SubRip (.SRT & .VTT) closed captions and subtitles from audio or video files.',
+    icon: FiClock,
+    color: '#06b6d4',
+    category: 'AI Tool',
+    routes: ['/ai-notes/subtitles', '/ai-notes/caption-generator', '/ai-notes/srt-generator'],
+    keywords: [
+      'ai subtitle generator', 'caption generator', 'generate srt from video', 'audio to subtitles',
+      'auto subtitle generator free', 'video caption maker', 'vtt subtitle generator', 'timed subtitles ai',
+      'youtube subtitle generator', 'reels caption generator', 'speech to subtitles', 'ai closed captions'
+    ]
+  },
+  {
+    id: 'ai-humanizer',
+    title: 'AI Humanizer & Text Paraphraser',
+    desc: 'Rewrite AI-generated text into natural, authentic human writing that bypasses AI detectors with high perplexity.',
+    icon: FiEdit3,
+    color: '#10b981',
+    category: 'AI Tool',
+    routes: ['/ai-notes/humanizer', '/ai-notes/text-paraphraser', '/ai-notes/bypass-ai'],
+    keywords: [
+      'ai humanizer', 'humanize ai text', 'bypass ai detector', 'ai text paraphraser', 'underectable ai free',
+      'rewrite ai text to human', 'humanize chatgpt text', 'stealth ai writer', 'ai to human text converter',
+      'quillbot alternative', 'bypass turnitin ai', 'ai text bypasser free'
+    ]
+  },
+  {
+    id: 'ai-resume-reviewer',
+    title: 'AI Resume Reviewer & ATS Scorer',
+    desc: 'Audit your CV against corporate ATS algorithms, get instant 0-100 scoring, keyword gap analysis, and bullet point rewrites.',
+    icon: FiFileText,
+    color: '#8b5cf6',
+    category: 'AI Tool',
+    routes: ['/ai-notes/resume-reviewer', '/ai-notes/ats-scorer', '/ai-notes/resume-score'],
+    keywords: [
+      'ai resume reviewer', 'ats resume checker', 'resume scorer free', 'ats resume score',
+      'resume bullet point rewriter', 'cv review ai', 'resume keyword scanner', 'jobscan alternative free',
+      'ats compatibility test', 'ai cv reviewer', 'check my resume ats score'
+    ]
+  },
+  {
+    id: 'ai-cover-letter',
+    title: 'AI Email & Cover Letter Generator',
+    desc: 'Generate tailored job application cover letters, executive outreach emails, and follow-ups in seconds.',
+    icon: FiBriefcase,
+    color: '#f59e0b',
+    category: 'AI Tool',
+    routes: ['/ai-notes/cover-letter', '/ai-notes/email-generator', '/ai-notes/job-application-letter'],
+    keywords: [
+      'ai cover letter generator', 'cover letter writer ai', 'job application email generator',
+      'cold email generator', 'executive cover letter maker', 'tailored cover letter ai', 'recruiter outreach email',
+      'free ai cover letter builder', 'job application letter generator'
+    ]
+  },
+  {
+    id: 'pdf-suite',
+    title: 'PDF Suite (Merge, Split & Optimize)',
+    desc: 'Combine multiple PDFs, rotate pages, and compress large documents safely in your browser.',
+    icon: FiFileText,
+    color: '#ec4899',
+    category: 'Utility',
+    routes: ['/utility/pdf-suite', '/utility/pdf-merge', '/utility/pdf-split', '/utility/merge-pdf'],
+    keywords: [
+      'pdf suite', 'merge pdf free', 'split pdf online', 'compress pdf', 'rotate pdf pages',
+      'ilovepdf alternative', 'combine pdf files', 'pdf tools free online', 'pdf optimizer',
+      'merge multiple pdfs into one', 'free pdf merger no watermark'
+    ]
+  },
+  {
+    id: 'vocal-remover',
+    title: 'Audio Vocal Remover & Karaoke Maker',
+    desc: 'Split any song into isolated Acapella vocals and clean Instrumental karaoke audio tracks.',
+    icon: FiVolume2,
+    color: '#a855f7',
+    category: 'Utility',
+    routes: ['/utility/vocal-remover', '/convert/vocal-remover', '/convert/karaoke-maker', '/utility/karaoke-maker'],
+    keywords: [
+      'vocal remover', 'karaoke maker', 'acapella maker', 'remove vocals from song', 'isolate vocals free',
+      'instrumental maker online', 'split voice and music', 'vocalremover alternative', 'karaoke track generator',
+      'extract vocals from mp3', 'audio voice isolator'
+    ]
+  },
+  {
+    id: 'video-to-gif',
+    title: 'Video to GIF Maker',
+    desc: 'Convert any video clip into an animated, high-quality GIF with custom frame rates.',
+    icon: FiVideo,
+    color: '#f97316',
+    category: 'Utility',
+    routes: ['/utility/video-to-gif', '/convert/video-to-gif', '/convert/mp4-to-gif'],
+    keywords: [
+      'video to gif', 'mp4 to gif', 'gif maker online', 'convert video to animated gif',
+      'ezgif alternative', 'high quality gif converter', 'video clip to gif free', 'make gif from mp4'
+    ]
   }
 ];
 

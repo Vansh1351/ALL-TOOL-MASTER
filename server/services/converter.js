@@ -4,7 +4,7 @@ import ffmpeg from 'fluent-ffmpeg';
 import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
 import ffprobeInstaller from '@ffprobe-installer/ffprobe';
 import sharp from 'sharp';
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
 import pdfParse from 'pdf-parse';
 import { Document, Packer, Paragraph, TextRun, ImageRun } from 'docx';
 import archiver from 'archiver';
@@ -45,6 +45,12 @@ export function convertMedia(inputPath, outputPath, targetFormat) {
       command = command.toFormat('mp4').videoCodec('libx264').audioCodec('aac');
     } else if (targetFormat === 'mov') {
       command = command.toFormat('mov');
+    } else if (targetFormat === 'gif') {
+      command = command.toFormat('gif').fps(15).videoFilter('fps=15,scale=480:-1:flags=lanczos');
+    } else if (targetFormat === 'instrumental' || targetFormat === 'karaoke') {
+      command = command.toFormat('mp3').audioFilter('pan=stereo|c0=c0-c1|c1=c1-c0').audioBitrate(192);
+    } else if (targetFormat === 'vocals' || targetFormat === 'acapella') {
+      command = command.toFormat('mp3').audioFilter('pan=stereo|c0=0.5*c0+0.5*c1|c1=0.5*c0+0.5*c1').audioBitrate(192);
     } else {
       command = command.toFormat(targetFormat);
     }
@@ -703,7 +709,12 @@ export async function performConversion(inputPath, inputMime, targetFormat, uplo
   }
   // Sanitize for filesystem safety
   baseName = baseName.replace(/[<>:"\/\\|?*\x00-\x1F]/g, '_').trim() || 'converted_file';
-  const outputFilename = `${baseName}_${Date.now()}.${target}`;
+  
+  // Handle special targets that map to different file extensions
+  const isVocalRemover = ['instrumental', 'karaoke', 'vocals', 'acapella'].includes(target);
+  const outExt = isVocalRemover ? 'mp3' : (target === 'compress' || target === 'optimize' || target === 'rotate') ? 'pdf' : target;
+  const suffix = isVocalRemover ? `_${target}` : '';
+  const outputFilename = `${baseName}${suffix}_${Date.now()}.${outExt}`;
   const outputPath = path.join(uploadsDir, outputFilename);
 
   // Group conversions by input types
@@ -728,8 +739,8 @@ export async function performConversion(inputPath, inputMime, targetFormat, uplo
     if (target === 'zip') {
       return await zipFiles([inputPath], outputPath);
     }
-    // Convert to any media format supported by FFmpeg
-    if (videoExts.includes(`.${target}`) || audioExts.includes(`.${target}`) || target === 'gif') {
+    // Convert to any media format supported by FFmpeg, including gif, vocal remover & karaoke
+    if (videoExts.includes(`.${target}`) || audioExts.includes(`.${target}`) || target === 'gif' || isVocalRemover) {
       return await convertMedia(inputPath, outputPath, target);
     }
   }
@@ -812,6 +823,21 @@ export async function performConversion(inputPath, inputMime, targetFormat, uplo
   let textFound = false;
 
   if (isDoc) {
+    // PDF Suite operations (compress, optimize, rotate)
+    if (inputExt === '.pdf' && ['pdf', 'compress', 'optimize', 'rotate'].includes(target)) {
+      const pdfBytes = fs.readFileSync(inputPath);
+      const pdfDoc = await PDFDocument.load(pdfBytes);
+      if (target === 'rotate') {
+        const pages = pdfDoc.getPages();
+        pages.forEach(p => {
+          const rotation = p.getRotation();
+          p.setRotation(degrees((rotation.angle + 90) % 360));
+        });
+      }
+      const savedBytes = await pdfDoc.save({ useObjectStreams: true });
+      fs.writeFileSync(outputPath, savedBytes);
+      return outputPath;
+    }
     extractedText = await extractTextFromDoc(inputPath, inputExt);
     textFound = true;
   } else if (isPresentation) {

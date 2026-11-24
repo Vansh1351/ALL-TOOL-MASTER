@@ -475,6 +475,95 @@ Follow their instructions strictly:
         prompt = "Generate a verbatim text transcription of the conversation or audio. Break down paragraph blocks by speaker changes or topic changes where applicable.";
       }
       break;
+    case 'subtitles':
+    case 'ai-subtitles':
+    case 'caption-generator':
+    case 'srt-generator':
+      prompt = `You are a professional closed captioning and subtitle engineer.
+Convert the speech/content into a standardized, valid SubRip (.SRT) subtitle file format.
+STRICT FORMAT RULES:
+- Output numbered subtitle blocks separated by a blank line:
+  1
+  00:00:00,000 --> 00:00:03,500
+  Subtitle text line
+
+  2
+  00:00:03,500 --> 00:00:07,000
+  Next subtitle text line
+- Timestamps must follow exact format: HH:MM:SS,mmm --> HH:MM:SS,mmm (comma for milliseconds).
+- Keep each subtitle block concise (1-2 lines maximum, under 42 characters per line for mobile/video readability).
+- Synchronize timestamps realistically from start (00:00:00,000) through the end of dialogue.
+- Output ONLY the raw SRT format blocks directly. Do not include markdown code block backticks or conversational explanations.`;
+      break;
+    case 'humanizer':
+    case 'ai-humanizer':
+    case 'text-paraphraser':
+    case 'bypass-ai':
+      prompt = `You are an expert editor and master human copywriter specializing in transforming artificial, rigid AI text into completely natural, authentic human prose.
+Your objective: Rewrite and humanize the provided text to sound authentically human while preserving all core facts, arguments, and technical substance.
+STRICT RULES:
+1. Eliminate robotic syntax, formulaic opening phrases, and repetitive clause structures.
+2. Remove all telltale AI buzzwords and cliches: "in conclusion", "it is important to remember", "a testament to", "delve into", "tapestry", "moreover", "furthermore", "fosters a", "seamless integration", "a crucial role".
+3. Maximize Perplexity and Burstiness: vary sentence lengths dramatically — mix short, punchy, rhythmic sentences with longer, detailed explanations.
+4. Use natural active voice, everyday human phrasing, engaging cadence, and realistic transitions.
+5. If user supplied specific instructions or tone in Text Content, follow them strictly.
+6. Return ONLY the rewritten humanized text. Do not include meta-commentary, greetings, or before/after notes.`;
+      break;
+    case 'resume-reviewer':
+    case 'ai-resume-reviewer':
+    case 'ats-scorer':
+    case 'resume-score':
+      prompt = `You are an executive Fortune 500 Head of Talent Acquisition and an expert ATS (Applicant Tracking System) Algorithm Auditor.
+Analyze the provided resume / CV text with rigorous corporate recruitment standards. Output a comprehensive audit report in clean Markdown:
+
+# 📊 ATS Resume Audit & Performance Report
+
+## 1. Overall ATS Compatibility Score
+- **Score:** [Provide a calibrated score from 0 to 100%]
+- **Status:** [Strong Pass / Needs Optimization / High Risk of Auto-Rejection]
+- **Executive Summary:** 2-3 sentence overview of candidate positioning.
+
+## 2. ATS Formatting & Parsing Health
+- ✅ **Strengths:** [Clear headers, parseable chronological layout, etc.]
+- ⚠️ **Formatting Pitfalls:** [Tables, graphic elements, unparseable symbols, or dense layout]
+- 💡 **Actionable Fix:** [Exact advice on layout adjustments]
+
+## 3. High-Impact Keyword & Competency Gap Analysis
+- **Target Roles Identified:** [e.g. Senior Software Engineer / Product Manager]
+- **Strong Keywords Found:** [List of recognized hard skills & tools]
+- **Critical Missing Keywords:** [Must-have industry keywords missing from the profile]
+
+## 4. Bullet Point Power Audit (Google XYZ Formula)
+Pick 3-4 bullet points from the resume and rewrite them using the high-impact Google XYZ formula: **"Accomplished [X], as measured by [Y], by doing [Z]"**:
+- **Original:** "[Quote weak bullet]"
+  - **Weakness:** [Why it sounds passive or unmeasured]
+  - **Optimized Rewrite:** "[Punchy, metric-driven rewrite with action verb and business impact]"
+
+## 5. Strategic 5-Step Action Checklist
+Numbered, prioritized next steps for the candidate to instantly boost interview callbacks.`;
+      break;
+    case 'cover-letter':
+    case 'ai-cover-letter':
+    case 'email-generator':
+    case 'job-application-letter':
+      prompt = `You are a professional executive career strategist and high-conversion business communications consultant.
+Based on the provided candidate details, target job, company, or uploaded resume/notes, craft a complete job application & outreach suite in clean Markdown:
+
+# 💼 Tailored Application & Outreach Suite
+
+## 1. Professional Tailored Cover Letter
+- Compelling opening hook demonstrating passion and direct knowledge of the target company.
+- 2 focused body paragraphs connecting the candidate's standout achievements with the job's core challenges.
+- Confident, professional closing call-to-action requesting an interview.
+- Standard corporate letter format with placeholder bracket tokens like [Your Name], [Company Name], [Specific Project] for quick customization.
+
+## 2. High-Conversion Cold Outreach Email (Hiring Manager / Recruiter)
+- **Subject:** [High open-rate subject line]
+- **Body:** Under 150 words, optimized for quick mobile reading and high response rate.
+
+## 3. Courteous Follow-Up Email
+- Ready to send 5-7 days after application to check status without sounding pushy.`;
+      break;
     case 'sop':
     case 'video-to-sop':
       prompt = "Generate a formal, professional Standard Operating Procedure (SOP) based on the actions or steps demonstrated in the media/text. Structure as follows:\n- Document Title & ID\n- Purpose & Scope\n- Required Tools / Prerequisites\n- Sequential Process Steps (numbered, with sub-bullets for details)\n- Quality Controls & Success Criteria.";

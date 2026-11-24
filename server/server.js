@@ -96,7 +96,9 @@ app.post('/api/convert', upload.single('file'), async (req, res) => {
     
     const origBaseName = path.parse(originalName).name;
     const safeName = origBaseName.replace(/[<>:"\/\\|?*\x00-\x1F]/g, '_').trim() || 'converted_file';
-    const downloadFilename = `${safeName}.${targetFormat}`;
+    const outExt = path.extname(outputPath).replace(/^\./, '') || targetFormat;
+    const isVocalRemover = ['instrumental', 'karaoke', 'vocals', 'acapella'].includes(targetFormat.toLowerCase());
+    const downloadFilename = `${safeName}${isVocalRemover ? '_' + targetFormat.toLowerCase() : ''}.${outExt}`;
     
     res.download(outputPath, downloadFilename, (err) => {
       try {

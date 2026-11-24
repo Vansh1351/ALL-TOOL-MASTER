@@ -162,10 +162,13 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
     else if (path === '/convert/zip-extractor') setTargetFormat('unzip');
     else {
       // General fallbacks
-      if (tool.id === 'mp4-to-mp3') setTargetFormat('mp3');
+      if (tool.id === 'mp4-to-mp3' || tool.id === 'soundcloud-downloader') setTargetFormat('mp3');
       else if (tool.id === 'image-converter') setTargetFormat('png');
       else if (tool.id === 'pdf-converter') setTargetFormat('docx');
       else if (tool.id === 'zip-extractor') setTargetFormat('unzip');
+      else if (tool.id === 'video-to-gif') setTargetFormat('gif');
+      else if (tool.id === 'vocal-remover') setTargetFormat('instrumental');
+      else if (tool.id === 'pdf-suite') setTargetFormat('pdf');
       else setTargetFormat('mp4');
     }
     
@@ -215,6 +218,25 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
 
   const getCompatibleFormats = (selectedFile) => {
     if (!selectedFile) return [];
+    if (tool.id === 'vocal-remover') {
+      return [
+        { value: 'instrumental', label: 'Instrumental / Karaoke (Remove Vocals)' },
+        { value: 'vocals', label: 'Vocals Only / Acapella (Isolate Voice)' }
+      ];
+    }
+    if (tool.id === 'video-to-gif') {
+      return [
+        { value: 'gif', label: 'High-Quality Animated GIF' },
+        { value: 'mp4', label: 'Optimized MP4 Video' }
+      ];
+    }
+    if (tool.id === 'pdf-suite') {
+      return [
+        { value: 'pdf', label: 'Compress & Optimize PDF' },
+        { value: 'rotate', label: 'Rotate All Pages 90°' },
+        { value: 'docx', label: 'Convert to Word DOCX' }
+      ];
+    }
     const ext = selectedFile.name ? selectedFile.name.substring(selectedFile.name.lastIndexOf('.')).toLowerCase() : '';
     
     const videoExts = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.wmv', '.flv', '.m2ts', '.m4v', '.mod', '.wtv', '.mpeg', '.mpg', '.ogv', '.swf', '.ts', '.dv', '.dvr', '.m4k'];
@@ -372,6 +394,29 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
     navigator.clipboard.writeText(aiResult);
     if (addToast) addToast('Copied to clipboard!', 'success');
     else alert('Copied to clipboard!');
+  };
+
+  const downloadSrt = () => {
+    const blob = new Blob([aiResult], { type: 'text/plain;charset=utf-8' });
+    const u = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = u;
+    a.download = 'subtitles.srt';
+    a.click();
+    URL.revokeObjectURL(u);
+    if (addToast) addToast('Downloaded subtitles.srt', 'success');
+  };
+
+  const downloadVtt = () => {
+    let vtt = "WEBVTT\n\n" + aiResult.replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, '$1.$2');
+    const blob = new Blob([vtt], { type: 'text/vtt;charset=utf-8' });
+    const u = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = u;
+    a.download = 'subtitles.vtt';
+    a.click();
+    URL.revokeObjectURL(u);
+    if (addToast) addToast('Downloaded subtitles.vtt', 'success');
   };
 
   // Validate blob responses — catches 0-byte files and JSON error responses disguised as blobs
@@ -676,6 +721,48 @@ Please verify the server status above or try again in a few seconds.`;
       );
     }
 
+    if (tool.id === 'vocal-remover') {
+      return (
+        <select className="select-field" value={targetFormat} onChange={(e) => setTargetFormat(e.target.value)}>
+          <option value="instrumental">Instrumental / Karaoke (Remove Vocals)</option>
+          <option value="vocals">Vocals Only / Acapella (Isolate Voice)</option>
+        </select>
+      );
+    }
+    if (tool.id === 'video-to-gif') {
+      return (
+        <select className="select-field" value={targetFormat} onChange={(e) => setTargetFormat(e.target.value)}>
+          <option value="gif">High-Quality Animated GIF</option>
+          <option value="mp4">MP4 Video</option>
+        </select>
+      );
+    }
+    if (tool.id === 'pdf-suite') {
+      return (
+        <select className="select-field" value={targetFormat} onChange={(e) => setTargetFormat(e.target.value)}>
+          <option value="pdf">Compress & Optimize PDF</option>
+          <option value="rotate">Rotate All Pages 90°</option>
+          <option value="docx">Convert to Word DOCX</option>
+        </select>
+      );
+    }
+    if (tool.id === 'soundcloud-downloader') {
+      return (
+        <select className="select-field" value={targetFormat} onChange={(e) => setTargetFormat(e.target.value)}>
+          <option value="mp3">MP3 Audio (320kbps)</option>
+          <option value="wav">WAV Audio</option>
+        </select>
+      );
+    }
+    if (['tiktok-downloader', 'facebook-downloader', 'pinterest-downloader'].includes(tool.id)) {
+      return (
+        <select className="select-field" value={targetFormat} onChange={(e) => setTargetFormat(e.target.value)}>
+          <option value="mp4">MP4 Video (HD)</option>
+          <option value="mp3">MP3 Audio</option>
+        </select>
+      );
+    }
+
     if (tool.id === 'mp4-to-mp3') {
       return (
         <select className="select-field" value={targetFormat} onChange={(e) => setTargetFormat(e.target.value)}>
@@ -866,7 +953,13 @@ Please verify the server status above or try again in a few seconds.`;
                     <div style={{ display: 'flex', gap: '10px' }}>
                       <input
                         type="url"
-                        placeholder="e.g. https://www.youtube.com/watch?v=..."
+                        placeholder={
+                          tool.id === 'tiktok-downloader' ? "e.g. https://www.tiktok.com/@user/video/..." :
+                          tool.id === 'facebook-downloader' ? "e.g. https://www.facebook.com/watch/?v=... or reels link" :
+                          tool.id === 'pinterest-downloader' ? "e.g. https://www.pinterest.com/pin/..." :
+                          tool.id === 'soundcloud-downloader' ? "e.g. https://soundcloud.com/artist/track..." :
+                          "e.g. https://www.youtube.com/watch?v=..."
+                        }
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
                         className="input-field"
@@ -978,7 +1071,13 @@ Please verify the server status above or try again in a few seconds.`;
                     <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)' }}>Or Paste Text Content (Optional)</label>
                     <textarea
                       rows={5}
-                      placeholder="Paste meeting transcripts, articles, or lecture drafts here if you do not have a media file..."
+                      placeholder={
+                        tool.id === 'ai-humanizer' ? "Paste AI-generated text or ChatGPT drafts here to rewrite into an authentic human voice..." :
+                        tool.id === 'ai-resume-reviewer' ? "Paste resume text, bullet points, or target job description here (or upload PDF resume above)..." :
+                        tool.id === 'ai-cover-letter' ? "Paste target job role, company name, and your background here to generate tailored cover letter..." :
+                        tool.id === 'ai-subtitles' ? "Upload audio/video above, or paste transcript text here to convert into timed .SRT/.VTT subtitles..." :
+                        "Paste meeting transcripts, articles, or lecture drafts here if you do not have a media file..."
+                      }
                       value={textInput}
                       onChange={(e) => setTextInput(e.target.value)}
                       className="input-field"
@@ -1081,14 +1180,26 @@ Please verify the server status above or try again in a few seconds.`;
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#10b981' }}>
                       <FiCheckCircle size={20} />
                       <span style={{ fontWeight: '700' }}>Analysis Complete</span>
                     </div>
-                    <button className="btn btn-secondary" onClick={copyToClipboard} style={{ padding: '8px 14px', fontSize: '13px' }}>
-                      <FiCopy /> Copy Text
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      {tool.id === 'ai-subtitles' && (
+                        <>
+                          <button className="btn btn-secondary" onClick={downloadSrt} style={{ padding: '8px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <FiDownload /> .SRT
+                          </button>
+                          <button className="btn btn-secondary" onClick={downloadVtt} style={{ padding: '8px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <FiDownload /> .VTT
+                          </button>
+                        </>
+                      )}
+                      <button className="btn btn-secondary" onClick={copyToClipboard} style={{ padding: '8px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <FiCopy /> Copy Text
+                      </button>
+                    </div>
                   </div>
                   <div style={{
                     padding: '24px',
