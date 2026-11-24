@@ -868,20 +868,62 @@ Please verify the server status above or try again in a few seconds.`;
   const fallbackRelatedTools = TOOLS_DATA.filter(t => t.id !== tool.id).slice(0, 3);
   const displayRelated = relatedTools.length > 0 ? relatedTools : fallbackRelatedTools;
 
+  const catNavMap = {
+    'Converter': { label: 'Converters', path: '/converter', view: 'converter' },
+    'Downloader': { label: 'Downloaders', path: '/downloader', view: 'downloader' },
+    'AI Tool': { label: 'AI Notes & Tools', path: '/ai-notes', view: 'ai-notes' },
+    'Utility': { label: 'Utilities', path: '/utility', view: 'utility' }
+  };
+  const currentCat = catNavMap[tool.category] || { label: tool.category, path: '/converter', view: 'converter' };
+
   return (
     <div className="container animate-fade-in" style={{ padding: '30px 0 60px 0' }}>
       
-      {/* Back Button / Breadcrumbs */}
-      <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center' }}>
+      {/* Breadcrumbs & Navigation */}
+      <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+        <nav aria-label="Breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-muted)' }}>
+          <a 
+            href="/" 
+            onClick={(e) => {
+              e.preventDefault();
+              setView('dashboard');
+              setActiveTool(null);
+              if (window.location.pathname !== '/') window.history.pushState({}, '', '/');
+            }}
+            style={{ color: 'var(--text-muted)', textDecoration: 'none', transition: 'color 0.2s ease' }}
+            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent-color)'}
+            onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+          >
+            Home
+          </a>
+          <span>/</span>
+          <a 
+            href={currentCat.path} 
+            onClick={(e) => {
+              e.preventDefault();
+              navigate(currentCat.view);
+            }}
+            style={{ color: 'var(--text-muted)', textDecoration: 'none', transition: 'color 0.2s ease' }}
+            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent-color)'}
+            onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+          >
+            {currentCat.label}
+          </a>
+          <span>/</span>
+          <span style={{ color: 'var(--text-main)', fontWeight: '600' }}>
+            {tool.title}
+          </span>
+        </nav>
+
         <button 
           onClick={() => {
             setView('dashboard');
             setActiveTool(null);
           }}
           className="btn btn-secondary" 
-          style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 14px', fontSize: '13px' }}
         >
-          <FiArrowLeft /> Back to Dashboard
+          <FiArrowLeft size={14} /> Back to Dashboard
         </button>
       </div>
 

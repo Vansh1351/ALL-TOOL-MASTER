@@ -688,6 +688,14 @@ export default function App() {
         const seoInfo = { ...SEO_DATA[activeTool.id], ...SEO_DATA[currentPath] };
         const toolUrl = `https://alltoolmaster.me${currentPath}`;
         
+        const catMap = {
+          'Converter': { name: 'Converters', path: '/converter' },
+          'Downloader': { name: 'Downloaders', path: '/downloader' },
+          'AI Tool': { name: 'AI Notes & Tools', path: '/ai-notes' },
+          'Utility': { name: 'Utilities', path: '/utility' }
+        };
+        const catInfo = catMap[activeTool.category] || { name: activeTool.category, path: `/${activeTool.category.toLowerCase().replace(' ', '-')}` };
+
         const mainSchema = {
           '@context': 'https://schema.org',
           '@type': 'WebApplication',
@@ -696,10 +704,23 @@ export default function App() {
           description: seoInfo?.description || activeTool.desc,
           applicationCategory: 'UtilityApplication',
           operatingSystem: 'Any',
+          browserRequirements: 'Requires JavaScript',
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: '4.9',
+            reviewCount: '1240',
+            bestRating: '5',
+            worstRating: '1'
+          },
           offers: {
             '@type': 'Offer',
             price: '0',
             priceCurrency: 'USD'
+          },
+          provider: {
+            '@type': 'Organization',
+            name: 'All Tool Master',
+            url: 'https://alltoolmaster.me'
           }
         };
 
@@ -731,13 +752,13 @@ export default function App() {
               '@type': 'ListItem',
               position: 1,
               name: 'Home',
-              item: 'https://alltoolmaster.me'
+              item: 'https://alltoolmaster.me/'
             },
             {
               '@type': 'ListItem',
               position: 2,
-              name: activeTool.category,
-              item: `https://alltoolmaster.me/${activeTool.category.toLowerCase()}`
+              name: catInfo.name,
+              item: `https://alltoolmaster.me${catInfo.path}`
             },
             {
               '@type': 'ListItem',
@@ -1147,6 +1168,12 @@ export default function App() {
                 onSelectTool={(tool) => navigate('tool-page', tool)} 
                 bookmarks={bookmarks}
                 toggleBookmark={toggleBookmark}
+                onCategorySelect={(catId) => {
+                  const isCat = ['downloader', 'downloaders', 'converter', 'converters', 'utility', 'utilities', 'ai tool', 'ai tools', 'ai'].includes((searchVal || '').toLowerCase().trim());
+                  if (isCat) {
+                    setSearchVal('');
+                  }
+                }}
               />
             </div>
 

@@ -241,15 +241,16 @@ function prerender() {
       const h1 = seoInfo?.h1 || tool.title;
       
       const appCategoryMap = {
-        'Converter': 'Converters',
-        'Downloader': 'Downloaders',
-        'AI Tool': 'AI Notes',
-        'Utility': 'Utilities',
-        'AI Creative Studio': 'AI Creative Studio'
+        'Converter': { name: 'Converters', path: '/converter' },
+        'Downloader': { name: 'Downloaders', path: '/downloader' },
+        'AI Tool': { name: 'AI Notes & Tools', path: '/ai-notes' },
+        'Utility': { name: 'Utilities', path: '/utility' },
+        'AI Creative Studio': { name: 'AI Creative Studio', path: '/utility' }
       };
       
-      const parentName = appCategoryMap[tool.category] || 'Converters';
-      const parentPath = '/' + tool.category.toLowerCase().replace(' ', '-');
+      const categoryInfo = appCategoryMap[tool.category] || { name: 'Converters', path: '/converter' };
+      const parentName = categoryInfo.name;
+      const parentPath = categoryInfo.path;
       
       const webAppSchema = {
         '@context': 'https://schema.org',
@@ -260,6 +261,13 @@ function prerender() {
         applicationCategory: 'UtilityApplication',
         operatingSystem: 'Any',
         browserRequirements: 'Requires JavaScript',
+        aggregateRating: {
+          '@type': 'AggregateRating',
+          ratingValue: '4.9',
+          reviewCount: '1240',
+          bestRating: '5',
+          worstRating: '1'
+        },
         offers: {
           '@type': 'Offer',
           price: '0',

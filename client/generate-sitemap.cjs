@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const domain = 'https://alltoolmaster.me';
-const dateStr = '2026-06-15';
+const dateStr = '2026-11-25';
 
 function getBlogSlugs() {
   const blogDataPath = path.join(__dirname, 'src', 'blogData.js');

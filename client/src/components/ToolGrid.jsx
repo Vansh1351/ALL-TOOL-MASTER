@@ -667,7 +667,7 @@ export const TOOLS_DATA = [
   }
 ];
 
-export default function ToolGrid({ filterText, onSelectTool, bookmarks = [], toggleBookmark = () => {} }) {
+export default function ToolGrid({ filterText, onSelectTool, bookmarks = [], toggleBookmark = () => {}, onCategorySelect }) {
   const [selectedCategory, setSelectedCategory] = React.useState('all');
 
   // Synchronize category tab if user navigated via /downloader, /converter, /utility, or /ai-notes
@@ -811,7 +811,10 @@ export default function ToolGrid({ filterText, onSelectTool, bookmarks = [], tog
             return (
               <button
                 key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
+                onClick={() => {
+                  setSelectedCategory(cat.id);
+                  if (onCategorySelect) onCategorySelect(cat.id);
+                }}
                 className="category-tab-btn"
                 style={{
                   display: 'flex',

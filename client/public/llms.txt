@@ -1,68 +1,65 @@
 # All Tool Master
 
-> All Tool Master is a free online tools platform offering file converters, social media video downloaders, and AI-powered note-taking tools. No registration required. All tools run in the browser and are completely free.
+> All Tool Master is an all-in-one free online platform offering high-speed media downloaders, audio/video converters, browser utilities, and advanced AI productivity tools. All tools are 100% free, run directly in the browser, and require no account registration.
 
-## Tools Available
+## Tools Available (36 Free Web Tools)
 
-### File Converters
-- PDF to Word: https://alltoolmaster.me/convert/pdf-to-word
-- PDF to DOCX: https://alltoolmaster.me/convert/pdf-to-docx
-- Word to PDF: https://alltoolmaster.me/convert/word-to-pdf
-- DOCX to PDF: https://alltoolmaster.me/convert/docx-to-pdf
-- JPG to PNG: https://alltoolmaster.me/convert/jpg-to-png
-- PNG to JPG: https://alltoolmaster.me/convert/png-to-jpg
-- WebP to PNG: https://alltoolmaster.me/convert/webp-to-png
-- MP4 to MP3: https://alltoolmaster.me/convert/mp4-to-mp3
-- MP4 to WAV: https://alltoolmaster.me/convert/mp4-to-wav
-- MP3 to WAV: https://alltoolmaster.me/convert/mp3-to-wav
-- Video to Audio: https://alltoolmaster.me/convert/video-to-audio
-- MOV to MP4: https://alltoolmaster.me/convert/mov-to-mp4
-- Excel to PDF: https://alltoolmaster.me/convert/excel-to-pdf
-- HEIC to JPG: https://alltoolmaster.me/convert/heic-to-jpg
-- JPG to PDF: https://alltoolmaster.me/convert/jpg-to-pdf
-- PNG to PDF: https://alltoolmaster.me/convert/png-to-pdf
-- PDF to JPG: https://alltoolmaster.me/convert/pdf-to-jpg
-
-### Video Downloaders (free, no watermark)
+### 1. Downloaders (8 Tools)
 - YouTube Downloader: https://alltoolmaster.me/downloader/youtube
-- Instagram Downloader: https://alltoolmaster.me/downloader/instagram
-- TikTok Downloader: https://alltoolmaster.me/downloader/tiktok
-- Facebook Downloader: https://alltoolmaster.me/downloader/facebook
-- Twitter/X Downloader: https://alltoolmaster.me/downloader/twitter
-- Vimeo Downloader: https://alltoolmaster.me/downloader/vimeo
-- YouTube Shorts: https://alltoolmaster.me/downloader/shorts
+- Universal URL to MP4 & MP3 Converter Free: https://alltoolmaster.me/url-to-mp4-converter
+- Instagram Video & Reels Downloader: https://alltoolmaster.me/downloader/instagram
+- Facebook Video & Reels Downloader: https://alltoolmaster.me/downloader/facebook
+- TikTok Video Downloader (No Watermark): https://alltoolmaster.me/downloader/tiktok
+- Pinterest Video & Pin Downloader: https://alltoolmaster.me/downloader/pinterest
+- Twitter / X Video Downloader: https://alltoolmaster.me/downloader/twitter
+- SoundCloud to MP3 Downloader: https://alltoolmaster.me/downloader/soundcloud
 
-### AI Notes Tools
-- Lecture Notes: https://alltoolmaster.me/ai-notes/lecture-notes
-- Meeting Assistant: https://alltoolmaster.me/ai-notes/meeting-assistant
-- Transcript Generator: https://alltoolmaster.me/ai-notes/transcript
-- Audio Analyzer: https://alltoolmaster.me/ai-notes/audio-analyzer
-- Video Summarizer: https://alltoolmaster.me/ai-notes/video-summarizer
-- Speech to Text: https://alltoolmaster.me/ai-notes/speech-to-text
-- Study Guide: https://alltoolmaster.me/ai-notes/study-guide
-- Voice Notes: https://alltoolmaster.me/ai-notes/voice-notes
-- Brainrot Translator: https://alltoolmaster.me/ai-notes/brainrot
-- Script Writer: https://alltoolmaster.me/ai-notes/script-writer
-- Screenplay Writer: https://alltoolmaster.me/ai-notes/screenplay-writer
-- Free AI Note Taker: https://alltoolmaster.me/ai-notes/free-ai-note-taker
+### 2. Converters (3 Tools)
+- MP4 to MP3 Converter Free: https://alltoolmaster.me/convert/mp4-to-mp3
+- Universal File Compressor & Reducer: https://alltoolmaster.me/utility/file-compressor
+- Video to GIF Maker: https://alltoolmaster.me/convert/video-to-gif
 
-### Utility Tools
-- ZIP Extractor: https://alltoolmaster.me/utility/zip-extractor
-- Unzip Files: https://alltoolmaster.me/utility/unzip
-- File Compressor: https://alltoolmaster.me/utility/file-compressor
-- Resume Builder: https://alltoolmaster.me/utility/resume-builder
-- CV Builder: https://alltoolmaster.me/utility/cv-builder
+### 3. Utilities (9 Tools)
+- AI Background Remover: https://alltoolmaster.me/utility/background-remover
+- AI Object Remover & Clean Up: https://alltoolmaster.me/utility/object-remover
+- AI Watermark Remover: https://alltoolmaster.me/utility/watermark-remover
+- AI Logo Generator & Maker: https://alltoolmaster.me/utility/logo-generator
+- AI Card & Invitation Maker: https://alltoolmaster.me/utility/card-maker
+- Free AI Business Card Maker: https://alltoolmaster.me/utility/business-card-maker
+- Free YouTube Thumbnail Maker: https://alltoolmaster.me/utility/thumbnail-maker
+- Free QR Code Generator & Scanner: https://alltoolmaster.me/utility/qr-code-generator
+- PDF Suite (Merge, Split & Protect): https://alltoolmaster.me/utility/pdf-suite
 
-### Blog
-- Blog Index: https://alltoolmaster.me/blog
+### 4. AI Tools (16 Tools)
+- AI Subtitle & Caption Generator (.SRT / .VTT): https://alltoolmaster.me/ai-notes/subtitle-generator
+- AI Humanizer & Text Paraphraser: https://alltoolmaster.me/ai-notes/humanizer
+- AI Resume Reviewer & ATS Scorer: https://alltoolmaster.me/ai-notes/resume-reviewer
+- AI Email & Cover Letter Generator: https://alltoolmaster.me/ai-notes/cover-letter-generator
+- Audio Vocal Remover & Karaoke Maker: https://alltoolmaster.me/ai-notes/vocal-remover
+- AI Lecture Notes & PDF Summarizer: https://alltoolmaster.me/ai-notes/lecture-notes
+- AI Meeting Assistant & Action Items: https://alltoolmaster.me/ai-notes/meeting-assistant
+- AI Transcript Generator & Speech-to-Text: https://alltoolmaster.me/ai-notes/transcript
+- AI Audio Analyzer & Key Takeaways: https://alltoolmaster.me/ai-notes/audio-analyzer
+- AI Video Summarizer & Notes: https://alltoolmaster.me/ai-notes/video-summarizer
+- AI Speech to Text & Dictation: https://alltoolmaster.me/ai-notes/speech-to-text
+- AI Exam Prep & Study Guide Creator: https://alltoolmaster.me/ai-notes/study-guide
+- AI Voice Notes & Voice Memo Transcriber: https://alltoolmaster.me/ai-notes/voice-notes
+- AI YouTube & Short Film Script Writer: https://alltoolmaster.me/ai-notes/script-writer
+- AI Screenplay Writer & Story Generator: https://alltoolmaster.me/ai-notes/screenplay-writer
+- PDF to Gen-Z Brainrot Translator: https://alltoolmaster.me/ai-notes/brainrot-translator
+
+## Hub Pages & Categories
+- Downloader Hub: https://alltoolmaster.me/downloader
+- Converter Hub: https://alltoolmaster.me/converter
+- Utilities Hub: https://alltoolmaster.me/utility
+- AI Tools & Notes Hub: https://alltoolmaster.me/ai-notes
+- Blog & Guides: https://alltoolmaster.me/blog
+- Author & Founder: https://alltoolmaster.me/author/vansh-shah
+- Portfolio: https://alltoolmaster.me/portfolio
 
 ## About
-All Tool Master is a browser-based, server-backed utility platform. All tools are free to use without signup or registration. Files are processed in secure temporary memory and immediately deleted after download. The platform uses Node.js with FFmpeg for media conversion and Google Gemini AI for AI-powered tools.
+All Tool Master is engineered for speed, privacy, and simplicity. No watermarks, no registration, and zero hidden fees. Files are processed in secure memory buffers and immediately purged after download. Powered by modern web standards, FFmpeg, and Gemini AI.
 
-Built for students, professionals, and content creators who need fast, reliable file conversion, media downloading, and AI note-taking without paywalls or watermarks.
-
-Launched: 2026
-Built by: Vansh Shah (Mumbai, India)
-
-## Contact
-https://alltoolmaster.me/contact
+- Founded & Developed by: Vansh Shah (Mumbai, India)
+- Official Website: https://alltoolmaster.me
+- Sitemap: https://alltoolmaster.me/sitemap.xml
