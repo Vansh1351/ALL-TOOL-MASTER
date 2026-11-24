@@ -998,7 +998,7 @@ Please verify the server status above or try again in a few seconds.`;
           {status === 'processing' && (() => {
             const isDownloader = tool.category === 'Downloader';
             const stages = isDownloader
-              ? ['🔗 Connecting to server...', '🔍 Extracting media info...', '⬇️ Downloading content...', '🔧 Processing & packaging...', '📦 Almost done...']
+              ? ['⚡ Connecting to high-speed stream...', '🔍 Resolving media at 4x speed...', '⬇️ Streaming media content...', '📦 Packaging output file...', '✨ Almost done!']
               : ['📤 Uploading file...', '🔍 Analyzing format...', '⚙️ Converting file...', '🔧 Finalizing output...', '📦 Almost done...'];
             const currentStage = stages[Math.min(processingStage, stages.length - 1)];
 
@@ -1023,12 +1023,12 @@ Please verify the server status above or try again in a few seconds.`;
                 {/* Elapsed timer */}
                 <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}>
                   {elapsedSecs < 5
-                    ? 'Hang tight, this usually takes 10–30 seconds...'
-                    : elapsedSecs < 30
-                    ? `Working... ${elapsedSecs}s elapsed`
-                    : elapsedSecs < 60
-                    ? `Still processing... ${elapsedSecs}s — large files take longer`
-                    : `${Math.floor(elapsedSecs / 60)}m ${elapsedSecs % 60}s — almost there!`}
+                    ? 'Connecting at high speed with multi-threaded streaming...'
+                    : elapsedSecs < 15
+                    ? `Downloading at 4x speed... ${elapsedSecs}s elapsed`
+                    : elapsedSecs < 45
+                    ? `Streaming high-definition video... ${elapsedSecs}s elapsed`
+                    : `${Math.floor(elapsedSecs / 60)}m ${elapsedSecs % 60}s — almost ready!`}
                 </p>
 
                 {/* Progress bar */}

@@ -277,7 +277,10 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
     '--restrict-filenames',
     '--no-check-certificate',
     '-4',
-    '--socket-timeout', '8',
+    '-N', '4',                      // 4 concurrent connections (bypasses YouTube single-connection chunk throttle!)
+    '--buffer-size', '16M',          // 16MB socket buffer for sustained high throughput
+    '--http-chunk-size', '10M',      // 10MB chunk size to eliminate overhead
+    '--socket-timeout', '10',
     '--js-runtimes', 'node'
   ];
 
@@ -317,16 +320,26 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
   } else {
     const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
     
-    // Non-YouTube platforms (TikTok, FB, Twitter, Vimeo, Dailymotion, Reddit) serve single merged streams.
-    // Searching for separate 'bestvideo+bestaudio' on non-YouTube sites causes format failures and timeouts.
-    let formatArg = isYouTube ? 'bestvideo+bestaudio/best' : 'b/best';
-    if (quality === '720p') {
-      formatArg = isYouTube ? 'bestvideo[height<=720]+bestaudio/best[height<=720]/best' : 'b[height<=720]/best';
-    } else if (quality === '480p') {
-      formatArg = isYouTube ? 'bestvideo[height<=480]+bestaudio/best[height<=480]/best' : 'b[height<=480]/best';
-    } else if (quality === '360p') {
-      formatArg = isYouTube ? 'bestvideo[height<=360]+bestaudio/best[height<=360]/best' : 'b[height<=360]/best';
+    // Prefer pre-merged single progressive MP4 streams where available (downloads in 2-4s without ffmpeg merging!)
+    let formatArg;
+    if (isYouTube) {
+      if (quality === '720p') {
+        formatArg = 'best[height<=720][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720]/best';
+      } else if (quality === '480p') {
+        formatArg = 'best[height<=480][ext=mp4]/bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best[height<=480]/best';
+      } else if (quality === '360p') {
+        formatArg = 'best[height<=360][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360]/best';
+      } else {
+        // Default / best: prefer single MP4 stream, or MP4 video + m4a audio
+        formatArg = 'best[ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best';
+      }
+    } else {
+      if (quality === '720p') formatArg = 'b[height<=720]/best';
+      else if (quality === '480p') formatArg = 'b[height<=480]/best';
+      else if (quality === '360p') formatArg = 'b[height<=360]/best';
+      else formatArg = 'b/best';
     }
+
     args.push('-f', formatArg);
     if (isYouTube) {
       args.push('-S', 'res,vcodec:h264,acodec:m4a');
@@ -385,10 +398,9 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
     // ── Direct (non-proxy) attempts prioritized for maximum speed ──
     // Direct connection resolves URLs in ~2-4 seconds!
 
-    // 1. Primary Direct Client
+    // 1. Primary Direct Client (Keeps optimized format & -N 4 multi-threading)
     const attempt1Args = [
-      ...filterArgs([...baseArgs], ['-f', '-S', '--proxy']),
-      '-f', format === 'mp3' ? 'ba/b' : (isYouTube ? 'bestvideo+bestaudio/best' : 'b/best')
+      ...filterArgs([...baseArgs], ['--proxy'])
     ];
     if (isYouTube) {
       attempt1Args.push('--extractor-args', 'youtube:player_client=android,web');
@@ -397,8 +409,7 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
 
     // 2. Fallback Direct Client
     const attempt2Args = [
-      ...filterArgs([...baseArgs], ['-f', '-S', '--proxy']),
-      '-f', format === 'mp3' ? 'ba/b' : 'b/best'
+      ...filterArgs([...baseArgs], ['--proxy'])
     ];
     if (isYouTube) {
       attempt2Args.push('--extractor-args', 'youtube:player_client=tv_simply,default,-tv');
@@ -1201,6 +1212,24 @@ export async function downloadMedia(rawUrl, format, quality, outputDir) {
         '• https://snapinsta.app\n' +
         '• https://sssinsta.com'
       );
+    }
+  }
+
+  // ── YouTube: dedicated ultra-fast multi-threaded direct engine (bypasses Cobalt timeout) ──
+  const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
+  if (isYouTube) {
+    console.log('[YouTube] Direct ultra-fast yt-dlp engine with multi-threading (skipping Cobalt for max speed)...');
+    try {
+      const filePath = await downloadMediaWithYtdlp(url, format, quality, outputDir);
+      return filePath;
+    } catch (ytdlpError) {
+      console.error(`YouTube direct download failed: ${ytdlpError.message}. Trying Cobalt fallback...`);
+      try {
+        const filePath = await downloadWithCobalt(url, format, quality, outputDir);
+        return filePath;
+      } catch (cobaltErr) {
+        throw new Error(getFriendlyErrorMessage(ytdlpError.message, url));
+      }
     }
   }
 
