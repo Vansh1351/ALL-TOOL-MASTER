@@ -277,7 +277,7 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
     '--restrict-filenames',
     '--no-check-certificate',
     '-4',
-    '-N', '4',                      // 4 concurrent connections (bypasses YouTube single-connection chunk throttle!)
+    '-N', '8',                      // 8 concurrent parallel streams (blazing fast download speed!)
     '--buffer-size', '16M',          // 16MB socket buffer for sustained high throughput
     '--http-chunk-size', '10M',      // 10MB chunk size to eliminate overhead
     '--socket-timeout', '10',
@@ -324,14 +324,14 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
     let formatArg;
     if (isYouTube) {
       if (quality === '720p') {
-        formatArg = 'best[height<=720][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720]/best';
+        formatArg = '22/best[height<=720][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720]/best';
       } else if (quality === '480p') {
         formatArg = 'best[height<=480][ext=mp4]/bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best[height<=480]/best';
       } else if (quality === '360p') {
-        formatArg = 'best[height<=360][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360]/best';
+        formatArg = '18/best[height<=360][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360]/best';
       } else {
-        // Default / best: prefer single MP4 stream, or MP4 video + m4a audio
-        formatArg = 'best[ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best';
+        // Default / best: prefer single MP4 stream (format 22 or 18) for instant 3s download, then mp4 video + m4a audio
+        formatArg = '22/18/best[ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best';
       }
     } else {
       if (quality === '720p') formatArg = 'b[height<=720]/best';
@@ -469,8 +469,8 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
 
       console.log(`[Attempt ${currentAttemptIndex + 1}/${uniqueAttempts.length}] Running: ${attempt.name}`);
 
-      // 15s hard timeout with SIGKILL (SIGKILL forces immediate uncatchable process termination on Linux)
-      const execTimeout = options.singleAttempt ? 8000 : 15000;
+      // Generous timeout (up to 120s for large 100MB+ videos) so process is never killed prematurely
+      const execTimeout = options.singleAttempt ? 60000 : 120000;
       
       const childEnv = { ...process.env };
       if (options.useProxy !== true || proxyIsDead) {
