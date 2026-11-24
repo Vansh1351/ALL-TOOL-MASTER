@@ -599,6 +599,7 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
 export async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
   const activeInstances = [
     'https://rue-cobalt.xenon.zone',      // Active & blazing fast (0.3s response)
+    'https://api.cobalt.liubquanti.click', // Active & high uptime
   ];
 
   const COBALT_TIMEOUT_MS = 5000; // 5s timeout — resolves instantly in ~1-2s
