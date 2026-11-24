@@ -670,6 +670,21 @@ export const TOOLS_DATA = [
 export default function ToolGrid({ filterText, onSelectTool, bookmarks = [], toggleBookmark = () => {} }) {
   const [selectedCategory, setSelectedCategory] = React.useState('all');
 
+  // Synchronize category tab if user navigated via /downloader, /converter, /utility, or /ai-notes
+  React.useEffect(() => {
+    if (!filterText) return;
+    const lower = filterText.toLowerCase().trim();
+    if (lower === 'downloader' || lower === 'downloaders') {
+      setSelectedCategory('Downloader');
+    } else if (lower === 'converter' || lower === 'converters') {
+      setSelectedCategory('Converter');
+    } else if (lower === 'utility' || lower === 'utilities') {
+      setSelectedCategory('Utility');
+    } else if (lower === 'ai tool' || lower === 'ai tools' || lower === 'ai') {
+      setSelectedCategory('AI Tool');
+    }
+  }, [filterText]);
+
   const categories = React.useMemo(() => [
     { id: 'all', label: 'All Tools', count: TOOLS_DATA.length, icon: FiGrid },
     { id: 'Downloader', label: '1. Downloaders', count: TOOLS_DATA.filter(t => t.category === 'Downloader').length, icon: FiVideo },
@@ -684,11 +699,13 @@ export default function ToolGrid({ filterText, onSelectTool, bookmarks = [], tog
     if (selectedCategory !== 'all') {
       baseList = baseList.filter(t => t.category === selectedCategory);
     }
-    if (!query) {
+
+    const isCategoryQuery = ['downloader', 'downloaders', 'converter', 'converters', 'utility', 'utilities', 'ai tool', 'ai tools', 'ai'].includes(query);
+    if (!query || isCategoryQuery) {
       return baseList;
     }
 
-    // Platform name search terms that should bypass filtering and show all tools at the top
+    // Platform name search terms that should bypass filtering and show tools in category
     const platformTerms = [
       'all', 'tool', 'tools', 'master', 
       'all tool', 'all tools', 'all tool master', 
@@ -762,7 +779,7 @@ export default function ToolGrid({ filterText, onSelectTool, bookmarks = [], tog
       })
       .filter(tool => tool.score > 0)
       .sort((a, b) => b.score - a.score);
-  }, [filterText]);
+  }, [filterText, selectedCategory]);
 
 
   return (
