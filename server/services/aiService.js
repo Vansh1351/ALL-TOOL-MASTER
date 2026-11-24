@@ -85,13 +85,16 @@ function detectProvider(key) {
 /**
  * Transcribes audio/video using Groq Whisper Large v3 Turbo (~400ms latency).
  */
-async function transcribeWithGroq(filePath, mimeType, key) {
+async function transcribeWithGroq(filePath, mimeType, key, userTextPrompt = '') {
   console.log(`[Groq Whisper] Transcribing ${path.basename(filePath)} with whisper-large-v3-turbo...`);
   const fileBuf = fs.readFileSync(filePath);
   const whisperForm = new FormData();
   const audioBlob = new Blob([fileBuf], { type: mimeType || 'audio/mpeg' });
   whisperForm.append('file', audioBlob, path.basename(filePath));
   whisperForm.append('model', 'whisper-large-v3-turbo');
+  if (userTextPrompt && userTextPrompt.trim()) {
+    whisperForm.append('prompt', userTextPrompt.trim().slice(0, 200));
+  }
 
   const whisperRes = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
     method: "POST",
@@ -111,10 +114,14 @@ async function transcribeWithGroq(filePath, mimeType, key) {
 /**
  * Transcribes audio/video using Google Gemini multimodal audio.
  */
-async function transcribeWithGemini(filePath, mimeType, key) {
+async function transcribeWithGemini(filePath, mimeType, key, userTextPrompt = '') {
   console.log(`[Gemini Audio] Transcribing ${path.basename(filePath)} with Gemini SDK...`);
   const ai = new GoogleGenAI({ apiKey: key });
   const fileBuffer = fs.readFileSync(filePath);
+  const transcriptionInstruction = userTextPrompt && userTextPrompt.trim()
+    ? `Generate an accurate transcription of all speech in this audio adhering strictly to the user's instructions: "${userTextPrompt.trim()}". If requested in Hinglish, transcribe using Roman/Latin alphabet. If requested in English, translate into English. Break down paragraph blocks clearly. Start directly with the transcript.`
+    : "Generate a verbatim, accurate transcription of all speech in this audio. Break down paragraph blocks clearly. Start directly with the transcript.";
+
   const contents = [
     {
       inlineData: {
@@ -123,7 +130,7 @@ async function transcribeWithGemini(filePath, mimeType, key) {
       }
     },
     {
-      text: "Generate a verbatim, accurate transcription of all speech in this audio. Break down paragraph blocks clearly. Start directly with the transcript."
+      text: transcriptionInstruction
     }
   ];
 
@@ -325,7 +332,7 @@ ${contextText ? `Context Content:\n${contextText}\n\n` : ''}${textContent ? `Tex
 /**
  * Executes multimodal generation via Google Gemini SDK.
  */
-async function executeGeminiSdk({ prompt, textContent, processedFilePath, processedMimeType, tool, key }) {
+async function executeGeminiSdk({ prompt, contextText, textContent, processedFilePath, processedMimeType, tool, key }) {
   console.log(`[Gemini SDK] Initializing GoogleGenAI client...`);
   const ai = new GoogleGenAI({ apiKey: key });
   const contents = [];
@@ -340,8 +347,12 @@ async function executeGeminiSdk({ prompt, textContent, processedFilePath, proces
     });
   }
 
+  if (contextText) {
+    contents.push({ text: `Context Content / Extracted Transcript:\n\n${contextText}` });
+  }
+
   if (textContent) {
-    contents.push({ text: `Text Input for Context:\n\n${textContent}` });
+    contents.push({ text: `Text Input / User Directive:\n\n${textContent}` });
   }
 
   contents.push({
@@ -452,7 +463,17 @@ export async function processAiTool({ tool, filePath, mimeType, textContent, api
       break;
     case 'transcript':
     case 'ai-transcript':
-      prompt = "Generate a verbatim text transcription of the conversation or audio. Break down paragraph blocks by speaker changes or topic changes where applicable.";
+      if (textContent && textContent.trim()) {
+        prompt = `You are a professional transcription and multilingual language specialist. The user provided an audio/video recording and gave specific formatting, language, or translation instructions in Text Content: "${textContent.trim()}".
+Follow their instructions strictly:
+- If they requested Hinglish, write the transcription in Hinglish (Hindi words written phonetically in Roman/Latin script, e.g., "Main wahan ja raha hoon").
+- If they requested English or translation, provide the full transcript translated into natural, clear English.
+- If they requested both (e.g. "in hinglish or in english"), provide BOTH clearly labeled under Markdown headers: "### Hinglish Transcript" and "### English Translation".
+- If they requested another specific language, dialect, or formatting style, apply that exact directive.
+- Maintain accurate speaker flow, dialogue nuance, and clean paragraph breaks. Start directly with the formatted transcript.`;
+      } else {
+        prompt = "Generate a verbatim text transcription of the conversation or audio. Break down paragraph blocks by speaker changes or topic changes where applicable.";
+      }
       break;
     case 'sop':
     case 'video-to-sop':
@@ -603,7 +624,7 @@ CRITICAL: Return ONLY valid, parser-friendly JSON. Do not wrap in markdown \`\`\
       const groqKey = keys.find(k => detectProvider(k) === 'groq');
       if (groqKey) {
         try {
-          transcribedText = await transcribeWithGroq(processedFilePath, processedMimeType, groqKey);
+          transcribedText = await transcribeWithGroq(processedFilePath, processedMimeType, groqKey, textContent);
         } catch (e) {
           console.warn("[Groq Whisper] Failed, trying fallback:", e.message);
           transcriptionError = e;
@@ -615,7 +636,7 @@ CRITICAL: Return ONLY valid, parser-friendly JSON. Do not wrap in markdown \`\`\
         const geminiKey = keys.find(k => detectProvider(k) === 'gemini');
         if (geminiKey) {
           try {
-            transcribedText = await transcribeWithGemini(processedFilePath, processedMimeType, geminiKey);
+            transcribedText = await transcribeWithGemini(processedFilePath, processedMimeType, geminiKey, textContent);
           } catch (e) {
             console.warn("[Gemini Audio] Failed:", e.message);
             transcriptionError = e;
@@ -627,11 +648,12 @@ CRITICAL: Return ONLY valid, parser-friendly JSON. Do not wrap in markdown \`\`\
         throw transcriptionError || new Error("Failed to transcribe audio from the uploaded media file.");
       }
 
-      // If user tool is purely transcript or speech-to-text, return the verbatim text immediately!
-      if (tool === 'transcript' || tool === 'ai-transcript') {
+      // If user tool is purely transcript or speech-to-text, and NO custom user prompt/instructions were provided in textContent:
+      if ((tool === 'transcript' || tool === 'ai-transcript') && (!textContent || !textContent.trim())) {
         if (processedFilePath !== filePath && fs.existsSync(processedFilePath)) {
           try { fs.unlinkSync(processedFilePath); } catch (e) {}
         }
+        console.log("[Audio Engine] No custom text instructions provided; returning verbatim transcript directly.");
         return transcribedText || "No speech detected in the uploaded audio file.";
       }
 
@@ -668,7 +690,7 @@ CRITICAL: Return ONLY valid, parser-friendly JSON. Do not wrap in markdown \`\`\
         resultText = await executeNvidiaNim({ prompt, contextText, textContent, tool, key });
       } else if (provider === 'gemini') {
         // Google Gemini SDK
-        resultText = await executeGeminiSdk({ prompt, textContent, processedFilePath, processedMimeType, tool, key });
+        resultText = await executeGeminiSdk({ prompt, contextText, textContent, processedFilePath, processedMimeType, tool, key });
       }
 
       if (resultText) {
