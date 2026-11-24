@@ -6,42 +6,398 @@ import pdfParse from 'pdf-parse';
 import { convertMedia, extractTextFromDocx } from './converter.js';
 
 /**
- * Handles AI summarization, note-taking, transcription, and translation.
- * Extracts audio from video files if a video is provided, to optimize the payload size.
+ * Validates whether an API key is a valid non-placeholder token.
  */
-export async function processAiTool({ tool, filePath, mimeType, textContent, apiKey, uploadsDir }) {
-  let incomingKey = apiKey;
-  if (incomingKey) {
-    incomingKey = incomingKey.trim();
-    if (incomingKey.length < 10) {
-      incomingKey = null;
-    }
+function isValidKey(key) {
+  if (!key || typeof key !== 'string') return false;
+  const trimmed = key.trim();
+  if (trimmed.length < 10) return false;
+  const lower = trimmed.toLowerCase();
+  if (
+    lower.includes('your_') ||
+    lower.includes('api_key') ||
+    lower.includes('placeholder') ||
+    lower.includes('aizasy...') ||
+    lower === 'undefined' ||
+    lower === 'null'
+  ) {
+    return false;
   }
+  return true;
+}
+
+/**
+ * Builds an ordered list of valid API keys combining incoming user keys and server environment keys.
+ */
+function buildKeyPool(incomingKey) {
+  const pool = [];
+
+  const addKeys = (raw) => {
+    if (!raw) return;
+    const parts = raw.split(',').map(s => s.trim()).filter(isValidKey);
+    for (const p of parts) {
+      if (!pool.includes(p)) {
+        pool.push(p);
+      }
+    }
+  };
+
+  // 1. User supplied incoming key (highest priority)
   if (incomingKey) {
-    const lower = incomingKey.toLowerCase();
-    if (lower.includes('your_') || lower.includes('api_key') || lower.includes('placeholder') || lower.includes('aizasy...') || lower === 'undefined' || lower === 'null') {
-      incomingKey = null;
+    addKeys(incomingKey);
+  }
+
+  // 2. Server configured keys
+  addKeys(process.env.GROQ_API_KEY);
+  addKeys(process.env.OPENROUTER_API_KEY);
+  addKeys(process.env.NVIDIA_API_KEY || process.env.NVTDTA_APT_KEY || process.env.NVIDIA_KEY);
+  addKeys(process.env.GEMINI_API_KEY);
+
+  // 3. Resilient scan: check any environment variable matching key prefixes
+  for (const [envName, envVal] of Object.entries(process.env)) {
+    if (typeof envVal === 'string') {
+      const trimmed = envVal.trim();
+      if (
+        trimmed.startsWith('gsk_') ||
+        trimmed.startsWith('sk-or-') ||
+        trimmed.startsWith('nvapi-') ||
+        trimmed.startsWith('AQ.') ||
+        trimmed.startsWith('AIzaSy')
+      ) {
+        addKeys(trimmed);
+      }
     }
   }
 
-  const rawKey = incomingKey || process.env.GEMINI_API_KEY;
-  if (!rawKey) {
-    throw new Error("Missing Gemini API Key. Please provide it in Settings or configure the server .env.");
-  }
+  return pool;
+}
 
-  const keys = rawKey.split(',').map(k => k.trim()).filter(Boolean).filter(k => {
-    const trimmed = k.toLowerCase();
-    if (trimmed.includes('your_') || trimmed.includes('api_key') || trimmed.includes('placeholder') || trimmed.includes('aizasy...')) {
-      return false;
-    }
-    return true;
+/**
+ * Detects provider type from API key format.
+ */
+function detectProvider(key) {
+  if (key.startsWith('gsk_')) return 'groq';
+  if (key.startsWith('sk-or-') || key.startsWith('sk-')) return 'openrouter';
+  if (key.startsWith('nvapi-')) return 'nvidia';
+  return 'gemini';
+}
+
+/**
+ * Transcribes audio/video using Groq Whisper Large v3 Turbo (~400ms latency).
+ */
+async function transcribeWithGroq(filePath, mimeType, key) {
+  console.log(`[Groq Whisper] Transcribing ${path.basename(filePath)} with whisper-large-v3-turbo...`);
+  const fileBuf = fs.readFileSync(filePath);
+  const whisperForm = new FormData();
+  const audioBlob = new Blob([fileBuf], { type: mimeType || 'audio/mpeg' });
+  whisperForm.append('file', audioBlob, path.basename(filePath));
+  whisperForm.append('model', 'whisper-large-v3-turbo');
+
+  const whisperRes = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${key}` },
+    body: whisperForm
   });
 
-  if (keys.length === 0) {
-    throw new Error("No valid Gemini API keys found. Please provide a valid key in Settings or configure the server .env.");
+  if (!whisperRes.ok) {
+    const errText = await whisperRes.text();
+    throw new Error(`Groq Whisper error (${whisperRes.status}): ${errText}`);
   }
 
-  // OPTIMIZATION: If video is uploaded, extract audio to reduce payload size once before key iteration
+  const whisperData = await whisperRes.json();
+  return whisperData.text || "";
+}
+
+/**
+ * Transcribes audio/video using Google Gemini multimodal audio.
+ */
+async function transcribeWithGemini(filePath, mimeType, key) {
+  console.log(`[Gemini Audio] Transcribing ${path.basename(filePath)} with Gemini SDK...`);
+  const ai = new GoogleGenAI({ apiKey: key });
+  const fileBuffer = fs.readFileSync(filePath);
+  const contents = [
+    {
+      inlineData: {
+        mimeType: mimeType || 'audio/mpeg',
+        data: fileBuffer.toString('base64')
+      }
+    },
+    {
+      text: "Generate a verbatim, accurate transcription of all speech in this audio. Break down paragraph blocks clearly. Start directly with the transcript."
+    }
+  ];
+
+  const models = ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
+  let lastErr = null;
+  for (const m of models) {
+    try {
+      const res = await ai.models.generateContent({ model: m, contents: contents });
+      const txt = res.text;
+      if (txt) return txt;
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error("Gemini audio transcription failed.");
+}
+
+/**
+ * Executes chat / text generation via Groq.
+ */
+async function executeGroqChat({ prompt, contextText, textContent, tool, key }) {
+  const models = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b'];
+  const maxTokens = tool === 'ai-script-writer' ? 4096 : (tool === 'watermark-remover' || tool === 'logo-generator' ? 2048 : 2500);
+
+  const fullPrompt = `System Directive: Apply the following instructions to the provided media/text context:
+
+${prompt}
+
+${contextText ? `Context Content:\n${contextText}\n\n` : ''}${textContent ? `Text Input Context:\n${textContent}\n\n` : ''}Format your output in professional, readable Markdown syntax. Start directly with the content without conversational meta-responses.`;
+
+  let lastErr = null;
+  for (const model of models) {
+    try {
+      console.log(`[Groq Chat] Calling model ${model}...`);
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${key}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: model,
+          max_tokens: maxTokens,
+          messages: [{ role: "user", content: fullPrompt }]
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const content = data.choices?.[0]?.message?.content;
+        if (content) return content;
+      } else {
+        const errText = await res.text();
+        lastErr = new Error(`Groq ${model} (${res.status}): ${errText}`);
+      }
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error("Groq chat execution failed.");
+}
+
+/**
+ * Executes chat / vision generation via OpenRouter.
+ */
+async function executeOpenRouter({ prompt, contextText, textContent, imagePayload, tool, key }) {
+  const models = [
+    "google/gemini-2.5-flash",
+    "openai/gpt-4o-mini",
+    "deepseek/deepseek-chat"
+  ];
+
+  const fullPrompt = `System Directive: Apply the following instructions to the provided media/text context:
+
+${prompt}
+
+${contextText ? `Context Content:\n${contextText}\n\n` : ''}${textContent ? `Text Input Context:\n${textContent}\n\n` : ''}Format your output in professional, readable Markdown syntax. Start directly with the content without conversational meta-responses.`;
+
+  let messageContent;
+  if (imagePayload) {
+    messageContent = [
+      { type: "text", text: fullPrompt },
+      { type: "image_url", image_url: { url: imagePayload } }
+    ];
+  } else {
+    messageContent = fullPrompt;
+  }
+
+  const maxTokens = tool === 'ai-script-writer' ? 4096 : (tool === 'watermark-remover' || tool === 'logo-generator' ? 2048 : 2500);
+
+  let lastErr = null;
+  for (const model of models) {
+    let attempts = 2;
+    let delay = 1000;
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      try {
+        console.log(`[OpenRouter] Calling model ${model} (attempt ${attempt}/${attempts})...`);
+        const payload = {
+          model: model,
+          max_tokens: maxTokens,
+          messages: [{ role: "user", content: messageContent }]
+        };
+        if (tool === 'logo-generator' || tool === 'ai-logo-generator' || tool === 'watermark-remover') {
+          payload.response_format = { type: "json_object" };
+        }
+
+        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${key}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://alltoolmaster.me",
+            "X-Title": "All Tool Master"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const errJson = await res.json().catch(() => ({}));
+          const errMsg = errJson.error?.message || `HTTP ${res.status}`;
+          throw { status: res.status, message: errMsg };
+        }
+
+        const data = await res.json();
+        const content = data.choices?.[0]?.message?.content;
+        if (content) return content;
+        throw new Error("No text content in OpenRouter response.");
+      } catch (e) {
+        lastErr = e;
+        const status = e.status || 0;
+        const errMsg = e.message || "";
+        const isTransient = status === 503 || status === 429 || errMsg.includes('503') || errMsg.includes('429');
+        if (isTransient && attempt < attempts) {
+          await new Promise(r => setTimeout(r, delay));
+          delay *= 2;
+        } else {
+          break;
+        }
+      }
+    }
+  }
+  throw lastErr || new Error("OpenRouter execution failed.");
+}
+
+/**
+ * Executes chat generation via NVIDIA NIM API.
+ */
+async function executeNvidiaNim({ prompt, contextText, textContent, tool, key }) {
+  const models = [
+    'minimaxai/minimax-m3.1-flash',
+    'nvidia/nemotron-3.5-lightning-30b-a3b'
+  ];
+
+  const fullPrompt = `System Directive: Apply the following instructions to the provided media/text context:
+
+${prompt}
+
+${contextText ? `Context Content:\n${contextText}\n\n` : ''}${textContent ? `Text Input Context:\n${textContent}\n\n` : ''}Format your output in professional, readable Markdown syntax. Start directly with the content without conversational meta-responses.`;
+
+  const maxTokens = tool === 'ai-script-writer' ? 4096 : (tool === 'watermark-remover' || tool === 'logo-generator' ? 2048 : 2500);
+
+  let lastErr = null;
+  for (const model of models) {
+    try {
+      console.log(`[NVIDIA NIM] Calling model ${model}...`);
+      const res = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${key}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: model,
+          max_tokens: maxTokens,
+          messages: [{ role: "user", content: fullPrompt }]
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const choice = data.choices?.[0]?.message;
+        let content = choice?.content;
+        // If reasoning model put output in reasoning_content
+        if (!content && choice?.reasoning_content) {
+          content = choice.reasoning_content;
+        }
+        if (content) return content;
+      } else {
+        const errText = await res.text();
+        lastErr = new Error(`NVIDIA ${model} (${res.status}): ${errText}`);
+      }
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error("NVIDIA NIM execution failed.");
+}
+
+/**
+ * Executes multimodal generation via Google Gemini SDK.
+ */
+async function executeGeminiSdk({ prompt, textContent, processedFilePath, processedMimeType, tool, key }) {
+  console.log(`[Gemini SDK] Initializing GoogleGenAI client...`);
+  const ai = new GoogleGenAI({ apiKey: key });
+  const contents = [];
+
+  if (processedFilePath && fs.existsSync(processedFilePath)) {
+    const fileBuffer = fs.readFileSync(processedFilePath);
+    contents.push({
+      inlineData: {
+        mimeType: processedMimeType,
+        data: fileBuffer.toString('base64')
+      }
+    });
+  }
+
+  if (textContent) {
+    contents.push({ text: `Text Input for Context:\n\n${textContent}` });
+  }
+
+  contents.push({
+    text: `System Directive: Apply the following instructions to the provided media/text context:\n\n${prompt}\n\nFormat your output in professional, readable Markdown syntax. Start directly with the content without conversational meta-responses.`
+  });
+
+  const modelsToTry = ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
+  let sdkError = null;
+
+  for (const model of modelsToTry) {
+    let attempts = 2;
+    let delay = 1000;
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      try {
+        console.log(`[Gemini SDK] Calling ${model} (attempt ${attempt}/${attempts})...`);
+        const config = {};
+        if (tool === 'logo-generator' || tool === 'ai-logo-generator' || tool === 'watermark-remover') {
+          config.responseMimeType = 'application/json';
+        }
+        const response = await ai.models.generateContent({
+          model: model,
+          contents: contents,
+          config: config
+        });
+        const text = response.text;
+        if (text) return text;
+      } catch (error) {
+        sdkError = error;
+        const errMsg = error.message || "";
+        const status = error.status || 0;
+        const isTransient = status === 503 || status === 429 || errMsg.includes('503') || errMsg.includes('429');
+        if (isTransient && attempt < attempts) {
+          await new Promise(r => setTimeout(r, delay));
+          delay *= 2;
+        } else {
+          break;
+        }
+      }
+    }
+  }
+  throw sdkError || new Error("Gemini SDK request failed.");
+}
+
+/**
+ * Master multi-provider AI processing handler with automatic cascading fallback.
+ * Works seamlessly across Groq, OpenRouter, NVIDIA NIM, and Google Gemini.
+ */
+export async function processAiTool({ tool, filePath, mimeType, textContent, apiKey, uploadsDir }) {
+  // Build aggregated key pool across user-provided and environment keys
+  const keys = buildKeyPool(apiKey);
+
+  if (keys.length === 0) {
+    throw new Error("Missing AI API Key. Please configure your key in Settings or contact the administrator.");
+  }
+
+  // OPTIMIZATION: If video is uploaded, extract audio to reduce payload size
   let processedFilePath = filePath;
   let processedMimeType = mimeType;
 
@@ -60,7 +416,7 @@ export async function processAiTool({ tool, filePath, mimeType, textContent, api
     }
   }
 
-  // Construct Prompt based on tool
+  // Construct prompt based on tool
   let prompt = "";
   switch (tool) {
     case 'voice-recorder':
@@ -208,224 +564,124 @@ CRITICAL: Return ONLY valid, parser-friendly JSON. Do not wrap in markdown \`\`\
       prompt = `Provide a comprehensive summary and analysis of the attached content. Highlight all main topics and present them clearly in markdown.`;
   }
 
+  // Pre-process any uploaded document (PDF, DOCX) or image payload
+  let contextText = "";
+  let imagePayload = null;
+
+  if (processedFilePath && fs.existsSync(processedFilePath)) {
+    const ext = path.extname(processedFilePath).toLowerCase();
+    if (processedMimeType && processedMimeType.startsWith('image/')) {
+      try {
+        const fileBuffer = fs.readFileSync(processedFilePath);
+        imagePayload = `data:${processedMimeType};base64,${fileBuffer.toString('base64')}`;
+      } catch (err) {
+        console.error("Image base64 read failed:", err);
+      }
+    } else if (processedMimeType === 'application/pdf' || ext === '.pdf') {
+      try {
+        const dataBuffer = fs.readFileSync(processedFilePath);
+        const pdfData = await pdfParse(dataBuffer);
+        contextText = pdfData.text || "Empty PDF document.";
+      } catch (err) {
+        console.error("PDF text extraction failed:", err);
+        throw new Error("Unable to parse text from the uploaded PDF document.");
+      }
+    } else if (ext === '.docx') {
+      try {
+        contextText = await extractTextFromDocx(processedFilePath);
+      } catch (err) {
+        console.error("DOCX text extraction failed:", err);
+        throw new Error("Unable to parse text from the uploaded Word document.");
+      }
+    } else if (processedMimeType && (processedMimeType.startsWith('audio/') || processedMimeType.startsWith('video/'))) {
+      // Step A: Audio/Video Transcription Waterfall
+      console.log("[Audio Engine] Transcribing audio/video input with high-speed fallback...");
+      let transcribedText = "";
+      let transcriptionError = null;
+
+      // 1. Try Groq Whisper (Ultra-fast, ~400ms)
+      const groqKey = keys.find(k => detectProvider(k) === 'groq');
+      if (groqKey) {
+        try {
+          transcribedText = await transcribeWithGroq(processedFilePath, processedMimeType, groqKey);
+        } catch (e) {
+          console.warn("[Groq Whisper] Failed, trying fallback:", e.message);
+          transcriptionError = e;
+        }
+      }
+
+      // 2. Fallback to Gemini Multimodal Audio if Groq failed or wasn't available
+      if (!transcribedText) {
+        const geminiKey = keys.find(k => detectProvider(k) === 'gemini');
+        if (geminiKey) {
+          try {
+            transcribedText = await transcribeWithGemini(processedFilePath, processedMimeType, geminiKey);
+          } catch (e) {
+            console.warn("[Gemini Audio] Failed:", e.message);
+            transcriptionError = e;
+          }
+        }
+      }
+
+      if (!transcribedText && !contextText) {
+        throw transcriptionError || new Error("Failed to transcribe audio from the uploaded media file.");
+      }
+
+      // If user tool is purely transcript or speech-to-text, return the verbatim text immediately!
+      if (tool === 'transcript' || tool === 'ai-transcript') {
+        if (processedFilePath !== filePath && fs.existsSync(processedFilePath)) {
+          try { fs.unlinkSync(processedFilePath); } catch (e) {}
+        }
+        return transcribedText || "No speech detected in the uploaded audio file.";
+      }
+
+      contextText = transcribedText;
+    } else {
+      try {
+        contextText = fs.readFileSync(processedFilePath, 'utf8');
+      } catch (err) {
+        contextText = "";
+      }
+    }
+  }
+
+  // Step B: Multi-Provider LLM Waterfall for Text/Analysis/Script/Summary/Logo
   let lastError = null;
+
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
+    const provider = detectProvider(key);
     const maskedKey = key.length > 10 ? `${key.slice(0, 8)}...${key.slice(-4)}` : 'Key';
-    console.log(`Trying API key ${i + 1}/${keys.length} (${maskedKey})...`);
+    console.log(`[AI Waterfall] Attempting Provider: ${provider.toUpperCase()} (${maskedKey}, priority ${i + 1}/${keys.length})...`);
 
     try {
-      // 1. OPENROUTER COMPATIBILITY BLOCK (For keys starting with 'sk-')
-      if (key.startsWith('sk-')) {
-        console.log(`Using OpenRouter routing for key ${i + 1}...`);
-        let contextText = "";
+      let resultText = null;
 
-        // Extract text from files if provided
-        if (filePath && fs.existsSync(filePath)) {
-          const ext = path.extname(filePath).toLowerCase();
-          if (mimeType === 'application/pdf' || ext === '.pdf') {
-            try {
-              const dataBuffer = fs.readFileSync(filePath);
-              const pdfData = await pdfParse(dataBuffer);
-              contextText = pdfData.text || "Empty PDF document.";
-            } catch (err) {
-              console.error("PDF text extraction failed:", err);
-              throw new Error("Unable to parse text from the uploaded PDF document.");
-            }
-          } else if (ext === '.docx') {
-            try {
-              contextText = await extractTextFromDocx(filePath);
-            } catch (err) {
-              console.error("DOCX text extraction failed:", err);
-              throw new Error("Unable to parse text from the uploaded Word document.");
-            }
-          } else if (mimeType && (mimeType.startsWith('audio/') || mimeType.startsWith('video/'))) {
-            throw new Error("Audio/video file analysis is not supported with OpenAI/OpenRouter keys. Please use a standard Google Gemini API Key (starts with 'AIzaSy') from Google AI Studio, or paste the text content directly.");
-          } else {
-            try {
-              contextText = fs.readFileSync(filePath, 'utf8');
-            } catch (err) {
-              contextText = "";
-            }
-          }
-        }
-
-        const fullPrompt = `System Directive: Apply the following instructions to the provided media/text context:
-
-${prompt}
-
-${contextText ? `Context Content:\n${contextText}\n\n` : ''}${textContent ? `Text Input Context:\n${textContent}\n\n` : ''}Format your output in professional, readable Markdown syntax. Start directly with the content without conversational meta-responses.`;
-
-        const openRouterModels = [
-          "google/gemini-2.5-flash",
-          "google/gemini-1.5-flash",
-          "google/gemini-flash-1.5-8b"
-        ];
-        let orError = null;
-        let responseText = null;
-
-        for (const model of openRouterModels) {
-          let attempts = 3;
-          let delay = 1000;
-          for (let attempt = 1; attempt <= attempts; attempt++) {
-            try {
-              console.log(`Calling OpenRouter model ${model} (attempt ${attempt}/${attempts})...`);
-              const requestPayload = {
-                model: model,
-                messages: [
-                  { role: "user", content: fullPrompt }
-                ]
-              };
-              if (tool === 'logo-generator' || tool === 'ai-logo-generator' || tool === 'watermark-remover') {
-                requestPayload.response_format = { type: "json_object" };
-              }
-              const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                  "Authorization": `Bearer ${key}`,
-                  "Content-Type": "application/json",
-                  "HTTP-Referer": "http://localhost:5000",
-                  "X-Title": "All Tool Master"
-                },
-                body: JSON.stringify(requestPayload)
-              });
-
-              if (!response.ok) {
-                const errJson = await response.json().catch(() => ({}));
-                const errMsg = errJson.error?.message || `HTTP error ${response.status}`;
-                throw { status: response.status, message: errMsg };
-              }
-
-              const resJson = await response.json();
-              const text = resJson.choices?.[0]?.message?.content;
-              if (!text) {
-                throw new Error("Invalid response received from OpenRouter API.");
-              }
-              responseText = text;
-              break;
-            } catch (error) {
-              orError = error;
-              const errMsg = error.message || "";
-              const status = error.status || 0;
-              const isTransient = status === 503 || status === 429 ||
-                                  errMsg.includes('503') || errMsg.includes('429') ||
-                                  errMsg.toLowerCase().includes('high demand') ||
-                                  errMsg.toLowerCase().includes('temporarily') ||
-                                  errMsg.toLowerCase().includes('unavailable');
-              
-              if (isTransient && attempt < attempts) {
-                console.warn(`Transient error calling ${model} on OpenRouter: ${errMsg}. Retrying in ${delay}ms...`);
-                await new Promise(resolve => setTimeout(resolve, delay));
-                delay *= 2;
-              } else {
-                console.error(`Error calling OpenRouter model ${model}:`, errMsg);
-                break; // break the attempt loop to try next model
-              }
-            }
-          }
-          if (responseText) {
-            break;
-          }
-        }
-
-        if (!responseText) {
-          throw orError || new Error("Failed to generate content with OpenRouter.");
-        }
-
-        // Cleanup extracted audio file if it was created
-        if (processedFilePath !== filePath && fs.existsSync(processedFilePath)) {
-          try { fs.unlinkSync(processedFilePath); } catch (e) {}
-        }
-
-        return responseText;
-      } 
-      
-      // 2. STANDARD GEMINI SDK BLOCK
-      else {
-        console.log(`Using Standard Gemini SDK routing for key ${i + 1}...`);
-        const ai = new GoogleGenAI({ apiKey: key });
-        const contents = [];
-        
-        if (processedFilePath && fs.existsSync(processedFilePath)) {
-          const fileBuffer = fs.readFileSync(processedFilePath);
-          contents.push({
-            inlineData: {
-              mimeType: processedMimeType,
-              data: fileBuffer.toString('base64')
-            }
-          });
-        }
-
-        if (textContent) {
-          contents.push({ text: `Text Input for Context:\n\n${textContent}` });
-        }
-
-        // Append prompt instructions
-        contents.push({
-          text: `System Directive: Apply the following instructions to the provided media/text context:\n\n${prompt}\n\nFormat your output in professional, readable Markdown syntax. Start directly with the content without conversational meta-responses.`
-        });
-
-        const modelsToTry = ['gemini-2.5-flash', 'gemini-1.5-flash'];
-        let sdkError = null;
-        let responseText = null;
-
-        for (const model of modelsToTry) {
-          let attempts = 3;
-          let delay = 1000;
-          for (let attempt = 1; attempt <= attempts; attempt++) {
-            try {
-              console.log(`Calling SDK model ${model} (attempt ${attempt}/${attempts})...`);
-               const config = {};
-              if (tool === 'logo-generator' || tool === 'ai-logo-generator' || tool === 'watermark-remover') {
-                config.responseMimeType = 'application/json';
-              }
-              const response = await ai.models.generateContent({
-                model: model,
-                contents: contents,
-                config: config
-              });
-              responseText = response.text;
-              break;
-            } catch (error) {
-              sdkError = error;
-              const errMsg = error.message || "";
-              const status = error.status || 0;
-              const isTransient = status === 503 || status === 429 ||
-                                  errMsg.includes('503') || errMsg.includes('429') ||
-                                  errMsg.toLowerCase().includes('high demand') ||
-                                  errMsg.toLowerCase().includes('temporarily') ||
-                                  errMsg.toLowerCase().includes('unavailable');
-              
-              if (isTransient && attempt < attempts) {
-                console.warn(`Transient error calling SDK model ${model}: ${errMsg}. Retrying in ${delay}ms...`);
-                await new Promise(resolve => setTimeout(resolve, delay));
-                delay *= 2;
-              } else {
-                console.error(`Error calling SDK model ${model}:`, errMsg);
-                break; // break the attempt loop to try the next model
-              }
-            }
-          }
-          if (responseText) {
-            break;
-          }
-        }
-
-        if (!responseText) {
-          throw sdkError || new Error("Failed to generate content with SDK.");
-        }
-
-        // Cleanup extracted audio file if it was created
-        if (processedFilePath !== filePath && fs.existsSync(processedFilePath)) {
-          try { fs.unlinkSync(processedFilePath); } catch (e) {}
-        }
-
-        return responseText;
+      if (provider === 'groq') {
+        // Groq Chat
+        resultText = await executeGroqChat({ prompt, contextText, textContent, tool, key });
+      } else if (provider === 'openrouter') {
+        // OpenRouter (with vision support)
+        resultText = await executeOpenRouter({ prompt, contextText, textContent, imagePayload, tool, key });
+      } else if (provider === 'nvidia') {
+        // NVIDIA NIM
+        resultText = await executeNvidiaNim({ prompt, contextText, textContent, tool, key });
+      } else if (provider === 'gemini') {
+        // Google Gemini SDK
+        resultText = await executeGeminiSdk({ prompt, textContent, processedFilePath, processedMimeType, tool, key });
       }
-    } catch (error) {
-      console.error(`API Key ${i + 1} failed:`, error.message);
-      lastError = error;
-      // Loop continues...
+
+      if (resultText) {
+        console.log(`[AI Waterfall] Provider ${provider.toUpperCase()} SUCCEEDED!`);
+        // Clean up extracted temp audio file if created
+        if (processedFilePath !== filePath && fs.existsSync(processedFilePath)) {
+          try { fs.unlinkSync(processedFilePath); } catch (e) {}
+        }
+        return resultText;
+      }
+    } catch (err) {
+      console.warn(`[AI Waterfall] Provider ${provider.toUpperCase()} failed: ${err.message}. Trying next available provider...`);
+      lastError = err;
     }
   }
 
@@ -434,45 +690,21 @@ ${contextText ? `Context Content:\n${contextText}\n\n` : ''}${textContent ? `Tex
     try { fs.unlinkSync(processedFilePath); } catch (e) {}
   }
 
-  throw new Error(`All provided API keys failed. Last error: ${lastError.message}`);
+  throw new Error(`All AI providers failed. Last error: ${lastError?.message || 'Unknown error'}`);
 }
 
 /**
- * Removes watermarks from an image using Gemini's native image generation/editing.
- * Sends the image (and optional mask) to Gemini with responseModalities: ['TEXT', 'IMAGE'].
- * Returns the path to the cleaned image file.
+ * Removes watermarks from an image using Gemini's native image generation/editing,
+ * with seamless fallback to the local Sharp inpainting engine.
  */
 export async function removeWatermark({ filePath, mimeType, maskPath, regions, apiKey, uploadsDir }) {
-  let incomingKey = apiKey;
-  if (incomingKey) {
-    incomingKey = incomingKey.trim();
-    if (incomingKey.length < 10) incomingKey = null;
-  }
-  if (incomingKey) {
-    const lower = incomingKey.toLowerCase();
-    if (lower.includes('your_') || lower.includes('api_key') || lower.includes('placeholder') || lower === 'undefined' || lower === 'null') {
-      incomingKey = null;
-    }
-  }
+  const keys = buildKeyPool(apiKey);
+  const geminiKeys = keys.filter(k => detectProvider(k) === 'gemini');
 
-  const rawKey = incomingKey || process.env.GEMINI_API_KEY;
-  if (!rawKey) {
-    throw new Error("Missing Gemini API Key. Please provide it in Settings or configure the server .env.");
-  }
-
-  const keys = rawKey.split(',').map(k => k.trim()).filter(Boolean).filter(k => {
-    const trimmed = k.toLowerCase();
-    return !(trimmed.includes('your_') || trimmed.includes('api_key') || trimmed.includes('placeholder'));
-  });
-
-  if (keys.length === 0) {
-    throw new Error("No valid Gemini API keys found.");
-  }
-
-  // Only use Gemini SDK keys (AIzaSy...) for image generation — OpenRouter doesn't support it
-  const geminiKeys = keys.filter(k => !k.startsWith('sk-'));
+  // If no Gemini image-generation keys are available, use local inpainting engine directly
   if (geminiKeys.length === 0) {
-    throw new Error("Watermark removal requires a Google Gemini API key (starts with 'AIzaSy'). OpenRouter keys do not support image generation.");
+    console.log("[Watermark Removal] No direct Gemini image-generation key available. Using high-quality local inpainting engine.");
+    return await localInpaint({ filePath, mimeType, maskPath, regions, uploadsDir });
   }
 
   // Build region description for the prompt
@@ -484,12 +716,10 @@ export async function removeWatermark({ filePath, mimeType, maskPath, regions, a
     regionDescription = `\nThe following watermark/overlay regions have been detected:\n${regionLines}\n`;
   }
 
-  // Build the prompt
   const prompt = `Edit this image: Remove all watermarks, logos, text overlays, timestamps, and semi-transparent patterns from this image. Inpaint the areas where watermarks were with the natural background content that should be behind them. Keep everything else exactly the same - same colors, lighting, composition, and quality. Do not add any new elements. Do not crop or resize.${regionDescription ? '\nFocus especially on these detected regions:' + regionDescription : ''}${maskPath ? '\nThe second image is a mask where painted areas show exactly where to remove content.' : ''}`;
 
   const contents = [];
 
-  // Add the original image
   if (filePath && fs.existsSync(filePath)) {
     const fileBuffer = fs.readFileSync(filePath);
     contents.push({
@@ -502,7 +732,6 @@ export async function removeWatermark({ filePath, mimeType, maskPath, regions, a
     throw new Error("Image file not found for watermark removal.");
   }
 
-  // Add the mask image if provided (manual mode)
   if (maskPath && fs.existsSync(maskPath)) {
     const maskBuffer = fs.readFileSync(maskPath);
     contents.push({
@@ -514,12 +743,9 @@ export async function removeWatermark({ filePath, mimeType, maskPath, regions, a
     contents.push({ text: 'The second image above is a mask — white/red painted areas indicate the watermark regions to remove.' });
   }
 
-  // Add the prompt
   contents.push({ text: prompt });
 
-  // Try each Gemini key
   let lastError = null;
-  // These models support image generation/editing via responseModalities: ['IMAGE']
   const modelsToTry = [
     'gemini-2.5-flash-preview-image-generation',
     'gemini-2.0-flash-preview-image-generation',
@@ -527,100 +753,50 @@ export async function removeWatermark({ filePath, mimeType, maskPath, regions, a
 
   for (let i = 0; i < geminiKeys.length; i++) {
     const key = geminiKeys[i];
-    const maskedKey = key.length > 10 ? `${key.slice(0, 8)}...${key.slice(-4)}` : 'Key';
-    console.log(`[Watermark Removal] Trying API key ${i + 1}/${geminiKeys.length} (${maskedKey})...`);
-
     const ai = new GoogleGenAI({ apiKey: key });
 
     for (const model of modelsToTry) {
-      let attempts = 2;
-      let delay = 2000;
-
-      for (let attempt = 1; attempt <= attempts; attempt++) {
-        try {
-          console.log(`[Watermark Removal] Calling ${model} with image editing (attempt ${attempt}/${attempts})...`);
-
-          const response = await ai.models.generateContent({
-            model: model,
-            contents: contents,
-            config: {
-              responseModalities: ['IMAGE', 'TEXT'],
-            }
-          });
-
-          // Extract the image from the response
-          const candidates = response.candidates || (response.response && response.response.candidates) || [];
-          let imageData = null;
-          let imageMimeType = 'image/png';
-
-          for (const candidate of candidates) {
-            const parts = candidate.content?.parts || [];
-            for (const part of parts) {
-              if (part.inlineData && part.inlineData.data) {
-                imageData = part.inlineData.data;
-                imageMimeType = part.inlineData.mimeType || 'image/png';
-                break;
-              }
-            }
-            if (imageData) break;
+      try {
+        console.log(`[Watermark Removal] Calling ${model}...`);
+        const response = await ai.models.generateContent({
+          model: model,
+          contents: contents,
+          config: {
+            responseModalities: ['IMAGE', 'TEXT'],
           }
+        });
 
-          if (!imageData) {
-            // Try alternate response structure
-            if (response.image) {
-              imageData = response.image.imageBytes || response.image;
-              imageMimeType = response.image.mimeType || 'image/png';
-            } else if (response.generatedImages && response.generatedImages.length > 0) {
-              imageData = response.generatedImages[0].image?.imageBytes;
-              imageMimeType = response.generatedImages[0].image?.mimeType || 'image/png';
+        const candidates = response.candidates || (response.response && response.response.candidates) || [];
+        let imageData = null;
+        let imageMimeType = 'image/png';
+
+        for (const candidate of candidates) {
+          const parts = candidate.content?.parts || [];
+          for (const part of parts) {
+            if (part.inlineData && part.inlineData.data) {
+              imageData = part.inlineData.data;
+              imageMimeType = part.inlineData.mimeType || 'image/png';
+              break;
             }
           }
+          if (imageData) break;
+        }
 
-          if (!imageData) {
-            throw new Error("Gemini did not return an image in the response. The model may not support image generation with this configuration.");
-          }
-
-          // Save the cleaned image
+        if (imageData) {
           const ext = imageMimeType.includes('png') ? 'png' : imageMimeType.includes('webp') ? 'webp' : 'jpg';
           const outputFilename = `watermark_cleaned_${Date.now()}.${ext}`;
           const outputPath = path.join(uploadsDir, outputFilename);
-
-          const imageBuffer = Buffer.from(imageData, 'base64');
-          fs.writeFileSync(outputPath, imageBuffer);
-
-          console.log(`[Watermark Removal] Success! Cleaned image saved: ${outputFilename} (${(imageBuffer.length / 1024).toFixed(1)}KB)`);
+          fs.writeFileSync(outputPath, Buffer.from(imageData, 'base64'));
           return { outputPath, mimeType: imageMimeType };
-
-        } catch (error) {
-          lastError = error;
-          const errMsg = error.message || '';
-          const status = error.status || 0;
-          const isTransient = status === 503 || status === 429 ||
-                              errMsg.includes('503') || errMsg.includes('429') ||
-                              errMsg.toLowerCase().includes('high demand') ||
-                              errMsg.toLowerCase().includes('temporarily') ||
-                              errMsg.toLowerCase().includes('unavailable');
-
-          if (isTransient && attempt < attempts) {
-            console.warn(`[Watermark Removal] Transient error with ${model}: ${errMsg}. Retrying in ${delay}ms...`);
-            await new Promise(resolve => setTimeout(resolve, delay));
-            delay *= 2;
-          } else {
-            console.error(`[Watermark Removal] Error with ${model}:`, errMsg);
-            break;
-          }
         }
+      } catch (err) {
+        lastError = err;
       }
     }
   }
 
-  console.warn(`[Watermark Removal] Gemini API failed: ${lastError?.message || 'Unknown error'}. Falling back to high-quality local inpainting...`);
-  try {
-    return await localInpaint({ filePath, mimeType, maskPath, regions, uploadsDir });
-  } catch (fallbackError) {
-    console.error(`[Watermark Removal] Local inpainting fallback also failed:`, fallbackError.message);
-    throw new Error(`Watermark removal failed: ${lastError?.message || 'Unknown error'} (Fallback error: ${fallbackError.message}). Please try again.`);
-  }
+  console.warn(`[Watermark Removal] Cloud AI image generation unavailable (${lastError?.message || 'not supported'}). Falling back to local inpainting...`);
+  return await localInpaint({ filePath, mimeType, maskPath, regions, uploadsDir });
 }
 
 /**
@@ -635,11 +811,7 @@ async function localInpaint({ filePath, mimeType, maskPath, regions, uploadsDir 
   const width = metadata.width;
   const height = metadata.height;
   
-  // Get raw RGBA pixels (ensureAlpha guarantees 4 channels)
   const rawImage = await img.ensureAlpha().raw().toBuffer();
-  const resultBuffer = Buffer.from(rawImage);
-  
-  // Initialize 2D mask array (0 = original, 1 = masked/needs inpaint)
   const isMasked = Array.from({ length: height }, () => new Uint8Array(width));
   let hasMask = false;
   
@@ -655,7 +827,6 @@ async function localInpaint({ filePath, mimeType, maskPath, regions, uploadsDir 
         const g = rawMask[idx+1];
         const b = rawMask[idx+2];
         const a = rawMask[idx+3];
-        // Red brush from manual canvas, or non-transparent pixels
         if ((r > 120 && g < 100 && b < 100) || (a > 30 && (r > 80 || g > 80 || b > 80))) {
           isMasked[y][x] = 1;
           hasMask = true;
@@ -684,7 +855,6 @@ async function localInpaint({ filePath, mimeType, maskPath, regions, uploadsDir 
     }
   }
   
-  // If no mask/regions were detected, copy original and return
   if (!hasMask) {
     console.log(`[Local Inpaint] No mask regions detected. Returning copy of original image.`);
     const ext = mimeType?.includes('png') ? 'png' : 'jpg';
@@ -694,11 +864,9 @@ async function localInpaint({ filePath, mimeType, maskPath, regions, uploadsDir 
     return { outputPath, mimeType };
   }
   
-  // Working copy of image data and 2D mask
   const workingImage = Buffer.from(rawImage);
   const workingMask = Array.from({ length: height }, (_, y) => new Uint8Array(isMasked[y]));
   
-  // Count masked pixels
   let maskedCount = 0;
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
@@ -706,22 +874,19 @@ async function localInpaint({ filePath, mimeType, maskPath, regions, uploadsDir 
     }
   }
   
-  console.log(`[Local Inpaint] Boundary propagation: ${maskedCount} pixels to inpaint.`);
+  console.log(`[Local Inpaint] Inpainting ${maskedCount} pixels...`);
   
   let iterations = 0;
-  const maxIterations = 500; // Safeguard limit
+  const maxIterations = 500;
   
-  // Onion-skin layer propagation
   while (maskedCount > 0 && iterations < maxIterations) {
     iterations++;
     const boundaryPixels = [];
     
-    // Find boundary pixels: masked pixels that have at least one unmasked neighbor
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         if (workingMask[y][x] === 1) {
           let hasUnmaskedNeighbor = false;
-          // Check 8-neighborhood
           for (let dy = -1; dy <= 1; dy++) {
             for (let dx = -1; dx <= 1; dx++) {
               if (dx === 0 && dy === 0) continue;
@@ -736,7 +901,6 @@ async function localInpaint({ filePath, mimeType, maskPath, regions, uploadsDir 
             }
             if (hasUnmaskedNeighbor) break;
           }
-          
           if (hasUnmaskedNeighbor) {
             boundaryPixels.push({ x, y });
           }
@@ -744,17 +908,11 @@ async function localInpaint({ filePath, mimeType, maskPath, regions, uploadsDir 
       }
     }
     
-    // If no boundary pixels found but we still have masked pixels, break (island case)
-    if (boundaryPixels.length === 0) {
-      break;
-    }
+    if (boundaryPixels.length === 0) break;
     
-    // Calculate new colors for boundary pixels
     const newColors = [];
     for (const { x, y } of boundaryPixels) {
       let sumR = 0, sumG = 0, sumB = 0, weightSum = 0;
-      
-      // Use 5x5 local window (radius 2)
       const r = 2;
       for (let dy = -r; dy <= r; dy++) {
         for (let dx = -r; dx <= r; dx++) {
@@ -792,7 +950,6 @@ async function localInpaint({ filePath, mimeType, maskPath, regions, uploadsDir 
       }
     }
     
-    // Apply inpainted colors and mark them as unmasked
     for (const { x, y, r, g, b } of newColors) {
       const idx = (y * width + x) * 4;
       workingImage[idx] = r;
@@ -803,7 +960,6 @@ async function localInpaint({ filePath, mimeType, maskPath, regions, uploadsDir 
     }
   }
   
-  // Write output file using sharp
   const ext = mimeType?.includes('png') ? 'png' : 'jpg';
   const outputFilename = `watermark_cleaned_${Date.now()}.${ext}`;
   const outputPath = path.join(uploadsDir, outputFilename);
@@ -814,9 +970,8 @@ async function localInpaint({ filePath, mimeType, maskPath, regions, uploadsDir 
       height,
       channels: 4
     }
-  })
-  .toFile(outputPath);
+  }).toFile(outputPath);
   
-  console.log(`[Local Inpaint] Onion-skin propagation inpainting completed successfully: ${outputFilename}`);
+  console.log(`[Local Inpaint] Inpainting completed successfully: ${outputFilename}`);
   return { outputPath, mimeType };
 }

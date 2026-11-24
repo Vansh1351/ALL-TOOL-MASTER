@@ -159,7 +159,17 @@ Slogan: "${form.slogan}"
       }
       resText = resText.replace(/```json|```/g, '').trim();
 
-      const data = JSON.parse(resText);
+      let data = null;
+      try {
+        data = JSON.parse(resText);
+      } catch (parseErr) {
+        const jsonMatch = resText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          data = JSON.parse(jsonMatch[0]);
+        } else {
+          throw parseErr;
+        }
+      }
 
       if (data && data.slogans && data.concepts) {
         setBrandAssets(prev => ({

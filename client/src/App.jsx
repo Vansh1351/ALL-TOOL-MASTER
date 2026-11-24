@@ -1593,24 +1593,23 @@ export default function App() {
             borderRadius: '20px',
             position: 'relative'
           }}>
-            <h3 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '16px' }}>Settings</h3>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '20px' }}>
-              Add your Google Gemini API Key to enable AI summarization and note-taking services.
+            <h3 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '16px' }}>AI Settings & API Keys</h3>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '20px', lineHeight: '1.6' }}>
+              All Tool Master includes automatic server-side AI fallback (Groq Whisper, OpenRouter, NVIDIA, and Gemini). You can also provide your own custom API key if you prefer dedicated rate limits.
             </p>
 
             <form onSubmit={saveSettings} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)' }}>Gemini API Key</label>
+                <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)' }}>Custom AI API Key (Optional)</label>
                 <input
                   type="password"
                   value={geminiKey}
                   onChange={(e) => setGeminiKey(e.target.value)}
-                  placeholder="AIzaSy..."
+                  placeholder="Google (AIzaSy...), Groq (gsk_...), OpenRouter (sk-or-...), or NVIDIA (nvapi-...)"
                   className="input-field"
-                  required
                 />
                 <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                  Your key is stored securely in your browser's local storage and is never saved on our databases.
+                  Supports Google Gemini, Groq, OpenRouter, and NVIDIA keys. Stored securely in your browser's local storage.
                 </span>
               </div>
 

@@ -449,7 +449,18 @@ Do not write markdown quotes or explanations, just raw JSON.
       const res = await axios.post(`${BACKEND_URL}/api/ai`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      const data = JSON.parse(res.data.result.replace(/```json|```/g, '').trim());
+      let raw = (res.data.result || '').replace(/```json/gi, '').replace(/```/g, '').trim();
+      let data = null;
+      try {
+        data = JSON.parse(raw);
+      } catch (parseErr) {
+        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          data = JSON.parse(jsonMatch[0]);
+        } else {
+          throw parseErr;
+        }
+      }
       setAiData(data);
       setDecorSeed(prev => prev + 1);
       addToast('Card contents updated with AI!', 'success');

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { 
   FiArrowLeft, FiDownload, FiUploadCloud, FiClipboard, 
   FiCheckCircle, FiAlertCircle, FiCopy, FiFile, FiChevronDown, FiChevronUp, FiExternalLink,
-  FiStar
+  FiStar, FiKey
 } from 'react-icons/fi';
 import { SEO_DATA } from '../seoData';
 import { TOOLS_DATA } from '../components/ToolGrid';
@@ -129,10 +129,19 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
   const [openFAQIndex, setOpenFAQIndex] = useState(null);
   const [processingStage, setProcessingStage] = useState(0);
   const [elapsedSecs, setElapsedSecs] = useState(0);
+  const [inlineKey, setInlineKey] = useState(localStorage.getItem('gemini_api_key') || '');
 
   const fileInputRef = useRef(null);
   const timerRef = useRef(null);
   const startTimeRef = useRef(null);
+
+  const saveInlineKeyAndProcess = (e) => {
+    if (e) e.preventDefault();
+    if (!inlineKey.trim()) return;
+    localStorage.setItem('gemini_api_key', inlineKey.trim());
+    if (addToast) addToast('Gemini API key saved! Retrying transcription...', 'success');
+    handleProcess();
+  };
 
   // Set default format on tool change
   useEffect(() => {
@@ -1117,6 +1126,57 @@ Please verify the server status above or try again in a few seconds.`;
               <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px', whiteSpace: 'pre-wrap', textAlign: 'left', background: 'var(--bg-grid)', padding: '14px 18px', borderRadius: '10px', lineHeight: '1.7' }}>
                 {errorMessage}
               </p>
+
+              {/* AI Key Helper Box */}
+              {((errorMessage || '').includes('AIzaSy') || (errorMessage || '').includes('OpenRouter') || (errorMessage || '').includes('Groq') || (errorMessage || '').includes('API key') || (errorMessage || '').toLowerCase().includes('generative language api')) && (
+                <div style={{
+                  marginBottom: '20px',
+                  padding: '20px',
+                  background: 'rgba(20, 184, 166, 0.08)',
+                  border: '1px solid rgba(20, 184, 166, 0.3)',
+                  borderRadius: '16px',
+                  textAlign: 'left'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <FiKey style={{ color: 'var(--accent-color)' }} size={18} />
+                    <h5 style={{ margin: 0, fontSize: '15px', fontWeight: '800', color: 'var(--accent-color)' }}>
+                      Free AI Key Setup (Google Gemini, Groq, OpenRouter, or NVIDIA)
+                    </h5>
+                  </div>
+                  <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', lineHeight: '1.6', margin: '0 0 12px 0' }}>
+                    You can provide a 100% free API key from any of the following providers:
+                  </p>
+                  <ul style={{ fontSize: '12px', color: 'var(--text-muted)', paddingLeft: '18px', margin: '0 0 14px 0', lineHeight: '1.8' }}>
+                    <li>
+                      <strong>Google Gemini (Free):</strong> <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-color)', fontWeight: '700', textDecoration: 'underline' }}>Google AI Studio</a> (Key starts with <code>AIzaSy...</code> or <code>AQ...</code>).
+                    </li>
+                    <li>
+                      <strong>Groq Whisper (Free & Instant):</strong> <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-color)', fontWeight: '700', textDecoration: 'underline' }}>Groq Console</a> (Key starts with <code>gsk_...</code>).
+                    </li>
+                    <li>
+                      <strong>OpenRouter / NVIDIA:</strong> OpenRouter (starts with <code>sk-or-...</code>) or NVIDIA NIM (starts with <code>nvapi-...</code>).
+                    </li>
+                  </ul>
+                  <form onSubmit={saveInlineKeyAndProcess} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                    <input
+                      type="password"
+                      placeholder="Paste your AIzaSy..., gsk_..., or sk-or-... key here"
+                      value={inlineKey}
+                      onChange={(e) => setInlineKey(e.target.value)}
+                      className="input-field"
+                      style={{ flex: 1, minWidth: '220px' }}
+                      required
+                    />
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      style={{ whiteSpace: 'nowrap' }}
+                    >
+                      Save & Transcribe Now
+                    </button>
+                  </form>
+                </div>
+              )}
 
               {/* Instagram-specific alternative links */}
               {(errorMessage || '').toLowerCase().includes('instagram') && (

@@ -277,7 +277,8 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
     '--restrict-filenames',
     '--no-check-certificate',
     '-4',
-    '--socket-timeout', '8'  // Fail fast in 8s on dead/unresponsive proxy or connection
+    '--socket-timeout', '8',
+    '--js-runtimes', 'node'
   ];
 
   // Configure proxy ONLY if explicitly requested in options (defaults to false for speed & reliability)
@@ -289,6 +290,7 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
     }
   } else {
     console.log(`yt-dlp running with DIRECT connection (proxy disabled for maximum speed).`);
+    args.push('--proxy', '');
   }
 
   // Use cached impersonate target check
@@ -389,9 +391,9 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
       '-f', format === 'mp3' ? 'ba/b' : (isYouTube ? 'bestvideo+bestaudio/best' : 'b/best')
     ];
     if (isYouTube) {
-      attempt1Args.push('--extractor-args', 'youtube:player_client=android,ios');
+      attempt1Args.push('--extractor-args', 'youtube:player_client=android,web');
     }
-    addAttempt(isYouTube ? "Android+iOS client (direct)" : "Universal direct client", attempt1Args, true);
+    addAttempt(isYouTube ? "Android+Web client (direct)" : "Universal direct client", attempt1Args, true);
 
     // 2. Fallback Direct Client
     const attempt2Args = [
@@ -448,16 +450,28 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
 
       const attempt = uniqueAttempts[currentAttemptIndex];
 
-      // If proxy was detected dead, dynamically strip --proxy from remaining attempts
+      // If proxy was detected dead, dynamically strip --proxy from remaining attempts and force direct
       if (proxyIsDead) {
         attempt.args = filterArgs(attempt.args, ['--proxy']);
+        attempt.args.push('--proxy', '');
       }
 
       console.log(`[Attempt ${currentAttemptIndex + 1}/${uniqueAttempts.length}] Running: ${attempt.name}`);
 
       // 15s hard timeout with SIGKILL (SIGKILL forces immediate uncatchable process termination on Linux)
       const execTimeout = options.singleAttempt ? 8000 : 15000;
-    execFile(binary, attempt.args, { maxBuffer: 1024 * 1024 * 10, timeout: execTimeout, killSignal: 'SIGKILL' }, (error, stdout, stderr) => {
+      
+      const childEnv = { ...process.env };
+      if (options.useProxy !== true || proxyIsDead) {
+        delete childEnv.HTTP_PROXY;
+        delete childEnv.HTTPS_PROXY;
+        delete childEnv.http_proxy;
+        delete childEnv.https_proxy;
+        delete childEnv.ALL_PROXY;
+        delete childEnv.all_proxy;
+      }
+
+      execFile(binary, attempt.args, { env: childEnv, maxBuffer: 1024 * 1024 * 10, timeout: execTimeout, killSignal: 'SIGKILL' }, (error, stdout, stderr) => {
         if (error) {
           const errMessage = (stderr || error.message).trim();
           lastErrorMsg = errMessage;
@@ -465,9 +479,12 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
 
           const lowerErr = errMessage.toLowerCase();
 
-          // Auto-detect dead proxy (curl 28 timeout, connection refused, gateway error)
+          // Auto-detect dead proxy (curl 28 timeout, curl 7 connect error, 407 auth, connection refused, gateway error)
           const isProxyError = lowerErr.includes("connection timed out") ||
                                lowerErr.includes("curl: (28)") ||
+                               lowerErr.includes("curl: (7)") ||
+                               lowerErr.includes("407") ||
+                               lowerErr.includes("tunnel failed") ||
                                lowerErr.includes("proxy") ||
                                lowerErr.includes("tunnel connection") ||
                                lowerErr.includes("connection refused") ||
