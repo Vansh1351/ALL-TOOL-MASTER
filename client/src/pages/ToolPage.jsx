@@ -1186,15 +1186,23 @@ Please verify the server status above or try again in a few seconds.`;
                   </p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {[
-                      { label: 'indown.io — Fast & Free', href: 'https://indown.io' },
-                      { label: 'snapinsta.app — No Watermark', href: 'https://snapinsta.app' },
-                      { label: 'sssinsta.com — HD Download', href: 'https://sssinsta.com' }
+                      { label: 'indown.io — Fast & Free (Link auto-copied)', href: 'https://indown.io' },
+                      { label: 'snapinsta.app — No Watermark (Link auto-copied)', href: 'https://snapinsta.app' },
+                      { label: 'sssinsta.com — HD Download (Link auto-copied)', href: 'https://sssinsta.com' }
                     ].map(({ label, href }) => (
                       <a
                         key={href}
                         href={href}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={() => {
+                          if (url) {
+                            try {
+                              navigator.clipboard?.writeText(url);
+                              if (addToast) addToast('Link copied to clipboard! Paste it on the downloader.', 'info');
+                            } catch (e) {}
+                          }
+                        }}
                         style={{
                           display: 'flex', alignItems: 'center', gap: '8px',
                           padding: '10px 14px', borderRadius: '8px',

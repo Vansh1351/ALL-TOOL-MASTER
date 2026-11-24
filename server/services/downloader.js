@@ -100,7 +100,10 @@ function setupCookies() {
 
 // Helper to configure dedicated Instagram cookies for yt-dlp
 function setupInstagramCookies() {
-  const envCookies = process.env.INSTAGRAM_COOKIES;
+  let envCookies = process.env.INSTAGRAM_COOKIES;
+  if (!envCookies && process.env.YOUTUBE_COOKIES && process.env.YOUTUBE_COOKIES.includes('instagram.com')) {
+    envCookies = process.env.YOUTUBE_COOKIES;
+  }
   const cookiesPath = path.join(binDir, 'instagram_cookies.txt');
 
   if (!envCookies) {
@@ -969,15 +972,15 @@ async function downloadInstagram(postUrl, format, outputDir) {
     console.warn(`[Instagram] Parallel scrapers failed or timed out. Falling back to yt-dlp...`);
   }
 
-  // Stream media URL to output file with fast 6s timeout max
+  // Stream media URL to output file with fast direct buffer write
   if (mediaUrl) {
     const dlController = new AbortController();
-    const dlTimeout = setTimeout(() => dlController.abort(), 6000);
+    const dlTimeout = setTimeout(() => dlController.abort(), 20000);
 
     try {
       const fileRes = await fetch(mediaUrl, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
           'Referer': 'https://www.instagram.com/'
         },
         signal: dlController.signal
@@ -990,19 +993,13 @@ async function downloadInstagram(postUrl, format, outputDir) {
       const isVideo = contentType.includes('video') || mediaUrl.includes('.mp4');
       const ext = format === 'mp3' ? '.mp3' : (isVideo ? '.mp4' : '.mp4');
       const finalPath = path.join(outputDir, `download_${Date.now()}_instagram${ext}`);
-      const fileStream = fs.createWriteStream(finalPath);
+      
+      const arrayBuffer = await fileRes.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      fs.writeFileSync(finalPath, buffer);
 
-      await new Promise((resolve, reject) => {
-        const readable = Readable.fromWeb(fileRes.body);
-        readable.pipe(fileStream);
-        readable.on('error', (err) => { fileStream.close(); try { fs.unlinkSync(finalPath); } catch {} reject(err); });
-        fileStream.on('finish', () => resolve());
-        fileStream.on('error', (err) => { try { fs.unlinkSync(finalPath); } catch {} reject(err); });
-      });
-
-      const stats = fs.statSync(finalPath);
-      if (stats.size > 0) {
-        console.log(`[Instagram] Successfully downloaded via ${winningScraper}: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
+      if (buffer.length > 0) {
+        console.log(`[Instagram] Successfully downloaded via ${winningScraper}: ${(buffer.length / 1024 / 1024).toFixed(2)} MB`);
         return finalPath;
       }
       try { fs.unlinkSync(finalPath); } catch {}
@@ -1016,7 +1013,7 @@ async function downloadInstagram(postUrl, format, outputDir) {
   const cookiesPath = setupInstagramCookies();
   if (cookiesPath) {
     try {
-      console.log(`[Instagram] Trying Cookie-authenticated yt-dlp (5s max)...`);
+      console.log(`[Instagram] Trying Cookie-authenticated yt-dlp (30s max)...`);
       const filePath = await withHardTimeout(
         downloadMediaWithYtdlp(postUrl, format, 'best', outputDir, { 
           useProxy: false, 
@@ -1024,7 +1021,7 @@ async function downloadInstagram(postUrl, format, outputDir) {
           customCookiesPath: cookiesPath,
           singleAttempt: true
         }),
-        5000,
+        30000,
         'Cookie yt-dlp'
       );
       console.log(`[Instagram] Cookie strategy succeeded: ${filePath}`);
@@ -1034,16 +1031,16 @@ async function downloadInstagram(postUrl, format, outputDir) {
     }
   }
 
-  // ── 3. Fallback: Direct yt-dlp (5s max) ──
+  // ── 3. Fallback: Direct yt-dlp (15s max) ──
   try {
-    console.log(`[Instagram] Trying Direct yt-dlp (5s max)...`);
+    console.log(`[Instagram] Trying Direct yt-dlp (15s max)...`);
     const filePath = await withHardTimeout(
       downloadMediaWithYtdlp(postUrl, format, 'best', outputDir, { 
         useProxy: false, 
         useCookies: false,
         singleAttempt: true
       }),
-      5000,
+      15000,
       'Direct yt-dlp'
     );
     console.log(`[Instagram] Direct yt-dlp succeeded: ${filePath}`);
@@ -1053,7 +1050,7 @@ async function downloadInstagram(postUrl, format, outputDir) {
   }
 
   throw new Error(
-    'Instagram download is currently unavailable. Instagram actively blocks cloud server IPs from accessing media.\n\n' +
+    'Instagram media access requires account authentication. Instagram actively blocks cloud server IPs from accessing posts without active session cookies.\n\n' +
     '✅ You can download this post for free at:\n' +
     '• https://indown.io\n' +
     '• https://snapinsta.app\n' +
