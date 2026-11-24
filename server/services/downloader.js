@@ -706,30 +706,16 @@ export async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
       ? filename.replace(/[<>:"\/\\|?*\x00-\x1F]/g, '_').trim()
       : `video${ext}`;
     const finalPath = path.join(outputDir, `download_${Date.now()}_${safeFilename}`);
-    const fileStream = fs.createWriteStream(finalPath);
     
-    await new Promise((resolve, reject) => {
-      const readable = Readable.fromWeb(fileRes.body);
-      readable.pipe(fileStream);
-      readable.on('error', (err) => {
-        fileStream.close();
-        try { fs.unlinkSync(finalPath); } catch {}
-        reject(err);
-      });
-      fileStream.on('finish', () => {
-        resolve();
-      });
-      fileStream.on('error', (err) => {
-        try { fs.unlinkSync(finalPath); } catch {}
-        reject(err);
-      });
-    });
+    // Direct arrayBuffer write: instant, memory-efficient for web delivery, zero stream hang
+    const arrayBuffer = await fileRes.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    fs.writeFileSync(finalPath, buffer);
 
-    console.log(`Successfully saved Cobalt download from ${chosenInstance} to ${finalPath} (${safeFilename})`);
+    console.log(`Successfully saved Cobalt download from ${chosenInstance} to ${finalPath} (${(buffer.length / 1024 / 1024).toFixed(2)} MB)`);
 
     // Verify the downloaded file is not 0 bytes
-    const stats = fs.statSync(finalPath);
-    if (stats.size === 0) {
+    if (buffer.length === 0) {
       console.error(`Cobalt download produced a 0-byte file: ${finalPath}`);
       try { fs.unlinkSync(finalPath); } catch {}
       throw new Error('Download produced a 0-byte file. The media may be unavailable or the download service timed out.');
@@ -743,7 +729,7 @@ export async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
       throw new Error('Cobalt returned an image instead of a video.');
     }
 
-    console.log(`Cobalt download verified: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
+    console.log(`Cobalt download verified: ${(buffer.length / 1024 / 1024).toFixed(2)} MB`);
     return finalPath;
   } catch (err) {
     console.error(`Cobalt download step failed:`, err.message);
