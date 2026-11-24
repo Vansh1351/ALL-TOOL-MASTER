@@ -89,6 +89,50 @@ export const TOOLS_DATA = [
     ]
   },
   {
+    id: 'facebook-downloader',
+    title: 'Facebook Video & Reels Downloader',
+    desc: 'Download public Facebook videos, Reels, and watch stories in full 1080p or 720p HD MP4 format.',
+    icon: FiVideo,
+    color: '#1877f2',
+    category: 'Downloader',
+    routes: ['/downloader/facebook', '/downloader/fb-reels'],
+    keywords: [
+      'facebook downloader', 'fb video downloader', 'download facebook video', 'facebook reel downloader',
+      'fb reels download', 'facebook video to mp4', 'fb video saver', 'save facebook video online',
+      'fdown alternative', 'getfvid alternative', 'facebook story downloader', 'fb video download full hd',
+      'free facebook video downloader online', 'download private facebook videos'
+    ]
+  },
+  {
+    id: 'tiktok-downloader',
+    title: 'TikTok Video Downloader (No Watermark)',
+    desc: 'Download clean, watermark-free TikTok videos and high-definition MP4 media in seconds.',
+    icon: FiVideo,
+    color: '#00f2fe',
+    category: 'Downloader',
+    routes: ['/downloader/tiktok', '/downloader/tiktok-no-watermark'],
+    keywords: [
+      'tiktok downloader', 'tiktok video downloader', 'tiktok no watermark', 'download tiktok video',
+      'tiktok to mp4', 'tiktok video download without watermark', 'tiktok saver', 'save tiktok video',
+      'snaptik alternative', 'ssstik alternative', 'tiktok hd downloader', 'tiktok audio download',
+      'free tiktok downloader online', 'tiktok downloader no watermark hd 1080p', 'tiktok reel saver'
+    ]
+  },
+  {
+    id: 'pinterest-downloader',
+    title: 'Pinterest Video & Pin Downloader',
+    desc: 'Download high-resolution Pinterest videos, GIFs, images, and idea pins directly to your device.',
+    icon: FiCamera,
+    color: '#e60023',
+    category: 'Downloader',
+    routes: ['/downloader/pinterest', '/downloader/pinterest-video'],
+    keywords: [
+      'pinterest downloader', 'pinterest video downloader', 'download pinterest video', 'pinterest pin downloader',
+      'save pinterest video', 'pinterest to mp4', 'pinterest gif downloader', 'pinterest video download hd',
+      'pinterest idea pin downloader', 'pinterest image saver', 'free pinterest video downloader online'
+    ]
+  },
+  {
     id: 'twitter-downloader',
     title: 'Twitter / X Video Downloader',
     desc: 'Download videos, GIFs, and media clips from Twitter (X) tweets in crisp 1080p and 720p HD MP4.',
@@ -104,6 +148,20 @@ export const TOOLS_DATA = [
       'twitter downloader', 'x video downloader', 'download twitter video', 'twitter to mp4',
       'save twitter video', 'twitter gif downloader', 'download x video online', 'twitter video saver hd',
       'twdown alternative', 'twitter media downloader', 'download tweet video free'
+    ]
+  },
+  {
+    id: 'soundcloud-downloader',
+    title: 'SoundCloud to MP3 Downloader',
+    desc: 'Extract clean 320kbps MP3 audio tracks and songs from SoundCloud links with high-fidelity sound.',
+    icon: FiMusic,
+    color: '#ff5500',
+    category: 'Downloader',
+    routes: ['/downloader/soundcloud', '/downloader/soundcloud-to-mp3'],
+    keywords: [
+      'soundcloud downloader', 'soundcloud to mp3', 'download soundcloud songs', 'soundcloud track downloader',
+      'soundcloud music downloader', 'soundcloud mp3 320kbps', 'soundcloud audio downloader',
+      'sclouddownloader alternative', 'klickaud alternative', 'free soundcloud to mp3 converter'
     ]
   },
   {
@@ -192,6 +250,47 @@ export const TOOLS_DATA = [
     ]
   },
   {
+    id: 'pdf-suite',
+    title: 'PDF Suite (Merge, Split & Optimize)',
+    desc: 'Combine multiple PDFs, rotate pages, and compress large documents safely in your browser.',
+    icon: FiFileText,
+    color: '#ec4899',
+    category: 'Utility',
+    routes: ['/utility/pdf-suite', '/utility/pdf-merge', '/utility/pdf-split', '/utility/merge-pdf'],
+    keywords: [
+      'pdf suite', 'merge pdf free', 'split pdf online', 'compress pdf', 'rotate pdf pages',
+      'ilovepdf alternative', 'combine pdf files', 'pdf tools free online', 'pdf optimizer',
+      'merge multiple pdfs into one', 'free pdf merger no watermark'
+    ]
+  },
+  {
+    id: 'video-to-gif',
+    title: 'Video to GIF Maker',
+    desc: 'Convert any video clip into an animated, high-quality GIF with custom frame rates.',
+    icon: FiVideo,
+    color: '#f97316',
+    category: 'Utility',
+    routes: ['/utility/video-to-gif', '/convert/video-to-gif', '/convert/mp4-to-gif'],
+    keywords: [
+      'video to gif', 'mp4 to gif', 'gif maker online', 'convert video to animated gif',
+      'ezgif alternative', 'high quality gif converter', 'video clip to gif free', 'make gif from mp4'
+    ]
+  },
+  {
+    id: 'vocal-remover',
+    title: 'Audio Vocal Remover & Karaoke Maker',
+    desc: 'Split any song into isolated Acapella vocals and clean Instrumental karaoke audio tracks.',
+    icon: FiVolume2,
+    color: '#a855f7',
+    category: 'Utility',
+    routes: ['/utility/vocal-remover', '/convert/vocal-remover', '/convert/karaoke-maker', '/utility/karaoke-maker'],
+    keywords: [
+      'vocal remover', 'karaoke maker', 'acapella maker', 'remove vocals from song', 'isolate vocals free',
+      'instrumental maker online', 'split voice and music', 'vocalremover alternative', 'karaoke track generator',
+      'extract vocals from mp3', 'audio voice isolator'
+    ]
+  },
+  {
     id: 'zip-extractor',
     title: 'ZIP, RAR & 7Z Archive Extractor',
     desc: 'Decompress uploaded ZIP, RAR, 7Z, TAR, or GZ archives, or bundle multiple assets into a zipped download.',
@@ -211,21 +310,111 @@ export const TOOLS_DATA = [
     ]
   },
   {
-    id: 'ai-video-summarizer',
-    title: 'AI Video Summarizer & Watcher',
-    desc: 'Upload a video (or pass a URL) and let AI watch, analyze, and outline key takeaways.',
-    icon: FiVideo,
-    color: '#8b5cf6',
-    category: 'AI Tool',
-    routes: ['/ai-notes/video-summarizer', '/ai-notes/video-watcher'],
+    id: 'file-compressor',
+    title: 'File Compressor',
+    desc: 'Compress multiple files, folders, images, videos, or archives into a single ZIP with custom compression levels.',
+    icon: FiFolderPlus,
+    color: '#f97316',
+    category: 'Utility',
+    routes: ['/utility/file-compressor', '/utility/compress'],
     keywords: [
-      'ai video summarizer', 'video summarizer', 'video watcher', 'ai watcher', 'summarize video', 'ai summarizer', 
-      'youtube summarizer', 'how to summarize long articles quickly with ai', 'AI video summarizer free online', 
-      'summarize youtube video with AI', 'convert long video into notes', 'AI lecture video summarizer', 
-      'automatic video notes generator', 'AI tool to summarize classes', 'summarize educational videos online', 
-      'video to study notes AI', 'smart AI video analyzer', 'best AI summarizer for students', 
-      'AI powered video recap tool', 'online video summary generator', 'convert webinar to notes', 
-      'summarize podcast video instantly', 'AI video learning assistant', 'video summary ai', 'video summarizer ai'
+      'file compressor', 'compress files', 'zip compressor', 'reduce file size', 'compress images',
+      'compress video', 'compress audio', 'compress folder', 'compress multiple files', 'bulk file compressor',
+      'online file compressor free', 'compress files into zip', 'file size reducer', 'lossless compression',
+      'compress pdf', 'compress png', 'compress jpg', 'compress mp4', 'compress mp3', 'compress zip',
+      'online zip creator', 'multi file compressor', 'batch file compressor', 'file archiver',
+      'compress documents online', 'free file compression tool', 'reduce zip file size'
+    ]
+  },
+  {
+    id: 'resume-builder',
+    title: 'Resume Builder',
+    desc: 'Build a professional ATS-friendly resume with live preview. Fill your details and download as PDF instantly.',
+    icon: FiFileText,
+    color: '#0ea5e9',
+    category: 'Utility',
+    routes: ['/utility/resume-builder', '/utility/cv-builder'],
+    keywords: [
+      'resume builder', 'cv builder', 'professional resume', 'ats resume', 'free resume maker',
+      'online resume creator', 'resume template', 'resume download pdf', 'resume generator free',
+      'build resume online', 'create cv online free', 'job resume builder', 'resume maker no signup',
+      'professional cv creator', 'resume with live preview', 'resume pdf download', 'free resume templates',
+      'build professional resume online', 'ats friendly resume builder', 'resume maker 2026'
+    ]
+  },
+  {
+    id: 'qr-code-generator',
+    title: 'Custom QR Code Generator',
+    desc: 'Create styled QR codes for URLs, WiFi networks, business vCards, emails, and WhatsApp with custom colors and logos.',
+    icon: FiCommand,
+    color: '#14b8a6',
+    category: 'Utility',
+    routes: [
+      '/qr-code-generator',
+      '/free-qr-generator'
+    ],
+    keywords: [
+      'qr code generator', 'custom qr code creator', 'wifi qr code generator', 'vcard qr code maker',
+      'gradient qr code online', 'qr code with logo', 'free qr generator', 'create printable qr code'
+    ]
+  },
+  {
+    id: 'business-card-maker',
+    title: 'Business Card Maker',
+    desc: 'Design professional visiting cards with pre-aligned templates, company logos, and contact QR codes.',
+    icon: FiBriefcase,
+    color: '#0ea5e9',
+    category: 'Utility',
+    routes: [
+      '/business-card-maker',
+      '/visiting-card-maker'
+    ],
+    keywords: [
+      'business card maker', 'visiting card creator', 'design business card online', 'printable business cards',
+      'professional cv business cards', 'card layout templates', 'create visiting card free'
+    ]
+  },
+  {
+    id: 'youtube-thumbnail-maker',
+    title: 'YouTube Thumbnail Maker',
+    desc: 'Design high-CTR YouTube covers and thumbnails with bold outlined text overlays, templates, and backgrounds.',
+    icon: FiGrid,
+    color: '#ef4444',
+    category: 'Utility',
+    routes: [
+      '/youtube-thumbnail-maker'
+    ],
+    keywords: [
+      'youtube thumbnail maker', 'custom youtube cover creator', 'high ctr thumbnail generator',
+      'thumbnail editor online free', 'youtube banner maker', 'add text outline to image thumbnail'
+    ]
+  },
+  {
+    id: 'ai-subtitles',
+    title: 'AI Subtitle & Caption Generator',
+    desc: 'Generate accurate, timed SubRip (.SRT & .VTT) closed captions and subtitles from audio or video files.',
+    icon: FiClock,
+    color: '#06b6d4',
+    category: 'AI Tool',
+    routes: ['/ai-notes/subtitles', '/ai-notes/caption-generator', '/ai-notes/srt-generator'],
+    keywords: [
+      'ai subtitle generator', 'caption generator', 'generate srt from video', 'audio to subtitles',
+      'auto subtitle generator free', 'video caption maker', 'vtt subtitle generator', 'timed subtitles ai',
+      'youtube subtitle generator', 'reels caption generator', 'speech to subtitles', 'ai closed captions'
+    ]
+  },
+  {
+    id: 'ai-humanizer',
+    title: 'AI Humanizer & Text Paraphraser',
+    desc: 'Rewrite AI-generated text into natural, authentic human writing that bypasses AI detectors with high perplexity.',
+    icon: FiEdit3,
+    color: '#10b981',
+    category: 'AI Tool',
+    routes: ['/ai-notes/humanizer', '/ai-notes/text-paraphraser', '/ai-notes/bypass-ai'],
+    keywords: [
+      'ai humanizer', 'humanize ai text', 'bypass ai detector', 'ai text paraphraser', 'underectable ai free',
+      'rewrite ai text to human', 'humanize chatgpt text', 'stealth ai writer', 'ai to human text converter',
+      'quillbot alternative', 'bypass turnitin ai', 'ai text bypasser free'
     ]
   },
   {
@@ -245,6 +434,52 @@ export const TOOLS_DATA = [
       'meeting transcript generator AI', 'podcast transcript generator', 'video subtitle generator online', 
       'automatic transcription software free', 'AI caption generator for videos', 'convert mp3 to transcript online', 
       'ai transcript', 'ai transcription tool', 'audio transcript ai'
+    ]
+  },
+  {
+    id: 'ai-resume-reviewer',
+    title: 'AI Resume Reviewer & ATS Scorer',
+    desc: 'Audit your CV against corporate ATS algorithms, get instant 0-100 scoring, keyword gap analysis, and bullet point rewrites.',
+    icon: FiFileText,
+    color: '#8b5cf6',
+    category: 'AI Tool',
+    routes: ['/ai-notes/resume-reviewer', '/ai-notes/ats-scorer', '/ai-notes/resume-score'],
+    keywords: [
+      'ai resume reviewer', 'ats resume checker', 'resume scorer free', 'ats resume score',
+      'resume bullet point rewriter', 'cv review ai', 'resume keyword scanner', 'jobscan alternative free',
+      'ats compatibility test', 'ai cv reviewer', 'check my resume ats score'
+    ]
+  },
+  {
+    id: 'ai-cover-letter',
+    title: 'AI Email & Cover Letter Generator',
+    desc: 'Generate tailored job application cover letters, executive outreach emails, and follow-ups in seconds.',
+    icon: FiBriefcase,
+    color: '#f59e0b',
+    category: 'AI Tool',
+    routes: ['/ai-notes/cover-letter', '/ai-notes/email-generator', '/ai-notes/job-application-letter'],
+    keywords: [
+      'ai cover letter generator', 'cover letter writer ai', 'job application email generator',
+      'cold email generator', 'executive cover letter maker', 'tailored cover letter ai', 'recruiter outreach email',
+      'free ai cover letter builder', 'job application letter generator'
+    ]
+  },
+  {
+    id: 'ai-video-summarizer',
+    title: 'AI Video Summarizer & Watcher',
+    desc: 'Upload a video (or pass a URL) and let AI watch, analyze, and outline key takeaways.',
+    icon: FiVideo,
+    color: '#8b5cf6',
+    category: 'AI Tool',
+    routes: ['/ai-notes/video-summarizer', '/ai-notes/video-watcher'],
+    keywords: [
+      'ai video summarizer', 'video summarizer', 'video watcher', 'ai watcher', 'summarize video', 'ai summarizer', 
+      'youtube summarizer', 'how to summarize long articles quickly with ai', 'AI video summarizer free online', 
+      'summarize youtube video with AI', 'convert long video into notes', 'AI lecture video summarizer', 
+      'automatic video notes generator', 'AI tool to summarize classes', 'summarize educational videos online', 
+      'video to study notes AI', 'smart AI video analyzer', 'best AI summarizer for students', 
+      'AI powered video recap tool', 'online video summary generator', 'convert webinar to notes', 
+      'summarize podcast video instantly', 'AI video learning assistant', 'video summary ai', 'video summarizer ai'
     ]
   },
   {
@@ -303,52 +538,6 @@ export const TOOLS_DATA = [
     ]
   },
   {
-    id: 'pdf-to-brainrot',
-    title: 'PDF to Gen-Z Brainrot Translator',
-    desc: 'Upload dry PDF files or documents and translate summaries into hilarious Gen-Z slang.',
-    icon: FiSettings,
-    color: '#84cc16',
-    category: 'AI Tool',
-    routes: ['/ai-notes/brainrot-translator', '/ai-notes/brainrot'],
-    keywords: [
-      'pdf to gen-z brainrot translator', 'brainrot translator', 'gen-z slang', 'funny pdf translator',
-      'slang translator', 'pdf to slang', 'brainrot'
-    ]
-  },
-  {
-    id: 'file-compressor',
-    title: 'File Compressor',
-    desc: 'Compress multiple files, folders, images, videos, or archives into a single ZIP with custom compression levels.',
-    icon: FiFolderPlus,
-    color: '#f97316',
-    category: 'Utility',
-    routes: ['/utility/file-compressor', '/utility/compress'],
-    keywords: [
-      'file compressor', 'compress files', 'zip compressor', 'reduce file size', 'compress images',
-      'compress video', 'compress audio', 'compress folder', 'compress multiple files', 'bulk file compressor',
-      'online file compressor free', 'compress files into zip', 'file size reducer', 'lossless compression',
-      'compress pdf', 'compress png', 'compress jpg', 'compress mp4', 'compress mp3', 'compress zip',
-      'online zip creator', 'multi file compressor', 'batch file compressor', 'file archiver',
-      'compress documents online', 'free file compression tool', 'reduce zip file size'
-    ]
-  },
-  {
-    id: 'resume-builder',
-    title: 'Resume Builder',
-    desc: 'Build a professional ATS-friendly resume with live preview. Fill your details and download as PDF instantly.',
-    icon: FiFileText,
-    color: '#0ea5e9',
-    category: 'Utility',
-    routes: ['/utility/resume-builder', '/utility/cv-builder'],
-    keywords: [
-      'resume builder', 'cv builder', 'professional resume', 'ats resume', 'free resume maker',
-      'online resume creator', 'resume template', 'resume download pdf', 'resume generator free',
-      'build resume online', 'create cv online free', 'job resume builder', 'resume maker no signup',
-      'professional cv creator', 'resume with live preview', 'resume pdf download', 'free resume templates',
-      'build professional resume online', 'ats friendly resume builder', 'resume maker 2026'
-    ]
-  },
-  {
     id: 'ai-script-writer',
     title: 'AI Script Writer',
     desc: 'Generate full professional scripts — movies, YouTube, podcasts, ads — from a title, genre, and premise.',
@@ -363,33 +552,6 @@ export const TOOLS_DATA = [
       'professional script writer online', 'ai creative writing tool', 'script from title ai',
       'generate script from description', 'full script generator', 'ai screenplay writer free',
       'ai video script writer', 'content script generator ai', 'blog to script converter', 'script ai tool'
-    ]
-  },
-  {
-    id: 'ai-card-maker',
-    title: 'AI Invitation & Card Maker',
-    desc: 'Design custom greeting cards and invitations for weddings, birthdays, baby showers, and events with AI.',
-    icon: FiEdit3,
-    color: '#06b6d4',
-    category: 'AI Tool',
-    routes: [
-      '/ai-card-maker',
-      '/birthday-card-maker',
-      '/anniversary-card-maker',
-      '/event-card-maker',
-      '/invitation-card-maker',
-      '/wedding-card-maker',
-      '/baby-shower-card-maker',
-      '/housewarming-card-maker',
-      '/festival-card-maker',
-      '/thank-you-card-maker',
-      '/farewell-card-maker',
-      '/business-invitation-maker'
-    ],
-    keywords: [
-      'ai card maker', 'card maker online', 'invitation maker', 'wedding card maker', 'birthday card maker',
-      'wedding invitation templates', 'anniversary card maker', 'festival card creator', 'party invitations',
-      'custom invitation maker free', 'baby shower invitation', 'housewarming invitation', 'farewell card maker'
     ]
   },
   {
@@ -464,214 +626,66 @@ export const TOOLS_DATA = [
     ]
   },
   {
-    id: 'qr-code-generator',
-    title: 'Custom QR Code Generator',
-    desc: 'Create styled QR codes for URLs, WiFi networks, business vCards, emails, and WhatsApp with custom colors and logos.',
-    icon: FiCommand,
-    color: '#14b8a6',
-    category: 'Utility',
-    routes: [
-      '/qr-code-generator',
-      '/free-qr-generator'
-    ],
-    keywords: [
-      'qr code generator', 'custom qr code creator', 'wifi qr code generator', 'vcard qr code maker',
-      'gradient qr code online', 'qr code with logo', 'free qr generator', 'create printable qr code'
-    ]
-  },
-  {
-    id: 'business-card-maker',
-    title: 'Business Card Maker',
-    desc: 'Design professional visiting cards with pre-aligned templates, company logos, and contact QR codes.',
-    icon: FiBriefcase,
-    color: '#0ea5e9',
-    category: 'Utility',
-    routes: [
-      '/business-card-maker',
-      '/visiting-card-maker'
-    ],
-    keywords: [
-      'business card maker', 'visiting card creator', 'design business card online', 'printable business cards',
-      'professional cv business cards', 'card layout templates', 'create visiting card free'
-    ]
-  },
-  {
-    id: 'youtube-thumbnail-maker',
-    title: 'YouTube Thumbnail Maker',
-    desc: 'Design high-CTR YouTube covers and thumbnails with bold outlined text overlays, templates, and backgrounds.',
-    icon: FiGrid,
-    color: '#ef4444',
-    category: 'Utility',
-    routes: [
-      '/youtube-thumbnail-maker'
-    ],
-    keywords: [
-      'youtube thumbnail maker', 'custom youtube cover creator', 'high ctr thumbnail generator',
-      'thumbnail editor online free', 'youtube banner maker', 'add text outline to image thumbnail'
-    ]
-  },
-  {
-    id: 'tiktok-downloader',
-    title: 'TikTok Video Downloader (No Watermark)',
-    desc: 'Download clean, watermark-free TikTok videos and high-definition MP4 media in seconds.',
-    icon: FiVideo,
-    color: '#00f2fe',
-    category: 'Downloader',
-    routes: ['/downloader/tiktok', '/downloader/tiktok-no-watermark'],
-    keywords: [
-      'tiktok downloader', 'tiktok video downloader', 'tiktok no watermark', 'download tiktok video',
-      'tiktok to mp4', 'tiktok video download without watermark', 'tiktok saver', 'save tiktok video',
-      'snaptik alternative', 'ssstik alternative', 'tiktok hd downloader', 'tiktok audio download',
-      'free tiktok downloader online', 'tiktok downloader no watermark hd 1080p', 'tiktok reel saver'
-    ]
-  },
-  {
-    id: 'facebook-downloader',
-    title: 'Facebook Video & Reels Downloader',
-    desc: 'Download public Facebook videos, Reels, and watch stories in full 1080p or 720p HD MP4 format.',
-    icon: FiVideo,
-    color: '#1877f2',
-    category: 'Downloader',
-    routes: ['/downloader/facebook', '/downloader/fb-reels'],
-    keywords: [
-      'facebook downloader', 'fb video downloader', 'download facebook video', 'facebook reel downloader',
-      'fb reels download', 'facebook video to mp4', 'fb video saver', 'save facebook video online',
-      'fdown alternative', 'getfvid alternative', 'facebook story downloader', 'fb video download full hd',
-      'free facebook video downloader online', 'download private facebook videos'
-    ]
-  },
-  {
-    id: 'pinterest-downloader',
-    title: 'Pinterest Video & Pin Downloader',
-    desc: 'Download high-resolution Pinterest videos, GIFs, images, and idea pins directly to your device.',
-    icon: FiCamera,
-    color: '#e60023',
-    category: 'Downloader',
-    routes: ['/downloader/pinterest', '/downloader/pinterest-video'],
-    keywords: [
-      'pinterest downloader', 'pinterest video downloader', 'download pinterest video', 'pinterest pin downloader',
-      'save pinterest video', 'pinterest to mp4', 'pinterest gif downloader', 'pinterest video download hd',
-      'pinterest idea pin downloader', 'pinterest image saver', 'free pinterest video downloader online'
-    ]
-  },
-  {
-    id: 'soundcloud-downloader',
-    title: 'SoundCloud to MP3 Downloader',
-    desc: 'Extract clean 320kbps MP3 audio tracks and songs from SoundCloud links with high-fidelity sound.',
-    icon: FiMusic,
-    color: '#ff5500',
-    category: 'Downloader',
-    routes: ['/downloader/soundcloud', '/downloader/soundcloud-to-mp3'],
-    keywords: [
-      'soundcloud downloader', 'soundcloud to mp3', 'download soundcloud songs', 'soundcloud track downloader',
-      'soundcloud music downloader', 'soundcloud mp3 320kbps', 'soundcloud audio downloader',
-      'sclouddownloader alternative', 'klickaud alternative', 'free soundcloud to mp3 converter'
-    ]
-  },
-  {
-    id: 'ai-subtitles',
-    title: 'AI Subtitle & Caption Generator',
-    desc: 'Generate accurate, timed SubRip (.SRT & .VTT) closed captions and subtitles from audio or video files.',
-    icon: FiClock,
+    id: 'ai-card-maker',
+    title: 'AI Invitation & Card Maker',
+    desc: 'Design custom greeting cards and invitations for weddings, birthdays, baby showers, and events with AI.',
+    icon: FiEdit3,
     color: '#06b6d4',
     category: 'AI Tool',
-    routes: ['/ai-notes/subtitles', '/ai-notes/caption-generator', '/ai-notes/srt-generator'],
+    routes: [
+      '/ai-card-maker',
+      '/birthday-card-maker',
+      '/anniversary-card-maker',
+      '/event-card-maker',
+      '/invitation-card-maker',
+      '/wedding-card-maker',
+      '/baby-shower-card-maker',
+      '/housewarming-card-maker',
+      '/festival-card-maker',
+      '/thank-you-card-maker',
+      '/farewell-card-maker',
+      '/business-invitation-maker'
+    ],
     keywords: [
-      'ai subtitle generator', 'caption generator', 'generate srt from video', 'audio to subtitles',
-      'auto subtitle generator free', 'video caption maker', 'vtt subtitle generator', 'timed subtitles ai',
-      'youtube subtitle generator', 'reels caption generator', 'speech to subtitles', 'ai closed captions'
+      'ai card maker', 'card maker online', 'invitation maker', 'wedding card maker', 'birthday card maker',
+      'wedding invitation templates', 'anniversary card maker', 'festival card creator', 'party invitations',
+      'custom invitation maker free', 'baby shower invitation', 'housewarming invitation', 'farewell card maker'
     ]
   },
   {
-    id: 'ai-humanizer',
-    title: 'AI Humanizer & Text Paraphraser',
-    desc: 'Rewrite AI-generated text into natural, authentic human writing that bypasses AI detectors with high perplexity.',
-    icon: FiEdit3,
-    color: '#10b981',
+    id: 'pdf-to-brainrot',
+    title: 'PDF to Gen-Z Brainrot Translator',
+    desc: 'Upload dry PDF files or documents and translate summaries into hilarious Gen-Z slang.',
+    icon: FiSettings,
+    color: '#84cc16',
     category: 'AI Tool',
-    routes: ['/ai-notes/humanizer', '/ai-notes/text-paraphraser', '/ai-notes/bypass-ai'],
+    routes: ['/ai-notes/brainrot-translator', '/ai-notes/brainrot'],
     keywords: [
-      'ai humanizer', 'humanize ai text', 'bypass ai detector', 'ai text paraphraser', 'underectable ai free',
-      'rewrite ai text to human', 'humanize chatgpt text', 'stealth ai writer', 'ai to human text converter',
-      'quillbot alternative', 'bypass turnitin ai', 'ai text bypasser free'
-    ]
-  },
-  {
-    id: 'ai-resume-reviewer',
-    title: 'AI Resume Reviewer & ATS Scorer',
-    desc: 'Audit your CV against corporate ATS algorithms, get instant 0-100 scoring, keyword gap analysis, and bullet point rewrites.',
-    icon: FiFileText,
-    color: '#8b5cf6',
-    category: 'AI Tool',
-    routes: ['/ai-notes/resume-reviewer', '/ai-notes/ats-scorer', '/ai-notes/resume-score'],
-    keywords: [
-      'ai resume reviewer', 'ats resume checker', 'resume scorer free', 'ats resume score',
-      'resume bullet point rewriter', 'cv review ai', 'resume keyword scanner', 'jobscan alternative free',
-      'ats compatibility test', 'ai cv reviewer', 'check my resume ats score'
-    ]
-  },
-  {
-    id: 'ai-cover-letter',
-    title: 'AI Email & Cover Letter Generator',
-    desc: 'Generate tailored job application cover letters, executive outreach emails, and follow-ups in seconds.',
-    icon: FiBriefcase,
-    color: '#f59e0b',
-    category: 'AI Tool',
-    routes: ['/ai-notes/cover-letter', '/ai-notes/email-generator', '/ai-notes/job-application-letter'],
-    keywords: [
-      'ai cover letter generator', 'cover letter writer ai', 'job application email generator',
-      'cold email generator', 'executive cover letter maker', 'tailored cover letter ai', 'recruiter outreach email',
-      'free ai cover letter builder', 'job application letter generator'
-    ]
-  },
-  {
-    id: 'pdf-suite',
-    title: 'PDF Suite (Merge, Split & Optimize)',
-    desc: 'Combine multiple PDFs, rotate pages, and compress large documents safely in your browser.',
-    icon: FiFileText,
-    color: '#ec4899',
-    category: 'Utility',
-    routes: ['/utility/pdf-suite', '/utility/pdf-merge', '/utility/pdf-split', '/utility/merge-pdf'],
-    keywords: [
-      'pdf suite', 'merge pdf free', 'split pdf online', 'compress pdf', 'rotate pdf pages',
-      'ilovepdf alternative', 'combine pdf files', 'pdf tools free online', 'pdf optimizer',
-      'merge multiple pdfs into one', 'free pdf merger no watermark'
-    ]
-  },
-  {
-    id: 'vocal-remover',
-    title: 'Audio Vocal Remover & Karaoke Maker',
-    desc: 'Split any song into isolated Acapella vocals and clean Instrumental karaoke audio tracks.',
-    icon: FiVolume2,
-    color: '#a855f7',
-    category: 'Utility',
-    routes: ['/utility/vocal-remover', '/convert/vocal-remover', '/convert/karaoke-maker', '/utility/karaoke-maker'],
-    keywords: [
-      'vocal remover', 'karaoke maker', 'acapella maker', 'remove vocals from song', 'isolate vocals free',
-      'instrumental maker online', 'split voice and music', 'vocalremover alternative', 'karaoke track generator',
-      'extract vocals from mp3', 'audio voice isolator'
-    ]
-  },
-  {
-    id: 'video-to-gif',
-    title: 'Video to GIF Maker',
-    desc: 'Convert any video clip into an animated, high-quality GIF with custom frame rates.',
-    icon: FiVideo,
-    color: '#f97316',
-    category: 'Utility',
-    routes: ['/utility/video-to-gif', '/convert/video-to-gif', '/convert/mp4-to-gif'],
-    keywords: [
-      'video to gif', 'mp4 to gif', 'gif maker online', 'convert video to animated gif',
-      'ezgif alternative', 'high quality gif converter', 'video clip to gif free', 'make gif from mp4'
+      'pdf to gen-z brainrot translator', 'brainrot translator', 'gen-z slang', 'funny pdf translator',
+      'slang translator', 'pdf to slang', 'brainrot'
     ]
   }
 ];
 
 export default function ToolGrid({ filterText, onSelectTool, bookmarks = [], toggleBookmark = () => {} }) {
+  const [selectedCategory, setSelectedCategory] = React.useState('all');
+
+  const categories = React.useMemo(() => [
+    { id: 'all', label: 'All Tools', count: TOOLS_DATA.length, icon: FiGrid },
+    { id: 'Downloader', label: '1. Downloaders', count: TOOLS_DATA.filter(t => t.category === 'Downloader').length, icon: FiVideo },
+    { id: 'Converter', label: '2. Converters', count: TOOLS_DATA.filter(t => t.category === 'Converter').length, icon: FiMusic },
+    { id: 'Utility', label: '3. Utilities', count: TOOLS_DATA.filter(t => t.category === 'Utility').length, icon: FiFolderPlus },
+    { id: 'AI Tool', label: '4. AI Tools', count: TOOLS_DATA.filter(t => t.category === 'AI Tool').length, icon: FiClock }
+  ], []);
+
   const filteredTools = React.useMemo(() => {
     const query = (filterText || '').toLowerCase().trim();
+    let baseList = TOOLS_DATA;
+    if (selectedCategory !== 'all') {
+      baseList = baseList.filter(t => t.category === selectedCategory);
+    }
     if (!query) {
-      return TOOLS_DATA;
+      return baseList;
     }
 
     // Platform name search terms that should bypass filtering and show all tools at the top
@@ -702,10 +716,10 @@ export default function ToolGrid({ filterText, onSelectTool, bookmarks = [], tog
     ];
 
     if (platformTerms.includes(query)) {
-      return TOOLS_DATA;
+      return baseList;
     }
 
-    return TOOLS_DATA
+    return baseList
       .map(tool => {
         let score = 0;
         const title = tool.title.toLowerCase();
@@ -763,6 +777,55 @@ export default function ToolGrid({ filterText, onSelectTool, bookmarks = [], tog
           <p style={{ color: 'var(--text-muted)', marginTop: '8px' }}>
             Fully responsive, lightning-fast tools designed to make conversions and AI tasks effortless.
           </p>
+        </div>
+
+        
+        {/* Category Navigation Tabs */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          flexWrap: 'wrap',
+          gap: '10px',
+          marginBottom: '36px'
+        }}>
+          {categories.map((cat) => {
+            const Icon = cat.icon;
+            const isActive = selectedCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className="category-tab-btn"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '9px 18px',
+                  borderRadius: '30px',
+                  fontSize: '13px',
+                  fontWeight: '700',
+                  border: isActive ? '1px solid var(--accent-color)' : '1px solid var(--border-color)',
+                  background: isActive ? 'var(--primary-gradient)' : 'var(--bg-grid)',
+                  color: isActive ? '#fff' : 'var(--text-main)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  boxShadow: isActive ? '0 4px 14px rgba(6, 182, 212, 0.35)' : 'none'
+                }}
+              >
+                <Icon size={15} />
+                <span>{cat.label}</span>
+                <span style={{
+                  fontSize: '11px',
+                  padding: '2px 7px',
+                  borderRadius: '10px',
+                  background: isActive ? 'rgba(255,255,255,0.25)' : 'var(--border-color)',
+                  color: isActive ? '#fff' : 'var(--text-muted)'
+                }}>
+                  {cat.count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Grid List */}
