@@ -596,7 +596,7 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
   });
 }
 
-async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
+export async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
   const activeInstances = [
     'https://rue-cobalt.xenon.zone',      // Active & blazing fast (0.3s response)
   ];
@@ -622,7 +622,8 @@ async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36'
         },
         body: JSON.stringify(body),
         signal: controller.signal
@@ -666,7 +667,13 @@ async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
     const dlController = new AbortController();
     const dlTimeout = setTimeout(() => dlController.abort(), 120000); // 2 min timeout for downloading
 
-    const fileRes = await fetch(mediaUrl, { signal: dlController.signal });
+    const fileRes = await fetch(mediaUrl, { 
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+        'Referer': chosenInstance
+      },
+      signal: dlController.signal 
+    });
     clearTimeout(dlTimeout);
 
     if (!fileRes.ok) {

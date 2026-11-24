@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 
 import { performConversion } from './services/converter.js';
-import { downloadMedia, ensureYtdlp } from './services/downloader.js';
+import { downloadMedia, downloadWithCobalt, ensureYtdlp } from './services/downloader.js';
 import { processAiTool, removeWatermark } from './services/aiService.js';
 import { compressFile } from './services/compressor.js';
 import archiver from 'archiver';
@@ -66,6 +66,17 @@ app.get('/', (req, res) => {
 });
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() });
+});
+
+app.get('/api/test-download-internal', async (req, res) => {
+  const url = req.query.url || 'https://www.youtube.com/watch?v=jNQXAC9IVRw';
+  try {
+    const filePath = await downloadWithCobalt(url, 'mp4', '720p', uploadsDir);
+    const stats = fs.statSync(filePath);
+    res.json({ success: true, filePath, size: stats.size });
+  } catch (err) {
+    res.status(500).json({ error: err.message, stack: err.stack, details: err.errors ? err.errors.map(e => e.message) : undefined });
+  }
 });
 
 
