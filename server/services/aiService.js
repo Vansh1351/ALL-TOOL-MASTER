@@ -127,7 +127,7 @@ async function transcribeWithGemini(filePath, mimeType, key) {
     }
   ];
 
-  const models = ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
+  const models = ['gemini-2.5-flash', 'gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
   let lastErr = null;
   for (const m of models) {
     try {
@@ -348,7 +348,7 @@ async function executeGeminiSdk({ prompt, textContent, processedFilePath, proces
     text: `System Directive: Apply the following instructions to the provided media/text context:\n\n${prompt}\n\nFormat your output in professional, readable Markdown syntax. Start directly with the content without conversational meta-responses.`
   });
 
-  const modelsToTry = ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
+  const modelsToTry = ['gemini-2.5-flash', 'gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
   let sdkError = null;
 
   for (const model of modelsToTry) {

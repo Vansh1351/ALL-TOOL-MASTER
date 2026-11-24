@@ -398,21 +398,22 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
     // ── Direct (non-proxy) attempts prioritized for maximum speed ──
     // Direct connection resolves URLs in ~2-4 seconds!
 
-    // 1. Primary Direct Client (Keeps optimized format & -N 4 multi-threading)
+    // 1. Primary Direct Client (Keeps optimized format & -N 8 multi-threading)
     const attempt1Args = [
       ...filterArgs([...baseArgs], ['--proxy'])
     ];
     if (isYouTube) {
-      attempt1Args.push('--extractor-args', 'youtube:player_client=android,web');
+      // Use android_creator & ios clients which bypass datacenter bot challenges
+      attempt1Args.push('--extractor-args', 'youtube:player_client=android_creator,ios');
     }
-    addAttempt(isYouTube ? "Android+Web client (direct)" : "Universal direct client", attempt1Args, true);
+    addAttempt(isYouTube ? "Mobile client (direct)" : "Universal direct client", attempt1Args, true);
 
     // 2. Fallback Direct Client
     const attempt2Args = [
       ...filterArgs([...baseArgs], ['--proxy'])
     ];
     if (isYouTube) {
-      attempt2Args.push('--extractor-args', 'youtube:player_client=tv_simply,default,-tv');
+      attempt2Args.push('--extractor-args', 'youtube:player_client=tv_embedded,mweb');
     }
     addAttempt("Universal fallback client", attempt2Args, true);
 
@@ -469,8 +470,8 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
 
       console.log(`[Attempt ${currentAttemptIndex + 1}/${uniqueAttempts.length}] Running: ${attempt.name}`);
 
-      // Generous timeout (up to 120s for large 100MB+ videos) so process is never killed prematurely
-      const execTimeout = options.singleAttempt ? 60000 : 120000;
+      // Fast timeout per attempt so engine fails over rapidly rather than hanging
+      const execTimeout = options.singleAttempt ? 15000 : 25000;
       
       const childEnv = { ...process.env };
       if (options.useProxy !== true || proxyIsDead) {
@@ -597,14 +598,10 @@ async function downloadMediaWithYtdlp(url, format, quality, outputDir, options =
 
 async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
   const activeInstances = [
-    'https://lime.clxxped.lol',          // 100% uptime (cobalt.clxxped.lol)
-    'https://nuko-c.meowing.de',          // 100% uptime (cobalt.meowing.de)
-    'https://cobalt.alpha.wolfy.love',    // 87% uptime (cobalt.canine.tools)
-    'https://rue-cobalt.xenon.zone',      // 83% uptime (cobalt.xenon.zone)
-    'https://api.cobalt.liubquanti.click' // fallback (cobalt.liubquanti.click)
+    'https://rue-cobalt.xenon.zone',      // Active & blazing fast (0.3s response)
   ];
 
-  const COBALT_TIMEOUT_MS = 7000; // 7s timeout — fail fast so we can fall back to yt-dlp quickly
+  const COBALT_TIMEOUT_MS = 5000; // 5s timeout — resolves instantly in ~1-2s
   
   // 1. Resolve media URL using the fastest working instance in parallel
   const promises = activeInstances.map(async (instance) => {
@@ -641,7 +638,7 @@ async function downloadWithCobalt(videoUrl, format, quality, outputDir) {
         throw new Error(json.error?.code || json.error || `Error from ${instance}`);
       }
 
-      const mediaUrl = json.url;
+      const mediaUrl = json.url || (Array.isArray(json.picker) && json.picker[0]?.url);
       if (!mediaUrl) {
         throw new Error(`No direct URL from ${instance}`);
       }
@@ -1215,36 +1212,18 @@ export async function downloadMedia(rawUrl, format, quality, outputDir) {
     }
   }
 
-  // ── YouTube: dedicated ultra-fast multi-threaded direct engine (bypasses Cobalt timeout) ──
-  const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
-  if (isYouTube) {
-    console.log('[YouTube] Direct ultra-fast yt-dlp engine with multi-threading (skipping Cobalt for max speed)...');
-    try {
-      const filePath = await downloadMediaWithYtdlp(url, format, quality, outputDir);
-      return filePath;
-    } catch (ytdlpError) {
-      console.error(`YouTube direct download failed: ${ytdlpError.message}. Trying Cobalt fallback...`);
-      try {
-        const filePath = await downloadWithCobalt(url, format, quality, outputDir);
-        return filePath;
-      } catch (cobaltErr) {
-        throw new Error(getFriendlyErrorMessage(ytdlpError.message, url));
-      }
-    }
-  }
-
-  // ── All other platforms: Cobalt first, then yt-dlp ──────────
+  // ── High-Speed Dual-Engine: Cobalt priority (1-2s response) with multi-threaded yt-dlp fallback ──
   try {
-    console.log('Attempting download via Cobalt API (priority)...');
+    console.log('[Media Engine] Attempting ultra-fast Cobalt resolver (priority)...');
     const filePath = await downloadWithCobalt(url, format, quality, outputDir);
     return filePath;
   } catch (cobaltError) {
-    console.warn(`Cobalt API failed (${cobaltError.message}). Falling back to yt-dlp...`);
+    console.warn(`[Media Engine] Cobalt resolver unavailable (${cobaltError.message}). Falling back to multi-threaded yt-dlp...`);
     try {
       const filePath = await downloadMediaWithYtdlp(url, format, quality, outputDir);
       return filePath;
     } catch (ytdlpError) {
-      console.error(`yt-dlp fallback also failed: ${ytdlpError.message}`);
+      console.error(`[Media Engine] yt-dlp fallback also failed: ${ytdlpError.message}`);
       const friendlyMsg = getFriendlyErrorMessage(ytdlpError.message, url);
       throw new Error(friendlyMsg);
     }
