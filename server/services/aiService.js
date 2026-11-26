@@ -83,32 +83,41 @@ function detectProvider(key) {
 }
 
 /**
- * Transcribes audio/video using Groq Whisper Large v3 Turbo (~400ms latency).
+ * Transcribes audio/video using Groq Whisper Large v3 (high-accuracy multilingual) with turbo fallback.
+ * Note: Never pass user instructions (e.g. "in hinglish") to Whisper's `prompt` parameter,
+ * as Whisper treats `prompt` as acoustic conditioning text and will hallucinate words.
  */
-async function transcribeWithGroq(filePath, mimeType, key, userTextPrompt = '') {
-  console.log(`[Groq Whisper] Transcribing ${path.basename(filePath)} with whisper-large-v3-turbo...`);
+async function transcribeWithGroq(filePath, mimeType, key) {
   const fileBuf = fs.readFileSync(filePath);
-  const whisperForm = new FormData();
-  const audioBlob = new Blob([fileBuf], { type: mimeType || 'audio/mpeg' });
-  whisperForm.append('file', audioBlob, path.basename(filePath));
-  whisperForm.append('model', 'whisper-large-v3-turbo');
-  if (userTextPrompt && userTextPrompt.trim()) {
-    whisperForm.append('prompt', userTextPrompt.trim().slice(0, 200));
+  const models = ['whisper-large-v3', 'whisper-large-v3-turbo'];
+  let lastErr = null;
+
+  for (const model of models) {
+    try {
+      console.log(`[Groq Whisper] Transcribing ${path.basename(filePath)} with ${model}...`);
+      const whisperForm = new FormData();
+      const audioBlob = new Blob([fileBuf], { type: mimeType || 'audio/mpeg' });
+      whisperForm.append('file', audioBlob, path.basename(filePath));
+      whisperForm.append('model', model);
+
+      const whisperRes = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${key}` },
+        body: whisperForm
+      });
+
+      if (whisperRes.ok) {
+        const whisperData = await whisperRes.json();
+        if (whisperData.text) return whisperData.text;
+      } else {
+        const errText = await whisperRes.text();
+        lastErr = new Error(`Groq Whisper ${model} (${whisperRes.status}): ${errText}`);
+      }
+    } catch (e) {
+      lastErr = e;
+    }
   }
-
-  const whisperRes = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
-    method: "POST",
-    headers: { "Authorization": `Bearer ${key}` },
-    body: whisperForm
-  });
-
-  if (!whisperRes.ok) {
-    const errText = await whisperRes.text();
-    throw new Error(`Groq Whisper error (${whisperRes.status}): ${errText}`);
-  }
-
-  const whisperData = await whisperRes.json();
-  return whisperData.text || "";
+  throw lastErr || new Error("Groq Whisper transcription failed.");
 }
 
 /**
@@ -118,9 +127,22 @@ async function transcribeWithGemini(filePath, mimeType, key, userTextPrompt = ''
   console.log(`[Gemini Audio] Transcribing ${path.basename(filePath)} with Gemini SDK...`);
   const ai = new GoogleGenAI({ apiKey: key });
   const fileBuffer = fs.readFileSync(filePath);
+  const formattingRules = `FORMATTING & ACCURACY RULES:
+- CRITICAL: NEVER summarize, condense, shorten, or omit any part of the audio. Output the COMPLETE, FULL, WORD-FOR-WORD verbatim transcription of EVERY spoken sentence from start to finish.
+- Start a new paragraph whenever the speaker changes or a distinct conversational turn occurs so dialogue is clean and easy to read.
+- Preserve exact names, cultural terms, and pronunciation accurately without guessing unrelated English words.`;
+
   const transcriptionInstruction = userTextPrompt && userTextPrompt.trim()
-    ? `Generate a COMPLETE, FULL, WORD-FOR-WORD verbatim transcription of ALL speech in this audio from start to finish, adhering strictly to the user's instructions: "${userTextPrompt.trim()}". CRITICAL: NEVER summarize, condense, shorten, or omit any part of the audio. Transcribe every single sentence in full. If requested in Hinglish, transcribe using Roman/Latin alphabet. If requested in English, translate every sentence into English. Break down paragraph blocks clearly. Start directly with the transcript.`
-    : "Generate a COMPLETE, FULL, WORD-FOR-WORD verbatim transcription of ALL speech in this audio from start to finish. CRITICAL: NEVER summarize, condense, shorten, or omit any part of the audio. Break down paragraph blocks clearly. Start directly with the transcript.";
+    ? `Listen carefully to the entire audio and generate a COMPLETE, WORD-FOR-WORD verbatim transcription adhering strictly to the user's instructions: "${userTextPrompt.trim()}".
+- If requested in Hinglish, write every spoken Hindi/Urdu word naturally and accurately in Roman/Latin script (phonetic Hinglish).
+- If requested in English, translate every single sentence faithfully into natural English.
+- If requested in both (e.g. "hinglish or english"), provide both complete transcripts under clear Markdown headers.
+- If requested in another language (e.g. Gujarati, Marathi, Tamil), transcribe/translate into that exact language.
+${formattingRules}
+Start directly with the transcript.`
+    : `Listen carefully to the entire audio and generate a COMPLETE, WORD-FOR-WORD verbatim transcription in the original spoken language.
+${formattingRules}
+Start directly with the transcript.`;
 
   const contents = [
     {
@@ -470,17 +492,19 @@ export async function processAiTool({ tool, filePath, mimeType, textContent, api
     case 'ai-speech-to-text':
       if (textContent && textContent.trim()) {
         prompt = `You are a professional verbatim transcription and multilingual language specialist. The user provided an audio/video recording (or text) and gave specific formatting, language, or translation instructions in Text Content: "${textContent.trim()}".
-CRITICAL ANTI-SUMMARIZATION RULES (MUST FOLLOW):
+CRITICAL ACCURACY & ANTI-SUMMARIZATION RULES (MUST FOLLOW):
 - NEVER summarize, condense, shorten, paraphrase, or skip ANY part of the speech/context.
 - Output the COMPLETE, FULL, WORD-FOR-WORD transcript of EVERY single sentence from beginning to end.
+- Format dialogue cleanly: start a NEW paragraph whenever the speaker changes or a reply begins (never merge two speakers into one run-on sentence).
+- Fix obvious ASR phonetic misspellings using surrounding context while keeping every spoken word faithful.
 - Follow the user's language/formatting instructions strictly:
-  * If they requested Hinglish, write the ENTIRE transcript word-for-word in Hinglish (Hindi words written phonetically in Roman/Latin script, e.g., "Main wahan ja raha hoon").
+  * If they requested Hinglish, write the ENTIRE transcript word-for-word in natural, accurate Hinglish (Hindi/Urdu words in Roman/Latin script, e.g., "Maiya, main Prithvi par ja raha hoon").
   * If they requested English or translation, provide the ENTIRE full transcript translated sentence-by-sentence into natural, clear English.
   * If they requested both (e.g. "in hinglish or in english"), provide BOTH full transcripts clearly labeled under Markdown headers: "### Hinglish Transcript" and "### English Translation".
   * If they requested another specific language, dialect, or formatting style, apply that exact directive to the ENTIRE transcript.
-- Maintain accurate speaker flow, dialogue nuance, and clean paragraph breaks. Start directly with the full transcript without any intro or summary.`;
+- Start directly with the full transcript without any intro or summary.`;
       } else {
-        prompt = `Generate a COMPLETE, FULL, WORD-FOR-WORD verbatim text transcription of EVERY spoken sentence in the conversation, audio, or text from start to finish. CRITICAL: NEVER summarize, condense, paraphrase, or omit any part of the content. Break down paragraph blocks by speaker changes or topic changes where applicable. Start directly with the transcript.`;
+        prompt = `Generate a COMPLETE, FULL, WORD-FOR-WORD verbatim text transcription of EVERY spoken sentence in the conversation, audio, or text from start to finish. CRITICAL: NEVER summarize, condense, paraphrase, or omit any part of the content. Start a new paragraph whenever the speaker changes or topic shifts so dialogue reads cleanly. Start directly with the transcript.`;
       }
       break;
     case 'subtitles':
@@ -713,31 +737,49 @@ CRITICAL: Return ONLY valid, parser-friendly JSON. Do not wrap in markdown \`\`\
       }
     } else if (processedMimeType && (processedMimeType.startsWith('audio/') || processedMimeType.startsWith('video/'))) {
       // Step A: Audio/Video Transcription Waterfall
-      console.log("[Audio Engine] Transcribing audio/video input with high-speed fallback...");
+      console.log("[Audio Engine] Transcribing audio/video input with high-accuracy pipeline...");
       let transcribedText = "";
       let transcriptionError = null;
-
-      // 1. Try Groq Whisper (Ultra-fast, ~400ms)
+      const isTranscriptTool = ['transcript', 'ai-transcript', 'speech-to-text', 'ai-speech-to-text'].includes(tool);
+      const fileSizeBytes = fs.statSync(processedFilePath).size;
+      const geminiKey = keys.find(k => detectProvider(k) === 'gemini');
       const groqKey = keys.find(k => detectProvider(k) === 'groq');
-      if (groqKey) {
+
+      // For transcript/speech-to-text tools, prefer Gemini Multimodal Audio FIRST (<= 18MB)
+      // because Gemini hears actual speaker turns, Indian/regional accents, and user language directives directly.
+      if (isTranscriptTool && geminiKey && fileSizeBytes <= 18 * 1024 * 1024) {
         try {
-          transcribedText = await transcribeWithGroq(processedFilePath, processedMimeType, groqKey, textContent);
+          transcribedText = await transcribeWithGemini(processedFilePath, processedMimeType, geminiKey, textContent);
+          if (transcribedText) {
+            if (processedFilePath !== filePath && fs.existsSync(processedFilePath)) {
+              try { fs.unlinkSync(processedFilePath); } catch (e) {}
+            }
+            console.log("[Audio Engine] Gemini direct multimodal transcript succeeded.");
+            return transcribedText;
+          }
+        } catch (e) {
+          console.warn("[Gemini Audio] Direct transcription failed, falling back to Groq Whisper:", e.message);
+          transcriptionError = e;
+        }
+      }
+
+      // Try Groq Whisper (whisper-large-v3 with turbo fallback; never pass user prompt to Whisper)
+      if (!transcribedText && groqKey) {
+        try {
+          transcribedText = await transcribeWithGroq(processedFilePath, processedMimeType, groqKey);
         } catch (e) {
           console.warn("[Groq Whisper] Failed, trying fallback:", e.message);
           transcriptionError = e;
         }
       }
 
-      // 2. Fallback to Gemini Multimodal Audio if Groq failed or wasn't available
-      if (!transcribedText) {
-        const geminiKey = keys.find(k => detectProvider(k) === 'gemini');
-        if (geminiKey) {
-          try {
-            transcribedText = await transcribeWithGemini(processedFilePath, processedMimeType, geminiKey, textContent);
-          } catch (e) {
-            console.warn("[Gemini Audio] Failed:", e.message);
-            transcriptionError = e;
-          }
+      // Fallback to Gemini Multimodal Audio if Groq failed or wasn't available
+      if (!transcribedText && geminiKey && fileSizeBytes <= 18 * 1024 * 1024) {
+        try {
+          transcribedText = await transcribeWithGemini(processedFilePath, processedMimeType, geminiKey, textContent);
+        } catch (e) {
+          console.warn("[Gemini Audio] Failed:", e.message);
+          transcriptionError = e;
         }
       }
 
@@ -746,7 +788,7 @@ CRITICAL: Return ONLY valid, parser-friendly JSON. Do not wrap in markdown \`\`\
       }
 
       // If user tool is purely transcript or speech-to-text, and NO custom user prompt/instructions were provided in textContent:
-      if (['transcript', 'ai-transcript', 'speech-to-text', 'ai-speech-to-text'].includes(tool) && (!textContent || !textContent.trim())) {
+      if (isTranscriptTool && (!textContent || !textContent.trim())) {
         if (processedFilePath !== filePath && fs.existsSync(processedFilePath)) {
           try { fs.unlinkSync(processedFilePath); } catch (e) {}
         }
