@@ -31,6 +31,41 @@ try {
 }
 
 /**
+ * Splits any audio or video file into speech-optimized 16kHz mono 64kbps MP3 chunks (40s each)
+ * so Whisper never skips middle/end segments or hits file size limits.
+ */
+export function splitAudioForWhisper(inputPath, uploadsDir, segmentSeconds = 40) {
+  return new Promise((resolve, reject) => {
+    const prefix = `whisper_chunk_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    const outPattern = path.join(uploadsDir, `${prefix}_%03d.mp3`);
+
+    ffmpeg(inputPath)
+      .noVideo()
+      .audioFrequency(16000)
+      .audioChannels(1)
+      .audioCodec('libmp3lame')
+      .audioBitrate('64k')
+      .outputOptions(['-f', 'segment', '-segment_time', String(segmentSeconds), '-reset_timestamps', '1'])
+      .output(outPattern)
+      .on('end', () => {
+        try {
+          const files = fs.readdirSync(uploadsDir)
+            .filter(f => f.startsWith(prefix + '_') && f.endsWith('.mp3'))
+            .sort()
+            .map(f => path.join(uploadsDir, f));
+          resolve(files);
+        } catch (err) {
+          reject(err);
+        }
+      })
+      .on('error', (err) => {
+        reject(err);
+      })
+      .run();
+  });
+}
+
+/**
  * Runs FFmpeg to convert media formats.
  */
 export function convertMedia(inputPath, outputPath, targetFormat) {

@@ -3,7 +3,7 @@ import path from 'path';
 import { GoogleGenAI } from '@google/genai';
 import sharp from 'sharp';
 import pdfParse from 'pdf-parse';
-import { convertMedia, extractTextFromDocx } from './converter.js';
+import { convertMedia, extractTextFromDocx, splitAudioForWhisper } from './converter.js';
 
 /**
  * Validates whether an API key is a valid non-placeholder token.
@@ -83,23 +83,21 @@ function detectProvider(key) {
 }
 
 /**
- * Transcribes audio/video using Groq Whisper Large v3 (high-accuracy multilingual) with turbo fallback.
- * Note: Never pass user instructions (e.g. "in hinglish") to Whisper's `prompt` parameter,
- * as Whisper treats `prompt` as acoustic conditioning text and will hallucinate words.
+ * Transcribes a single audio file/chunk using Groq Whisper Large v3 (with turbo fallback).
+ * Do NOT force temperature=0 (which disables Whisper's fallback schedule and causes skipped segments)
+ * and do NOT pass user instructions into `prompt`.
  */
-async function transcribeWithGroq(filePath, mimeType, key) {
+async function transcribeSingleChunkWithGroq(filePath, mimeType, key) {
   const fileBuf = fs.readFileSync(filePath);
   const models = ['whisper-large-v3', 'whisper-large-v3-turbo'];
   let lastErr = null;
 
   for (const model of models) {
     try {
-      console.log(`[Groq Whisper] Transcribing ${path.basename(filePath)} with ${model}...`);
       const whisperForm = new FormData();
       const audioBlob = new Blob([fileBuf], { type: mimeType || 'audio/mpeg' });
       whisperForm.append('file', audioBlob, path.basename(filePath));
       whisperForm.append('model', model);
-      whisperForm.append('temperature', '0');
 
       const whisperRes = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
         method: "POST",
@@ -109,7 +107,7 @@ async function transcribeWithGroq(filePath, mimeType, key) {
 
       if (whisperRes.ok) {
         const whisperData = await whisperRes.json();
-        if (whisperData.text) return whisperData.text;
+        if (typeof whisperData.text === 'string') return whisperData.text.trim();
       } else {
         const errText = await whisperRes.text();
         lastErr = new Error(`Groq Whisper ${model} (${whisperRes.status}): ${errText}`);
@@ -119,6 +117,47 @@ async function transcribeWithGroq(filePath, mimeType, key) {
     }
   }
   throw lastErr || new Error("Groq Whisper transcription failed.");
+}
+
+/**
+ * Transcribes audio/video using Groq Whisper Large v3 across 40-second 16kHz mono chunks
+ * so no middle or ending segments are ever dropped.
+ */
+async function transcribeWithGroq(filePath, mimeType, key, uploadsDir) {
+  let chunks = [];
+  try {
+    if (uploadsDir) {
+      chunks = await splitAudioForWhisper(filePath, uploadsDir, 40);
+    }
+  } catch (splitErr) {
+    console.warn("[Groq Whisper] Audio chunking failed, falling back to single file:", splitErr.message);
+    chunks = [];
+  }
+
+  if (chunks.length === 0) {
+    console.log(`[Groq Whisper] Transcribing single file ${path.basename(filePath)} with whisper-large-v3...`);
+    return await transcribeSingleChunkWithGroq(filePath, mimeType, key);
+  }
+
+  console.log(`[Groq Whisper] Transcribing ${chunks.length} chunk(s) (40s 16kHz mono) with whisper-large-v3...`);
+  try {
+    const results = new Array(chunks.length).fill('');
+    const batchSize = 4;
+    for (let i = 0; i < chunks.length; i += batchSize) {
+      const batch = chunks.slice(i, i + batchSize);
+      const batchTexts = await Promise.all(
+        batch.map(chunkPath => transcribeSingleChunkWithGroq(chunkPath, 'audio/mpeg', key))
+      );
+      for (let j = 0; j < batchTexts.length; j++) {
+        results[i + j] = batchTexts[j];
+      }
+    }
+    return results.filter(Boolean).join('\n\n').trim();
+  } finally {
+    for (const chunkPath of chunks) {
+      try { if (fs.existsSync(chunkPath)) fs.unlinkSync(chunkPath); } catch (e) {}
+    }
+  }
 }
 
 /**
@@ -770,10 +809,10 @@ CRITICAL: Return ONLY valid, parser-friendly JSON. Do not wrap in markdown \`\`\
       const geminiKey = keys.find(k => detectProvider(k) === 'gemini');
       const groqKey = keys.find(k => detectProvider(k) === 'groq');
 
-      // 1. Try Groq Whisper FIRST (whisper-large-v3 with turbo fallback; ~0.5s latency, no prompt poisoning)
+      // 1. Try Groq Whisper FIRST (40s 16kHz mono chunks via whisper-large-v3; ~1s latency)
       if (groqKey) {
         try {
-          transcribedText = await transcribeWithGroq(processedFilePath, processedMimeType, groqKey);
+          transcribedText = await transcribeWithGroq(processedFilePath, processedMimeType, groqKey, uploadsDir);
         } catch (e) {
           console.warn("[Groq Whisper] Failed, trying Gemini Audio fallback:", e.message);
           transcriptionError = e;
