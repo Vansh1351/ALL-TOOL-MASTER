@@ -204,7 +204,11 @@ Start directly with the transcript.`;
     try {
       console.log(`[Gemini Audio] Trying ${m}...`);
       const res = await Promise.race([
-        ai.models.generateContent({ model: m, contents: contents }),
+        ai.models.generateContent({
+          model: m,
+          contents: contents,
+          config: { temperature: 0.1 }
+        }),
         new Promise((_, reject) => setTimeout(() => reject(new Error(`Gemini ${m} timed out after 25s`)), 25000))
       ]);
       const txt = res.text;
@@ -222,6 +226,63 @@ Start directly with the transcript.`;
     }
   }
   throw lastErr || new Error("Gemini audio transcription failed.");
+}
+
+/**
+ * Runs a fast 120B proofreading & paragraph-formatting pass on a raw audio transcript
+ * to fix subtle ASR phonetic slips, grammar/pluralization (e.g. Hinglish), and paragraph breaks
+ * without ever summarizing or dropping any sentence.
+ */
+async function proofreadTranscript(rawTranscript, userTextPrompt, keys) {
+  if (!rawTranscript || rawTranscript.length < 40) return rawTranscript;
+  const groqKey = keys.find(k => detectProvider(k) === 'groq');
+  if (!groqKey) return rawTranscript;
+
+  const systemPrompt = `You are an expert multilingual copy-editor (English, Hindi, Hinglish, Gujarati, Marathi, Tamil) proofreading a raw speech-to-text audio transcript.
+STRICT RULES:
+1. NEVER summarize, shorten, paraphrase, or delete ANY sentence, clause, or detail. Every single sentence from the raw transcript MUST remain in full.
+2. Fix clear speech-to-text phonetic mishearings using surrounding context (e.g., "bypass karte waqt agar dil zyada rehta hai, complications hone ka" -> "bypass karte waqt agar risk zyada rehta hai, complications hone ka"; "straight forward" -> "straightforward").
+3. Fix minor grammar, gender/number agreement, and pluralization errors naturally (e.g., in Hinglish: "ki decision" -> "ka decision", "nase" -> "nasein", "jisme" -> "jinme" for patients, "rehte hai" -> "rehte hain", "poochte hai" -> "poochte hain").
+4. Break the text into clean, logical paragraphs separated by a blank line (double newline) at speaker changes or topic shifts.
+5. Output ONLY the proofread plain text. Do NOT use markdown symbols like **, ###, or \`\`\`.${userTextPrompt && userTextPrompt.trim() ? `\n6. Respect the user's original formatting/language request: "${userTextPrompt.trim()}".` : ''}`;
+
+  try {
+    const res = await Promise.race([
+      fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${groqKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "openai/gpt-oss-120b",
+          max_tokens: 8192,
+          temperature: 0.1,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: `Raw Audio Transcript:\n${rawTranscript}` }
+          ]
+        })
+      }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Proofread timeout")), 15000))
+    ]);
+
+    if (res.ok) {
+      const data = await res.json();
+      const polished = data.choices?.[0]?.message?.content;
+      if (polished && polished.trim().length >= rawTranscript.length * 0.75) {
+        return polished
+          .replace(/```[a-z]*\r?\n?/gi, '')
+          .replace(/```/g, '')
+          .replace(/^#{1,6}\s+/gm, '')
+          .replace(/\*\*/g, '')
+          .trim();
+      }
+    }
+  } catch (e) {
+    console.warn("[Transcript Proofread] Skipped, returning raw transcript:", e.message);
+  }
+  return rawTranscript;
 }
 
 /**
@@ -883,8 +944,8 @@ CRITICAL: Return ONLY valid, parser-friendly JSON. Do not wrap in markdown \`\`\
             if (processedFilePath !== filePath && fs.existsSync(processedFilePath)) {
               try { fs.unlinkSync(processedFilePath); } catch (e) {}
             }
-            console.log("[Audio Engine] Gemini multimodal transcript succeeded.");
-            return transcribedText;
+            console.log("[Audio Engine] Gemini multimodal transcript succeeded. Running proofread pass...");
+            return await proofreadTranscript(transcribedText, textContent, keys);
           }
         } catch (e) {
           console.warn("[Gemini Audio] Failed, trying NVIDIA Omni / Groq Whisper fallback:", e.message);
@@ -900,8 +961,8 @@ CRITICAL: Return ONLY valid, parser-friendly JSON. Do not wrap in markdown \`\`\
             if (processedFilePath !== filePath && fs.existsSync(processedFilePath)) {
               try { fs.unlinkSync(processedFilePath); } catch (e) {}
             }
-            console.log("[Audio Engine] NVIDIA Omni multimodal transcript succeeded.");
-            return transcribedText;
+            console.log("[Audio Engine] NVIDIA Omni multimodal transcript succeeded. Running proofread pass...");
+            return await proofreadTranscript(transcribedText, textContent, keys);
           }
         } catch (e) {
           console.warn("[NVIDIA Omni Audio] Failed, trying Groq Whisper fallback:", e.message);
