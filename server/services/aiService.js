@@ -130,6 +130,7 @@ async function transcribeWithGemini(filePath, mimeType, key, userTextPrompt = ''
   const formattingRules = `FORMATTING & ACCURACY RULES:
 - CRITICAL: NEVER summarize, condense, shorten, or omit any part of the audio. Output the COMPLETE, FULL, WORD-FOR-WORD verbatim transcription of EVERY spoken sentence from start to finish.
 - Start a new paragraph whenever the speaker changes or a distinct conversational turn occurs so dialogue is clean and easy to read.
+- Do NOT wrap the transcript in markdown code blocks or triple backticks (\`\`\`).
 - Preserve exact names, cultural terms, and pronunciation accurately without guessing unrelated English words.`;
 
   const transcriptionInstruction = userTextPrompt && userTextPrompt.trim()
@@ -156,7 +157,7 @@ Start directly with the transcript.`;
     }
   ];
 
-  const models = ['gemini-2.5-flash', 'gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
+  const models = ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
   let lastErr = null;
   for (const m of models) {
     try {
@@ -384,7 +385,7 @@ async function executeGeminiSdk({ prompt, contextText, textContent, processedFil
     text: `System Directive: Apply the following instructions to the provided media/text context:\n\n${prompt}\n\nFormat your output in professional, readable Markdown syntax. Start directly with the content without conversational meta-responses.`
   });
 
-  const modelsToTry = ['gemini-2.5-flash', 'gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
+  const modelsToTry = ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
   let sdkError = null;
 
   for (const model of modelsToTry) {
@@ -496,6 +497,7 @@ CRITICAL ACCURACY & ANTI-SUMMARIZATION RULES (MUST FOLLOW):
 - NEVER summarize, condense, shorten, paraphrase, or skip ANY part of the speech/context.
 - Output the COMPLETE, FULL, WORD-FOR-WORD transcript of EVERY single sentence from beginning to end.
 - Format dialogue cleanly: start a NEW paragraph whenever the speaker changes or a reply begins (never merge two speakers into one run-on sentence).
+- Do NOT wrap the transcript in markdown code blocks or triple backticks (\`\`\`).
 - Fix obvious ASR phonetic misspellings using surrounding context while keeping every spoken word faithful.
 - Follow the user's language/formatting instructions strictly:
   * If they requested Hinglish, write the ENTIRE transcript word-for-word in natural, accurate Hinglish (Hindi/Urdu words in Roman/Latin script, e.g., "Maiya, main Prithvi par ja raha hoon").
