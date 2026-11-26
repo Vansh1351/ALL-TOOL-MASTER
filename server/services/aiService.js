@@ -747,38 +747,27 @@ CRITICAL: Return ONLY valid, parser-friendly JSON. Do not wrap in markdown \`\`\
       const geminiKey = keys.find(k => detectProvider(k) === 'gemini');
       const groqKey = keys.find(k => detectProvider(k) === 'groq');
 
-      // For transcript/speech-to-text tools, prefer Gemini Multimodal Audio FIRST (<= 18MB)
-      // because Gemini hears actual speaker turns, Indian/regional accents, and user language directives directly.
-      if (isTranscriptTool && geminiKey && fileSizeBytes <= 18 * 1024 * 1024) {
-        try {
-          transcribedText = await transcribeWithGemini(processedFilePath, processedMimeType, geminiKey, textContent);
-          if (transcribedText) {
-            if (processedFilePath !== filePath && fs.existsSync(processedFilePath)) {
-              try { fs.unlinkSync(processedFilePath); } catch (e) {}
-            }
-            console.log("[Audio Engine] Gemini direct multimodal transcript succeeded.");
-            return transcribedText;
-          }
-        } catch (e) {
-          console.warn("[Gemini Audio] Direct transcription failed, falling back to Groq Whisper:", e.message);
-          transcriptionError = e;
-        }
-      }
-
-      // Try Groq Whisper (whisper-large-v3 with turbo fallback; never pass user prompt to Whisper)
-      if (!transcribedText && groqKey) {
+      // 1. Try Groq Whisper FIRST (whisper-large-v3 with turbo fallback; ~0.5s latency, no prompt poisoning)
+      if (groqKey) {
         try {
           transcribedText = await transcribeWithGroq(processedFilePath, processedMimeType, groqKey);
         } catch (e) {
-          console.warn("[Groq Whisper] Failed, trying fallback:", e.message);
+          console.warn("[Groq Whisper] Failed, trying Gemini Audio fallback:", e.message);
           transcriptionError = e;
         }
       }
 
-      // Fallback to Gemini Multimodal Audio if Groq failed or wasn't available
+      // 2. Fallback to Gemini Multimodal Audio if Groq failed or wasn't available (and <= 18MB)
       if (!transcribedText && geminiKey && fileSizeBytes <= 18 * 1024 * 1024) {
         try {
           transcribedText = await transcribeWithGemini(processedFilePath, processedMimeType, geminiKey, textContent);
+          if (transcribedText && isTranscriptTool && textContent && textContent.trim()) {
+            if (processedFilePath !== filePath && fs.existsSync(processedFilePath)) {
+              try { fs.unlinkSync(processedFilePath); } catch (e) {}
+            }
+            console.log("[Audio Engine] Gemini multimodal transcript fallback succeeded.");
+            return transcribedText;
+          }
         } catch (e) {
           console.warn("[Gemini Audio] Failed:", e.message);
           transcriptionError = e;
