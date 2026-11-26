@@ -111,10 +111,11 @@ export default function PDFSuite({ tool, setView, setActiveTool, addToast, incre
   const [targetLang, setTargetLang] = useState('Hindi');
   const [htmlTextInput, setHtmlTextInput] = useState('');
 
-  // Visual Page Organizer state
+  // Visual Page Organizer & Split Preview state
   const [orgPages, setOrgPages] = useState([]); // { uid, index, thumb, rotate, selected }
   const [orgPdfBytes, setOrgPdfBytes] = useState(null);
   const [orgDragIdx, setOrgDragIdx] = useState(null);
+  const [splitPages, setSplitPages] = useState([]); // { index, dataUrl }
 
   // ─── Interactive Document & PDF Edit Studio State ─────────────────────────
   const [docPages, setDocPages] = useState([
@@ -193,6 +194,15 @@ export default function PDFSuite({ tool, setView, setActiveTool, addToast, incre
     resetToolOutputs();
     if (subId === 'organize-pages' && files.length > 0 && orgPages.length === 0) {
       loadOrganizerFromFiles(files, false);
+    }
+    if (subId === 'split') {
+      const pdfFile = files.find(f => f.type === 'application/pdf' || f.name?.toLowerCase().endsWith('.pdf'));
+      if (pdfFile) {
+        loadSplitPreview(pdfFile);
+      } else if (files.length > 0) {
+        setFiles([]);
+        setSplitPages([]);
+      }
     }
   };
 
@@ -309,6 +319,23 @@ export default function PDFSuite({ tool, setView, setActiveTool, addToast, incre
     });
   };
 
+  const loadSplitPreview = async (pdfFile) => {
+    if (!pdfFile) return;
+    try {
+      const buf = await pdfFile.arrayBuffer();
+      const pages = await renderPdfPagesToImages(buf, 0.45);
+      setSplitPages(pages);
+      if (pages.length > 1 && splitRange === '1-1') {
+        const mid = Math.ceil(pages.length / 2);
+        setSplitRange(`1-${mid}, ${mid + 1}-${pages.length}`);
+      } else if (pages.length === 1) {
+        setSplitRange('1-1');
+      }
+    } catch (e) {
+      if (addToast) addToast('Failed to preview PDF for splitting: ' + e.message, 'error');
+    }
+  };
+
   // Load PDFs & Images into Organizer when organize-pages is active
   const handleFilesSelected = async (selectedFiles) => {
     const list = Array.from(selectedFiles || []);
@@ -319,6 +346,8 @@ export default function PDFSuite({ tool, setView, setActiveTool, addToast, incre
 
     if (activeSubTool === 'organize-pages') {
       await loadOrganizerFromFiles(list, true);
+    } else if (activeSubTool === 'split' && (list[0]?.type === 'application/pdf' || list[0]?.name?.toLowerCase().endsWith('.pdf'))) {
+      await loadSplitPreview(list[0]);
     }
   };
 
@@ -1560,11 +1589,85 @@ export default function PDFSuite({ tool, setView, setActiveTool, addToast, incre
             </div>
           )}
 
-          {/* Tool-Specific Options */}
+          {/* Tool-Specific Options & Live Visual Split Preview */}
           {activeSubTool === 'split' && (
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ fontSize: '12.5px', fontWeight: '700', display: 'block', marginBottom: '6px' }}>Page Ranges (comma separated, e.g. 1-2, 3-4)</label>
-              <input type="text" value={splitRange} onChange={e => setSplitRange(e.target.value)} style={{ width: '100%' }} />
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+                <label style={{ fontSize: '12.5px', fontWeight: '700' }}>Page Ranges (comma separated, e.g. 1-2, 3-4)</label>
+                {splitPages.length > 1 && (
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setSplitRange(splitPages.map((_, i) => `${i + 1}`).join(', '))}
+                      style={{ padding: '4px 10px', fontSize: '11.5px' }}
+                    >
+                      Split Every Page
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => {
+                        const mid = Math.ceil(splitPages.length / 2);
+                        setSplitRange(`1-${mid}, ${mid + 1}-${splitPages.length}`);
+                      }}
+                      style={{ padding: '4px 10px', fontSize: '11.5px' }}
+                    >
+                      Split in Half
+                    </button>
+                  </div>
+                )}
+              </div>
+              <input
+                type="text"
+                value={splitRange}
+                onChange={e => setSplitRange(e.target.value)}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', background: 'var(--bg-grid)', color: 'var(--text-main)', border: '1px solid var(--border-color)', marginBottom: '14px' }}
+              />
+
+              {splitPages.length > 0 && (() => {
+                const groupColors = ['#06b6d4', '#a855f7', '#10b981', '#f59e0b', '#ec4899', '#3b82f6'];
+                const ranges = splitRange.split(',').map(s => s.trim()).filter(Boolean).map((part, rIdx) => {
+                  const [a, b] = part.split('-');
+                  const start = Math.max(1, parseInt(a, 10) || 1);
+                  const end = Math.min(splitPages.length, parseInt(b || a, 10) || start);
+                  return { rIdx, start, end, color: groupColors[rIdx % groupColors.length], label: `File ${rIdx + 1}` };
+                });
+                return (
+                  <div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '10px', fontWeight: '600' }}>
+                      Split Preview ({ranges.length} output PDF{ranges.length === 1 ? '' : 's'}):{' '}
+                      {ranges.map(r => `${r.label} (p.${r.start}${r.end !== r.start ? `-${r.end}` : ''})`).join(' • ')}
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(135px, 1fr))', gap: '12px' }}>
+                      {splitPages.map((p, idx) => {
+                        const pageNum = idx + 1;
+                        const matched = ranges.find(r => pageNum >= r.start && pageNum <= r.end);
+                        return (
+                          <div
+                            key={p.index}
+                            style={{
+                              padding: '8px', borderRadius: '12px', background: 'var(--bg-grid)', textAlign: 'center',
+                              border: matched ? `2px solid ${matched.color}` : '1px dashed var(--border-color)',
+                              opacity: matched ? 1 : 0.4
+                            }}
+                          >
+                            <img src={p.dataUrl} alt={`Page ${pageNum}`} style={{ width: '100%', height: '140px', objectFit: 'contain' }} />
+                            <div style={{ fontSize: '11px', fontWeight: '700', marginTop: '6px' }}>Page {pageNum}</div>
+                            <div style={{
+                              marginTop: '4px', fontSize: '10.5px', fontWeight: '800', padding: '2px 8px', borderRadius: '10px', display: 'inline-block',
+                              background: matched ? `${matched.color}22` : 'transparent',
+                              color: matched ? matched.color : 'var(--text-muted)'
+                            }}>
+                              {matched ? matched.label : 'Not Included'}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
 
