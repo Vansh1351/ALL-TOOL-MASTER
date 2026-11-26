@@ -119,8 +119,8 @@ async function transcribeWithGemini(filePath, mimeType, key, userTextPrompt = ''
   const ai = new GoogleGenAI({ apiKey: key });
   const fileBuffer = fs.readFileSync(filePath);
   const transcriptionInstruction = userTextPrompt && userTextPrompt.trim()
-    ? `Generate an accurate transcription of all speech in this audio adhering strictly to the user's instructions: "${userTextPrompt.trim()}". If requested in Hinglish, transcribe using Roman/Latin alphabet. If requested in English, translate into English. Break down paragraph blocks clearly. Start directly with the transcript.`
-    : "Generate a verbatim, accurate transcription of all speech in this audio. Break down paragraph blocks clearly. Start directly with the transcript.";
+    ? `Generate a COMPLETE, FULL, WORD-FOR-WORD verbatim transcription of ALL speech in this audio from start to finish, adhering strictly to the user's instructions: "${userTextPrompt.trim()}". CRITICAL: NEVER summarize, condense, shorten, or omit any part of the audio. Transcribe every single sentence in full. If requested in Hinglish, transcribe using Roman/Latin alphabet. If requested in English, translate every sentence into English. Break down paragraph blocks clearly. Start directly with the transcript.`
+    : "Generate a COMPLETE, FULL, WORD-FOR-WORD verbatim transcription of ALL speech in this audio from start to finish. CRITICAL: NEVER summarize, condense, shorten, or omit any part of the audio. Break down paragraph blocks clearly. Start directly with the transcript.";
 
   const contents = [
     {
@@ -153,7 +153,8 @@ async function transcribeWithGemini(filePath, mimeType, key, userTextPrompt = ''
  */
 async function executeGroqChat({ prompt, contextText, textContent, tool, key }) {
   const models = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b'];
-  const maxTokens = tool === 'ai-script-writer' ? 4096 : (tool === 'watermark-remover' || tool === 'logo-generator' ? 2048 : 2500);
+  const isLongOutput = ['ai-script-writer', 'script-writer', 'transcript', 'ai-transcript', 'speech-to-text', 'ai-speech-to-text', 'subtitles', 'ai-subtitles'].includes(tool);
+  const maxTokens = isLongOutput ? 8192 : (tool === 'watermark-remover' || tool === 'logo-generator' ? 2048 : 3000);
 
   const fullPrompt = `System Directive: Apply the following instructions to the provided media/text context:
 
@@ -219,7 +220,8 @@ ${contextText ? `Context Content:\n${contextText}\n\n` : ''}${textContent ? `Tex
     messageContent = fullPrompt;
   }
 
-  const maxTokens = tool === 'ai-script-writer' ? 4096 : (tool === 'watermark-remover' || tool === 'logo-generator' ? 2048 : 2500);
+  const isLongOutput = ['ai-script-writer', 'script-writer', 'transcript', 'ai-transcript', 'speech-to-text', 'ai-speech-to-text', 'subtitles', 'ai-subtitles'].includes(tool);
+  const maxTokens = isLongOutput ? 8192 : (tool === 'watermark-remover' || tool === 'logo-generator' ? 2048 : 3000);
 
   let lastErr = null;
   for (const model of models) {
@@ -290,7 +292,8 @@ ${prompt}
 
 ${contextText ? `Context Content:\n${contextText}\n\n` : ''}${textContent ? `Text Input Context:\n${textContent}\n\n` : ''}Format your output in professional, readable Markdown syntax. Start directly with the content without conversational meta-responses.`;
 
-  const maxTokens = tool === 'ai-script-writer' ? 4096 : (tool === 'watermark-remover' || tool === 'logo-generator' ? 2048 : 2500);
+  const isLongOutput = ['ai-script-writer', 'script-writer', 'transcript', 'ai-transcript', 'speech-to-text', 'ai-speech-to-text', 'subtitles', 'ai-subtitles'].includes(tool);
+  const maxTokens = isLongOutput ? 8192 : (tool === 'watermark-remover' || tool === 'logo-generator' ? 2048 : 3000);
 
   let lastErr = null;
   for (const model of models) {
@@ -463,16 +466,21 @@ export async function processAiTool({ tool, filePath, mimeType, textContent, api
       break;
     case 'transcript':
     case 'ai-transcript':
+    case 'speech-to-text':
+    case 'ai-speech-to-text':
       if (textContent && textContent.trim()) {
-        prompt = `You are a professional transcription and multilingual language specialist. The user provided an audio/video recording and gave specific formatting, language, or translation instructions in Text Content: "${textContent.trim()}".
-Follow their instructions strictly:
-- If they requested Hinglish, write the transcription in Hinglish (Hindi words written phonetically in Roman/Latin script, e.g., "Main wahan ja raha hoon").
-- If they requested English or translation, provide the full transcript translated into natural, clear English.
-- If they requested both (e.g. "in hinglish or in english"), provide BOTH clearly labeled under Markdown headers: "### Hinglish Transcript" and "### English Translation".
-- If they requested another specific language, dialect, or formatting style, apply that exact directive.
-- Maintain accurate speaker flow, dialogue nuance, and clean paragraph breaks. Start directly with the formatted transcript.`;
+        prompt = `You are a professional verbatim transcription and multilingual language specialist. The user provided an audio/video recording (or text) and gave specific formatting, language, or translation instructions in Text Content: "${textContent.trim()}".
+CRITICAL ANTI-SUMMARIZATION RULES (MUST FOLLOW):
+- NEVER summarize, condense, shorten, paraphrase, or skip ANY part of the speech/context.
+- Output the COMPLETE, FULL, WORD-FOR-WORD transcript of EVERY single sentence from beginning to end.
+- Follow the user's language/formatting instructions strictly:
+  * If they requested Hinglish, write the ENTIRE transcript word-for-word in Hinglish (Hindi words written phonetically in Roman/Latin script, e.g., "Main wahan ja raha hoon").
+  * If they requested English or translation, provide the ENTIRE full transcript translated sentence-by-sentence into natural, clear English.
+  * If they requested both (e.g. "in hinglish or in english"), provide BOTH full transcripts clearly labeled under Markdown headers: "### Hinglish Transcript" and "### English Translation".
+  * If they requested another specific language, dialect, or formatting style, apply that exact directive to the ENTIRE transcript.
+- Maintain accurate speaker flow, dialogue nuance, and clean paragraph breaks. Start directly with the full transcript without any intro or summary.`;
       } else {
-        prompt = "Generate a verbatim text transcription of the conversation or audio. Break down paragraph blocks by speaker changes or topic changes where applicable.";
+        prompt = `Generate a COMPLETE, FULL, WORD-FOR-WORD verbatim text transcription of EVERY spoken sentence in the conversation, audio, or text from start to finish. CRITICAL: NEVER summarize, condense, paraphrase, or omit any part of the content. Break down paragraph blocks by speaker changes or topic changes where applicable. Start directly with the transcript.`;
       }
       break;
     case 'subtitles':
@@ -738,7 +746,7 @@ CRITICAL: Return ONLY valid, parser-friendly JSON. Do not wrap in markdown \`\`\
       }
 
       // If user tool is purely transcript or speech-to-text, and NO custom user prompt/instructions were provided in textContent:
-      if ((tool === 'transcript' || tool === 'ai-transcript') && (!textContent || !textContent.trim())) {
+      if (['transcript', 'ai-transcript', 'speech-to-text', 'ai-speech-to-text'].includes(tool) && (!textContent || !textContent.trim())) {
         if (processedFilePath !== filePath && fs.existsSync(processedFilePath)) {
           try { fs.unlinkSync(processedFilePath); } catch (e) {}
         }
