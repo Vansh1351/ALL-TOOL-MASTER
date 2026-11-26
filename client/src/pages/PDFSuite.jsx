@@ -112,8 +112,9 @@ export default function PDFSuite({ tool, setView, setActiveTool, addToast, incre
   const [htmlTextInput, setHtmlTextInput] = useState('');
 
   // Visual Page Organizer state
-  const [orgPages, setOrgPages] = useState([]); // { index, thumb, rotate, selected }
+  const [orgPages, setOrgPages] = useState([]); // { uid, index, thumb, rotate, selected }
   const [orgPdfBytes, setOrgPdfBytes] = useState(null);
+  const [orgDragIdx, setOrgDragIdx] = useState(null);
 
   // ─── Interactive Document & PDF Edit Studio State ─────────────────────────
   const [docPages, setDocPages] = useState([
@@ -190,6 +191,9 @@ export default function PDFSuite({ tool, setView, setActiveTool, addToast, incre
     }
     setActiveSubTool(subId);
     resetToolOutputs();
+    if (subId === 'organize-pages' && files[0]?.type === 'application/pdf') {
+      loadOrganizerFromFile(files[0]);
+    }
   };
 
   const resetToolOutputs = () => {
@@ -242,6 +246,28 @@ export default function PDFSuite({ tool, setView, setActiveTool, addToast, incre
     return rendered;
   };
 
+  const loadOrganizerFromFile = async (pdfFile) => {
+    if (!pdfFile) return;
+    try {
+      const buf = await pdfFile.arrayBuffer();
+      setOrgPdfBytes(buf);
+      const pages = await renderPdfPagesToImages(buf, 0.45);
+      setOrgPages(pages.map((p, idx) => ({ ...p, uid: `${p.index}_${Date.now()}_${idx}`, rotate: 0, selected: true })));
+    } catch (e) {
+      if (addToast) addToast('Failed to preview PDF pages: ' + e.message, 'error');
+    }
+  };
+
+  const moveOrgPage = (fromIdx, toIdx) => {
+    setOrgPages(prev => {
+      if (toIdx < 0 || toIdx >= prev.length) return prev;
+      const copy = [...prev];
+      const [item] = copy.splice(fromIdx, 1);
+      copy.splice(toIdx, 0, item);
+      return copy;
+    });
+  };
+
   // Load PDF into Organizer when organize-pages is active
   const handleFilesSelected = async (selectedFiles) => {
     const list = Array.from(selectedFiles || []);
@@ -249,15 +275,8 @@ export default function PDFSuite({ tool, setView, setActiveTool, addToast, incre
     setFiles(prev => (activeSubTool === 'merge' || activeSubTool === 'jpg-to-pdf' || activeSubTool === 'ai-compare') ? [...prev, ...list] : list);
     resetToolOutputs();
 
-    if (activeSubTool === 'organize-pages' && list[0]?.type === 'application/pdf') {
-      try {
-        const buf = await list[0].arrayBuffer();
-        setOrgPdfBytes(buf);
-        const pages = await renderPdfPagesToImages(buf, 0.45);
-        setOrgPages(pages.map(p => ({ ...p, rotate: 0, selected: true })));
-      } catch (e) {
-        if (addToast) addToast('Failed to preview PDF pages: ' + e.message, 'error');
-      }
+    if (activeSubTool === 'organize-pages' && (list[0]?.type === 'application/pdf' || list[0]?.name?.toLowerCase().endsWith('.pdf'))) {
+      await loadOrganizerFromFile(list[0]);
     }
   };
 
@@ -1415,13 +1434,33 @@ export default function PDFSuite({ tool, setView, setActiveTool, addToast, incre
                 activeSubTool === 'ocr' || activeSubTool === 'ai-ocr' ? '.pdf,image/*' : '.pdf'
               }
               style={{ display: 'none' }}
-              onChange={(e) => handleFilesSelected(e.target.files)}
+              onChange={(e) => { handleFilesSelected(e.target.files); e.target.value = ''; }}
             />
             <FiUploadCloud size={34} style={{ color: 'var(--accent-color)', marginBottom: '8px' }} />
             <div style={{ fontSize: '14px', fontWeight: '700' }}>
               {files.length > 0 ? `${files.length} file(s) selected: ${files.map(f => f.name).join(', ')}` : 'Click to select file(s)'}
             </div>
           </div>
+
+          {/* Reorderable File List for Merge PDF / JPG to PDF */}
+          {(activeSubTool === 'merge' || activeSubTool === 'jpg-to-pdf') && files.length > 0 && (
+            <div style={{ marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)' }}>
+                <span>File Order ({files.length}):</span>
+                <button className="btn btn-secondary" onClick={() => setFiles([])} style={{ padding: '3px 8px', fontSize: '11px' }}>Clear All</button>
+              </div>
+              {files.map((f, idx) => (
+                <div key={`${f.name}_${idx}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: '10px', background: 'var(--bg-grid)', border: '1px solid var(--border-color)', fontSize: '12.5px' }}>
+                  <span><strong>#{idx + 1}</strong> {f.name} ({(f.size / 1024).toFixed(0)} KB)</span>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <button className="btn btn-secondary" disabled={idx === 0} onClick={() => setFiles(prev => { const c = [...prev]; [c[idx], c[idx - 1]] = [c[idx - 1], c[idx]]; return c; })} style={{ padding: '3px 7px', fontSize: '11px' }}><FiArrowUp /></button>
+                    <button className="btn btn-secondary" disabled={idx === files.length - 1} onClick={() => setFiles(prev => { const c = [...prev]; [c[idx], c[idx + 1]] = [c[idx + 1], c[idx]]; return c; })} style={{ padding: '3px 7px', fontSize: '11px' }}><FiArrowDown /></button>
+                    <button className="btn btn-secondary" onClick={() => setFiles(prev => prev.filter((_, i) => i !== idx))} style={{ padding: '3px 7px', fontSize: '11px', color: '#ef4444' }}><FiTrash2 /></button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Tool-Specific Options */}
           {activeSubTool === 'split' && (
@@ -1466,17 +1505,50 @@ export default function PDFSuite({ tool, setView, setActiveTool, addToast, incre
 
           {/* Visual Page Grid for Organize / Rotate / Remove / Extract */}
           {activeSubTool === 'organize-pages' && orgPages.length > 0 && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px', marginBottom: '20px' }}>
-              {orgPages.map((p, idx) => (
-                <div key={p.index} style={{ padding: '8px', borderRadius: '12px', background: 'var(--bg-grid)', border: p.selected ? '2px solid var(--accent-color)' : '1px solid var(--border-color)', opacity: p.selected ? 1 : 0.45, textAlign: 'center' }}>
-                  <img src={p.dataUrl} alt={`Page ${p.index + 1}`} style={{ width: '100%', height: '150px', objectFit: 'contain', transform: `rotate(${p.rotate}deg)`, transition: '0.2s' }} />
-                  <div style={{ fontSize: '11px', fontWeight: '700', margin: '6px 0' }}>Page {p.index + 1}</div>
-                  <div style={{ display: 'flex', justifyContent: 'center', gap: '6px' }}>
-                    <button onClick={() => setOrgPages(prev => prev.map((x, i) => i === idx ? { ...x, rotate: (x.rotate + 90) % 360 } : x))} className="btn btn-secondary" style={{ padding: '4px 7px', fontSize: '11px' }} title="Rotate 90°"><FiRotateCw /></button>
-                    <button onClick={() => setOrgPages(prev => prev.map((x, i) => i === idx ? { ...x, selected: !x.selected } : x))} className="btn btn-secondary" style={{ padding: '4px 7px', fontSize: '11px', color: p.selected ? '#10b981' : '#ef4444' }} title="Keep/Remove">{p.selected ? 'Keep' : 'Removed'}</button>
-                  </div>
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+                <span style={{ fontSize: '12.5px', fontWeight: '700', color: 'var(--text-muted)' }}>
+                  Drag & drop pages or use ← / → to reorder ({orgPages.filter(p => p.selected).length}/{orgPages.length} kept)
+                </span>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button className="btn btn-secondary" onClick={() => setOrgPages(prev => prev.map(p => ({ ...p, selected: true })))} style={{ padding: '5px 10px', fontSize: '11.5px' }}>Select All</button>
+                  <button className="btn btn-secondary" onClick={() => setOrgPages(prev => prev.map(p => ({ ...p, selected: false })))} style={{ padding: '5px 10px', fontSize: '11.5px' }}>Deselect All</button>
+                  <button className="btn btn-secondary" onClick={() => loadOrganizerFromFile(files[0])} style={{ padding: '5px 10px', fontSize: '11.5px' }}>Reset</button>
                 </div>
-              ))}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))', gap: '12px' }}>
+                {orgPages.map((p, idx) => (
+                  <div
+                    key={p.uid || `${p.index}_${idx}`}
+                    draggable
+                    onDragStart={() => setOrgDragIdx(idx)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => {
+                      if (orgDragIdx !== null && orgDragIdx !== idx) {
+                        moveOrgPage(orgDragIdx, idx);
+                      }
+                      setOrgDragIdx(null);
+                    }}
+                    style={{
+                      padding: '8px', borderRadius: '12px', background: 'var(--bg-grid)',
+                      border: p.selected ? '2px solid var(--accent-color)' : '1px solid var(--border-color)',
+                      opacity: p.selected ? 1 : 0.45, textAlign: 'center', cursor: 'grab'
+                    }}
+                  >
+                    <img src={p.dataUrl} alt={`Page ${p.index + 1}`} draggable={false} style={{ width: '100%', height: '150px', objectFit: 'contain', transform: `rotate(${p.rotate}deg)`, transition: '0.2s' }} />
+                    <div style={{ fontSize: '11px', fontWeight: '700', margin: '6px 0' }}>
+                      #{idx + 1} <span style={{ color: 'var(--text-muted)', fontWeight: '500' }}>(Orig p.{p.index + 1})</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', flexWrap: 'wrap' }}>
+                      <button onClick={() => moveOrgPage(idx, idx - 1)} disabled={idx === 0} className="btn btn-secondary" style={{ padding: '4px 6px', fontSize: '11px' }} title="Move Left">←</button>
+                      <button onClick={() => moveOrgPage(idx, idx + 1)} disabled={idx === orgPages.length - 1} className="btn btn-secondary" style={{ padding: '4px 6px', fontSize: '11px' }} title="Move Right">→</button>
+                      <button onClick={() => setOrgPages(prev => prev.map((x, i) => i === idx ? { ...x, rotate: (x.rotate + 90) % 360 } : x))} className="btn btn-secondary" style={{ padding: '4px 6px', fontSize: '11px' }} title="Rotate 90°"><FiRotateCw /></button>
+                      <button onClick={() => setOrgPages(prev => { const c = [...prev]; c.splice(idx + 1, 0, { ...p, uid: `${p.index}_${Date.now()}_dup` }); return c; })} className="btn btn-secondary" style={{ padding: '4px 6px', fontSize: '11px' }} title="Duplicate Page"><FiPlus /></button>
+                      <button onClick={() => setOrgPages(prev => prev.map((x, i) => i === idx ? { ...x, selected: !x.selected } : x))} className="btn btn-secondary" style={{ padding: '4px 7px', fontSize: '11px', color: p.selected ? '#10b981' : '#ef4444' }} title="Keep/Remove">{p.selected ? 'Keep' : 'Removed'}</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
