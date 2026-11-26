@@ -191,8 +191,8 @@ export default function PDFSuite({ tool, setView, setActiveTool, addToast, incre
     }
     setActiveSubTool(subId);
     resetToolOutputs();
-    if (subId === 'organize-pages' && files[0]?.type === 'application/pdf') {
-      loadOrganizerFromFile(files[0]);
+    if (subId === 'organize-pages' && files.length > 0 && orgPages.length === 0) {
+      loadOrganizerFromFiles(files, false);
     }
   };
 
@@ -246,15 +246,56 @@ export default function PDFSuite({ tool, setView, setActiveTool, addToast, incre
     return rendered;
   };
 
-  const loadOrganizerFromFile = async (pdfFile) => {
-    if (!pdfFile) return;
-    try {
-      const buf = await pdfFile.arrayBuffer();
-      setOrgPdfBytes(buf);
-      const pages = await renderPdfPagesToImages(buf, 0.45);
-      setOrgPages(pages.map((p, idx) => ({ ...p, uid: `${p.index}_${Date.now()}_${idx}`, rotate: 0, selected: true })));
-    } catch (e) {
-      if (addToast) addToast('Failed to preview PDF pages: ' + e.message, 'error');
+  const loadOrganizerFromFiles = async (fileList, append = true) => {
+    if (!fileList || fileList.length === 0) return;
+    const newItems = [];
+    for (const f of fileList) {
+      const lower = (f.name || '').toLowerCase();
+      if (f.type === 'application/pdf' || lower.endsWith('.pdf')) {
+        try {
+          const buf = await f.arrayBuffer();
+          setOrgPdfBytes(buf);
+          const pages = await renderPdfPagesToImages(buf, 0.45);
+          pages.forEach((p, idx) => {
+            newItems.push({
+              ...p,
+              kind: 'pdf',
+              sourceBytes: buf,
+              fileName: f.name,
+              uid: `${f.name}_${p.index}_${Date.now()}_${idx}`,
+              rotate: 0,
+              selected: true
+            });
+          });
+        } catch (e) {
+          if (addToast) addToast(`Failed to preview ${f.name}: ${e.message}`, 'error');
+        }
+      } else if (f.type.startsWith('image/') || /\.(jpg|jpeg|png|webp|gif)$/i.test(lower)) {
+        try {
+          const buf = await f.arrayBuffer();
+          const dataUrl = await new Promise((res) => {
+            const reader = new FileReader();
+            reader.onload = () => res(reader.result);
+            reader.readAsDataURL(f);
+          });
+          newItems.push({
+            uid: `${f.name}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+            kind: 'image',
+            imgBytes: buf,
+            imgType: f.type,
+            fileName: f.name,
+            index: 0,
+            dataUrl,
+            rotate: 0,
+            selected: true
+          });
+        } catch (e) {
+          if (addToast) addToast(`Failed to load image ${f.name}: ${e.message}`, 'error');
+        }
+      }
+    }
+    if (newItems.length > 0) {
+      setOrgPages(prev => append ? [...prev, ...newItems] : newItems);
     }
   };
 
@@ -268,15 +309,16 @@ export default function PDFSuite({ tool, setView, setActiveTool, addToast, incre
     });
   };
 
-  // Load PDF into Organizer when organize-pages is active
+  // Load PDFs & Images into Organizer when organize-pages is active
   const handleFilesSelected = async (selectedFiles) => {
     const list = Array.from(selectedFiles || []);
     if (list.length === 0) return;
-    setFiles(prev => (activeSubTool === 'merge' || activeSubTool === 'jpg-to-pdf' || activeSubTool === 'ai-compare') ? [...prev, ...list] : list);
+    const isMulti = ['merge', 'jpg-to-pdf', 'ai-compare', 'organize-pages'].includes(activeSubTool);
+    setFiles(prev => isMulti ? [...prev, ...list] : list);
     resetToolOutputs();
 
-    if (activeSubTool === 'organize-pages' && (list[0]?.type === 'application/pdf' || list[0]?.name?.toLowerCase().endsWith('.pdf'))) {
-      await loadOrganizerFromFile(list[0]);
+    if (activeSubTool === 'organize-pages') {
+      await loadOrganizerFromFiles(list, true);
     }
   };
 
@@ -285,15 +327,38 @@ export default function PDFSuite({ tool, setView, setActiveTool, addToast, incre
     setStatus('processing');
     setErrorMsg('');
     try {
-      // 1. Client-Side Merge PDF
+      // 1. Client-Side Merge PDF (supports PDFs + JPG/PNG/WebP images)
       if (activeSubTool === 'merge') {
-        if (files.length < 2) throw new Error('Please upload at least 2 PDF files to merge.');
+        if (files.length < 2) throw new Error('Please upload at least 2 files (PDFs or images) to merge.');
         const merged = await PDFDocument.create();
         for (const f of files) {
-          const bytes = await f.arrayBuffer();
-          const doc = await PDFDocument.load(bytes, { ignoreEncryption: true });
-          const copied = await merged.copyPages(doc, doc.getPageIndices());
-          copied.forEach(p => merged.addPage(p));
+          const lower = (f.name || '').toLowerCase();
+          if (f.type.startsWith('image/') || /\.(jpg|jpeg|png|webp|gif)$/i.test(lower)) {
+            const buf = await f.arrayBuffer();
+            let img;
+            if (f.type === 'image/png' || lower.endsWith('.png')) img = await merged.embedPng(buf);
+            else if (f.type === 'image/jpeg' || lower.endsWith('.jpg') || lower.endsWith('.jpeg')) img = await merged.embedJpg(buf);
+            else {
+              const pngBytes = await new Promise((res) => {
+                const im = new Image();
+                im.onload = () => {
+                  const c = document.createElement('canvas');
+                  c.width = im.width; c.height = im.height;
+                  c.getContext('2d').drawImage(im, 0, 0);
+                  c.toBlob(b => b.arrayBuffer().then(res), 'image/png');
+                };
+                im.src = URL.createObjectURL(f);
+              });
+              img = await merged.embedPng(pngBytes);
+            }
+            const page = merged.addPage([img.width, img.height]);
+            page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+          } else {
+            const bytes = await f.arrayBuffer();
+            const doc = await PDFDocument.load(bytes, { ignoreEncryption: true });
+            const copied = await merged.copyPages(doc, doc.getPageIndices());
+            copied.forEach(p => merged.addPage(p));
+          }
         }
         const outBytes = await merged.save();
         triggerDownloadBlob(new Blob([outBytes], { type: 'application/pdf' }), 'merged_document.pdf');
@@ -335,17 +400,49 @@ export default function PDFSuite({ tool, setView, setActiveTool, addToast, incre
         return;
       }
 
-      // 3. Client-Side Organize / Rotate / Remove / Extract Pages
+      // 3. Client-Side Organize / Rotate / Remove / Extract Pages (supports multiple PDFs & Images)
       if (activeSubTool === 'organize-pages') {
-        if (!orgPdfBytes || orgPages.length === 0) throw new Error('Please upload a PDF first.');
+        if (orgPages.length === 0) throw new Error('Please upload one or more PDFs or images first.');
         const kept = orgPages.filter(p => p.selected);
         if (kept.length === 0) throw new Error('Select at least 1 page to keep/extract.');
-        const srcDoc = await PDFDocument.load(orgPdfBytes, { ignoreEncryption: true });
         const outDoc = await PDFDocument.create();
+        const docCache = new Map();
+
         for (const p of kept) {
-          const [copied] = await outDoc.copyPages(srcDoc, [p.index]);
-          if (p.rotate) copied.setRotation(degrees((copied.getRotation().angle + p.rotate) % 360));
-          outDoc.addPage(copied);
+          if (p.kind === 'image') {
+            let img;
+            const lower = (p.fileName || '').toLowerCase();
+            if (p.imgType === 'image/png' || lower.endsWith('.png')) {
+              img = await outDoc.embedPng(p.imgBytes);
+            } else if (p.imgType === 'image/jpeg' || lower.endsWith('.jpg') || lower.endsWith('.jpeg')) {
+              img = await outDoc.embedJpg(p.imgBytes);
+            } else {
+              const pngBytes = await new Promise((res) => {
+                const im = new Image();
+                im.onload = () => {
+                  const c = document.createElement('canvas');
+                  c.width = im.width; c.height = im.height;
+                  c.getContext('2d').drawImage(im, 0, 0);
+                  c.toBlob(b => b.arrayBuffer().then(res), 'image/png');
+                };
+                im.src = p.dataUrl;
+              });
+              img = await outDoc.embedPng(pngBytes);
+            }
+            const page = outDoc.addPage([img.width, img.height]);
+            page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+            if (p.rotate) page.setRotation(degrees(p.rotate % 360));
+          } else {
+            const bytes = p.sourceBytes || orgPdfBytes;
+            let srcDoc = docCache.get(bytes);
+            if (!srcDoc) {
+              srcDoc = await PDFDocument.load(bytes, { ignoreEncryption: true });
+              docCache.set(bytes, srcDoc);
+            }
+            const [copied] = await outDoc.copyPages(srcDoc, [p.index]);
+            if (p.rotate) copied.setRotation(degrees((copied.getRotation().angle + p.rotate) % 360));
+            outDoc.addPage(copied);
+          }
         }
         const outBytes = await outDoc.save();
         triggerDownloadBlob(new Blob([outBytes], { type: 'application/pdf' }), 'organized_document.pdf');
@@ -1424,9 +1521,10 @@ export default function PDFSuite({ tool, setView, setActiveTool, addToast, incre
             <input
               ref={fileInputRef}
               type="file"
-              multiple={activeSubTool === 'merge' || activeSubTool === 'jpg-to-pdf' || activeSubTool === 'ai-compare'}
+              multiple={['merge', 'jpg-to-pdf', 'ai-compare', 'organize-pages'].includes(activeSubTool)}
               accept={
                 activeSubTool === 'jpg-to-pdf' ? 'image/*' :
+                activeSubTool === 'merge' || activeSubTool === 'organize-pages' ? '.pdf,image/*' :
                 activeSubTool === 'word-to-pdf' ? '.doc,.docx' :
                 activeSubTool === 'powerpoint-to-pdf' ? '.ppt,.pptx' :
                 activeSubTool === 'excel-to-pdf' ? '.xls,.xlsx,.csv' :
@@ -1513,7 +1611,7 @@ export default function PDFSuite({ tool, setView, setActiveTool, addToast, incre
                 <div style={{ display: 'flex', gap: '6px' }}>
                   <button className="btn btn-secondary" onClick={() => setOrgPages(prev => prev.map(p => ({ ...p, selected: true })))} style={{ padding: '5px 10px', fontSize: '11.5px' }}>Select All</button>
                   <button className="btn btn-secondary" onClick={() => setOrgPages(prev => prev.map(p => ({ ...p, selected: false })))} style={{ padding: '5px 10px', fontSize: '11.5px' }}>Deselect All</button>
-                  <button className="btn btn-secondary" onClick={() => loadOrganizerFromFile(files[0])} style={{ padding: '5px 10px', fontSize: '11.5px' }}>Reset</button>
+                  <button className="btn btn-secondary" onClick={() => { setOrgPages([]); setFiles([]); }} style={{ padding: '5px 10px', fontSize: '11.5px', color: '#ef4444' }}>Clear All</button>
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))', gap: '12px' }}>
