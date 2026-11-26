@@ -161,27 +161,28 @@ async function transcribeWithGroq(filePath, mimeType, key, uploadsDir) {
 }
 
 /**
- * Transcribes audio/video using Google Gemini multimodal audio.
+ * Transcribes audio/video using Google Gemini multimodal audio (listens directly to full audio).
  */
 async function transcribeWithGemini(filePath, mimeType, key, userTextPrompt = '') {
-  console.log(`[Gemini Audio] Transcribing ${path.basename(filePath)} with Gemini SDK...`);
+  console.log(`[Gemini Audio] Transcribing ${path.basename(filePath)} with Gemini Multimodal SDK...`);
   const ai = new GoogleGenAI({ apiKey: key });
   const fileBuffer = fs.readFileSync(filePath);
-  const formattingRules = `FORMATTING & ACCURACY RULES:
-- CRITICAL: NEVER summarize, condense, shorten, or omit any part of the audio. Output the COMPLETE, FULL, WORD-FOR-WORD verbatim transcription of EVERY spoken sentence from start to finish.
-- Start a new paragraph whenever the speaker changes or a distinct conversational turn occurs so dialogue is clean and easy to read.
-- Do NOT wrap the transcript in markdown code blocks or triple backticks (\`\`\`).
-- Preserve exact names, cultural terms, and pronunciation accurately without guessing unrelated English words.`;
+  const formattingRules = `STRICT TRANSCRIPTION & QUALITY RULES:
+1. Listen to the ENTIRE audio carefully from 0:00 to the very end.
+2. CRITICAL: NEVER summarize, condense, shorten, paraphrase, or omit ANY word or sentence. Every single spoken sentence from start to finish MUST be included in full.
+3. Ensure ZERO spelling mistakes, ZERO grammar mistakes, and ZERO phonetic errors. Accurately spell technical, medical, proper noun, and mixed-language (code-switched) terms based on what is spoken and context.
+4. Insert a blank line (double newline) between speaker turns or distinct topic paragraphs so the transcript is clean and easy to read.
+5. Do NOT use markdown formatting symbols like **, ###, or \`\`\` anywhere in the output. Output clean, ready-to-use text.`;
 
   const transcriptionInstruction = userTextPrompt && userTextPrompt.trim()
-    ? `Listen carefully to the entire audio and generate a COMPLETE, WORD-FOR-WORD verbatim transcription adhering strictly to the user's instructions: "${userTextPrompt.trim()}".
-- If requested in Hinglish, write every spoken Hindi/Urdu word naturally and accurately in Roman/Latin script (phonetic Hinglish).
-- If requested in English, translate every single sentence faithfully into natural English.
-- If requested in both (e.g. "hinglish or english"), provide both complete transcripts under clear Markdown headers.
+    ? `Listen carefully to the entire audio and generate a COMPLETE, ACCURATE, WORD-FOR-WORD transcription adhering strictly to the user's instructions: "${userTextPrompt.trim()}".
+- If requested in Hinglish, write every spoken Hindi/Urdu/English word naturally and accurately in Roman/Latin script (phonetic Hinglish) with proper English spelling for English words.
+- If requested in English, translate every single sentence faithfully into natural, grammatically perfect English.
+- If requested in both (e.g. "hinglish or english"), provide both complete transcripts clearly separated with plain headers "Hinglish Transcript:" and "English Translation:".
 - If requested in another language (e.g. Gujarati, Marathi, Tamil), transcribe/translate into that exact language.
 ${formattingRules}
 Start directly with the transcript.`
-    : `Listen carefully to the entire audio and generate a COMPLETE, WORD-FOR-WORD verbatim transcription in the original spoken language.
+    : `Listen carefully to the entire audio and generate a COMPLETE, ACCURATE, WORD-FOR-WORD verbatim transcription in the spoken language(s) (preserving code-switched English words accurately).
 ${formattingRules}
 Start directly with the transcript.`;
 
@@ -197,18 +198,80 @@ Start directly with the transcript.`;
     }
   ];
 
-  const models = ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
+  const models = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.8-flash', 'gemini-flash-latest'];
   let lastErr = null;
   for (const m of models) {
     try {
-      const res = await ai.models.generateContent({ model: m, contents: contents });
+      console.log(`[Gemini Audio] Trying ${m}...`);
+      const res = await Promise.race([
+        ai.models.generateContent({ model: m, contents: contents }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error(`Gemini ${m} timed out after 25s`)), 25000))
+      ]);
       const txt = res.text;
-      if (txt) return txt;
+      if (txt) {
+        return txt
+          .replace(/```[a-z]*\r?\n?/gi, '')
+          .replace(/```/g, '')
+          .replace(/^#{1,6}\s+/gm, '')
+          .replace(/\*\*/g, '')
+          .trim();
+      }
     } catch (e) {
+      console.warn(`[Gemini Audio] ${m} failed: ${e.message}`);
       lastErr = e;
     }
   }
   throw lastErr || new Error("Gemini audio transcription failed.");
+}
+
+/**
+ * Transcribes audio using NVIDIA Nemotron Omni multimodal audio model.
+ */
+async function transcribeWithNvidiaOmni(filePath, mimeType, key, userTextPrompt = '') {
+  console.log(`[NVIDIA Omni Audio] Transcribing ${path.basename(filePath)}...`);
+  const fileBuffer = fs.readFileSync(filePath);
+  const b64 = fileBuffer.toString('base64');
+  const format = (mimeType || '').includes('wav') ? 'wav' : 'mp3';
+  const directive = userTextPrompt && userTextPrompt.trim()
+    ? `Listen carefully to the entire audio from start to finish and transcribe EVERY spoken word and sentence completely without summarizing or skipping anything, following these instructions: "${userTextPrompt.trim()}". Fix any spelling or grammar mistakes, separate paragraphs cleanly, and do NOT use markdown symbols like **, ###, or \`\`\`.`
+    : `Listen carefully to the entire audio from start to finish and transcribe EVERY spoken word and sentence verbatim without summarizing or skipping anything. Ensure zero spelling or grammar mistakes, separate paragraphs cleanly, and do NOT use markdown symbols like **, ###, or \`\`\`.`;
+
+  const res = await Promise.race([
+    fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${key}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+        max_tokens: 8192,
+        temperature: 0.1,
+        messages: [{
+          role: "user",
+          content: [
+            { type: "text", text: directive },
+            { type: "input_audio", input_audio: { data: b64, format } }
+          ]
+        }]
+      })
+    }),
+    new Promise((_, reject) => setTimeout(() => reject(new Error("NVIDIA Omni timed out after 30s")), 30000))
+  ]);
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`NVIDIA Omni (${res.status}): ${errText}`);
+  }
+  const data = await res.json();
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) throw new Error("Empty response from NVIDIA Omni audio.");
+  return content
+    .replace(/```[a-z]*\r?\n?/gi, '')
+    .replace(/```/g, '')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/\*\*/g, '')
+    .trim();
 }
 
 /**
@@ -807,10 +870,47 @@ CRITICAL: Return ONLY valid, parser-friendly JSON. Do not wrap in markdown \`\`\
       const isTranscriptTool = ['transcript', 'ai-transcript', 'speech-to-text', 'ai-speech-to-text'].includes(tool);
       const fileSizeBytes = fs.statSync(processedFilePath).size;
       const geminiKey = keys.find(k => detectProvider(k) === 'gemini');
+      const nvidiaKey = keys.find(k => detectProvider(k) === 'nvidia');
       const groqKey = keys.find(k => detectProvider(k) === 'groq');
 
-      // 1. Try Groq Whisper FIRST (40s 16kHz mono chunks via whisper-large-v3; ~1s latency)
-      if (groqKey) {
+      // 1. For transcript/speech-to-text tools, prefer Multimodal Audio FIRST (Gemini 3.5/3.1 Flash Lite)
+      // because it listens directly to the full audio, handles Hindi+English code-switching & medical/technical terms,
+      // and never drops middle segments.
+      if (isTranscriptTool && geminiKey && fileSizeBytes <= 18 * 1024 * 1024) {
+        try {
+          transcribedText = await transcribeWithGemini(processedFilePath, processedMimeType, geminiKey, textContent);
+          if (transcribedText) {
+            if (processedFilePath !== filePath && fs.existsSync(processedFilePath)) {
+              try { fs.unlinkSync(processedFilePath); } catch (e) {}
+            }
+            console.log("[Audio Engine] Gemini multimodal transcript succeeded.");
+            return transcribedText;
+          }
+        } catch (e) {
+          console.warn("[Gemini Audio] Failed, trying NVIDIA Omni / Groq Whisper fallback:", e.message);
+          transcriptionError = e;
+        }
+      }
+
+      // 2. Fallback to NVIDIA Nemotron Omni Multimodal Audio (listens directly to audio)
+      if (!transcribedText && isTranscriptTool && nvidiaKey && fileSizeBytes <= 12 * 1024 * 1024) {
+        try {
+          transcribedText = await transcribeWithNvidiaOmni(processedFilePath, processedMimeType, nvidiaKey, textContent);
+          if (transcribedText) {
+            if (processedFilePath !== filePath && fs.existsSync(processedFilePath)) {
+              try { fs.unlinkSync(processedFilePath); } catch (e) {}
+            }
+            console.log("[Audio Engine] NVIDIA Omni multimodal transcript succeeded.");
+            return transcribedText;
+          }
+        } catch (e) {
+          console.warn("[NVIDIA Omni Audio] Failed, trying Groq Whisper fallback:", e.message);
+          transcriptionError = e;
+        }
+      }
+
+      // 3. Fallback to Groq Whisper (40s 16kHz mono chunks via whisper-large-v3)
+      if (!transcribedText && groqKey) {
         try {
           transcribedText = await transcribeWithGroq(processedFilePath, processedMimeType, groqKey, uploadsDir);
         } catch (e) {
@@ -819,7 +919,7 @@ CRITICAL: Return ONLY valid, parser-friendly JSON. Do not wrap in markdown \`\`\
         }
       }
 
-      // 2. Fallback to Gemini Multimodal Audio if Groq failed or wasn't available (and <= 18MB)
+      // 4. Final fallback to Gemini Multimodal Audio if Groq failed (for non-transcript tools too)
       if (!transcribedText && geminiKey && fileSizeBytes <= 18 * 1024 * 1024) {
         try {
           transcribedText = await transcribeWithGemini(processedFilePath, processedMimeType, geminiKey, textContent);
