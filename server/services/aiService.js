@@ -179,11 +179,16 @@ async function executeGroqChat({ prompt, contextText, textContent, tool, key }) 
   const isLongOutput = ['ai-script-writer', 'script-writer', 'transcript', 'ai-transcript', 'speech-to-text', 'ai-speech-to-text', 'subtitles', 'ai-subtitles'].includes(tool);
   const maxTokens = isLongOutput ? 8192 : (tool === 'watermark-remover' || tool === 'logo-generator' ? 2048 : 3000);
 
+  const isTranscript = ['transcript', 'ai-transcript', 'speech-to-text', 'ai-speech-to-text'].includes(tool);
+  const formatInstruction = isTranscript
+    ? 'Output clean, plain readable text with a blank line between each speaker turn or paragraph. Do NOT use markdown symbols like **, ###, or ```.'
+    : 'Format your output in professional, readable Markdown syntax.';
+
   const fullPrompt = `System Directive: Apply the following instructions to the provided media/text context:
 
 ${prompt}
 
-${contextText ? `Context Content:\n${contextText}\n\n` : ''}${textContent ? `Text Input Context:\n${textContent}\n\n` : ''}Format your output in professional, readable Markdown syntax. Start directly with the content without conversational meta-responses.`;
+${contextText ? `Context Content:\n${contextText}\n\n` : ''}${textContent ? `Text Input Context:\n${textContent}\n\n` : ''}${formatInstruction} Start directly with the content without conversational meta-responses.`;
 
   let lastErr = null;
   for (const model of models) {
@@ -227,11 +232,16 @@ async function executeOpenRouter({ prompt, contextText, textContent, imagePayloa
     "deepseek/deepseek-chat"
   ];
 
+  const isTranscript = ['transcript', 'ai-transcript', 'speech-to-text', 'ai-speech-to-text'].includes(tool);
+  const formatInstruction = isTranscript
+    ? 'Output clean, plain readable text with a blank line between each speaker turn or paragraph. Do NOT use markdown symbols like **, ###, or ```.'
+    : 'Format your output in professional, readable Markdown syntax.';
+
   const fullPrompt = `System Directive: Apply the following instructions to the provided media/text context:
 
 ${prompt}
 
-${contextText ? `Context Content:\n${contextText}\n\n` : ''}${textContent ? `Text Input Context:\n${textContent}\n\n` : ''}Format your output in professional, readable Markdown syntax. Start directly with the content without conversational meta-responses.`;
+${contextText ? `Context Content:\n${contextText}\n\n` : ''}${textContent ? `Text Input Context:\n${textContent}\n\n` : ''}${formatInstruction} Start directly with the content without conversational meta-responses.`;
 
   let messageContent;
   if (imagePayload) {
@@ -309,11 +319,16 @@ async function executeNvidiaNim({ prompt, contextText, textContent, tool, key })
     'nvidia/nemotron-3.5-lightning-30b-a3b'
   ];
 
+  const isTranscript = ['transcript', 'ai-transcript', 'speech-to-text', 'ai-speech-to-text'].includes(tool);
+  const formatInstruction = isTranscript
+    ? 'Output clean, plain readable text with a blank line between each speaker turn or paragraph. Do NOT use markdown symbols like **, ###, or ```.'
+    : 'Format your output in professional, readable Markdown syntax.';
+
   const fullPrompt = `System Directive: Apply the following instructions to the provided media/text context:
 
 ${prompt}
 
-${contextText ? `Context Content:\n${contextText}\n\n` : ''}${textContent ? `Text Input Context:\n${textContent}\n\n` : ''}Format your output in professional, readable Markdown syntax. Start directly with the content without conversational meta-responses.`;
+${contextText ? `Context Content:\n${contextText}\n\n` : ''}${textContent ? `Text Input Context:\n${textContent}\n\n` : ''}${formatInstruction} Start directly with the content without conversational meta-responses.`;
 
   const isLongOutput = ['ai-script-writer', 'script-writer', 'transcript', 'ai-transcript', 'speech-to-text', 'ai-speech-to-text', 'subtitles', 'ai-subtitles'].includes(tool);
   const maxTokens = isLongOutput ? 8192 : (tool === 'watermark-remover' || tool === 'logo-generator' ? 2048 : 3000);
@@ -496,13 +511,13 @@ export async function processAiTool({ tool, filePath, mimeType, textContent, api
 CRITICAL ACCURACY & ANTI-SUMMARIZATION RULES (MUST FOLLOW):
 - NEVER summarize, condense, shorten, paraphrase, or skip ANY part of the speech/context.
 - Output the COMPLETE, FULL, WORD-FOR-WORD transcript of EVERY single sentence from beginning to end.
-- Format dialogue cleanly: start a NEW paragraph whenever the speaker changes or a reply begins (never merge two speakers into one run-on sentence).
-- Do NOT wrap the transcript in markdown code blocks or triple backticks (\`\`\`).
-- Fix obvious ASR phonetic misspellings using surrounding context while keeping every spoken word faithful.
+- Format dialogue cleanly: ALWAYS insert a blank line (double newline) between every speaker change or dialogue reply (never output one giant wall of text).
+- Do NOT use markdown symbols like **, ###, or \`\`\` anywhere in the output.
+- Fix obvious ASR phonetic misspellings using surrounding context (e.g., "Bahaiya" -> "Bhaiya", "Kana" -> "Kanha", "bhad" -> "bheed", "Maya" -> "Maiya") while keeping every spoken word faithful.
 - Follow the user's language/formatting instructions strictly:
   * If they requested Hinglish, write the ENTIRE transcript word-for-word in natural, accurate Hinglish (Hindi/Urdu words in Roman/Latin script, e.g., "Maiya, main Prithvi par ja raha hoon").
   * If they requested English or translation, provide the ENTIRE full transcript translated sentence-by-sentence into natural, clear English.
-  * If they requested both (e.g. "in hinglish or in english"), provide BOTH full transcripts clearly labeled under Markdown headers: "### Hinglish Transcript" and "### English Translation".
+  * If they requested both (e.g. "in hinglish or in english"), provide BOTH full transcripts clearly separated with plain headers "Hinglish Transcript:" and "English Translation:".
   * If they requested another specific language, dialect, or formatting style, apply that exact directive to the ENTIRE transcript.
 - Start directly with the full transcript without any intro or summary.`;
       } else {
