@@ -169,10 +169,11 @@ async function transcribeWithGemini(filePath, mimeType, key, userTextPrompt = ''
   const fileBuffer = fs.readFileSync(filePath);
   const formattingRules = `STRICT TRANSCRIPTION & QUALITY RULES:
 1. Listen to the ENTIRE audio carefully from 0:00 to the very end.
-2. CRITICAL: NEVER summarize, condense, shorten, paraphrase, or omit ANY word or sentence. Every single spoken sentence from start to finish MUST be included in full.
-3. Ensure ZERO spelling mistakes, ZERO grammar mistakes, and ZERO phonetic errors. Accurately spell technical, medical, proper noun, and mixed-language (code-switched) terms based on what is spoken and context.
-4. Insert a blank line (double newline) between speaker turns or distinct topic paragraphs so the transcript is clean and easy to read.
-5. Do NOT use markdown formatting symbols like **, ###, or \`\`\` anywhere in the output. Output clean, ready-to-use text.`;
+2. CRITICAL: Transcribe EXACTLY what is spoken word-for-word. NEVER summarize, condense, shorten, paraphrase (e.g. keep "koi-koi logon ke" as "koi-koi logon ke", NOT "kuch logon ke"), or drop small spoken words (keep "hai", "us", "agar", "hain", "humein").
+3. NEVER invent or guess unrelated words that were not spoken.
+4. Ensure ZERO spelling mistakes and ZERO grammar mistakes (e.g. "straightforward" as one word, "jinmein" vs "jinhone", "nasein"/"nason", "ka decision", "humein").
+5. Insert a blank line (double newline) between speaker turns or distinct topic paragraphs so the transcript is clean and easy to read.
+6. Do NOT use markdown formatting symbols like **, ###, or \`\`\` anywhere in the output. Output clean, ready-to-use text.`;
 
   const transcriptionInstruction = userTextPrompt && userTextPrompt.trim()
     ? `Listen carefully to the entire audio and generate a COMPLETE, ACCURATE, WORD-FOR-WORD transcription adhering strictly to the user's instructions: "${userTextPrompt.trim()}".
@@ -198,7 +199,7 @@ Start directly with the transcript.`;
     }
   ];
 
-  const models = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.8-flash', 'gemini-flash-latest'];
+  const models = ['gemini-3-flash-preview', 'gemini-3.1-flash-lite', 'gemini-3.5-flash-lite', 'gemini-3.8-flash'];
   let lastErr = null;
   for (const m of models) {
     try {
@@ -207,7 +208,7 @@ Start directly with the transcript.`;
         ai.models.generateContent({
           model: m,
           contents: contents,
-          config: { temperature: 0.1 }
+          config: { temperature: 0 }
         }),
         new Promise((_, reject) => setTimeout(() => reject(new Error(`Gemini ${m} timed out after 25s`)), 25000))
       ]);
@@ -238,11 +239,11 @@ async function proofreadTranscript(rawTranscript, userTextPrompt, keys) {
   const groqKey = keys.find(k => detectProvider(k) === 'groq');
   if (!groqKey) return rawTranscript;
 
-  const systemPrompt = `You are an expert multilingual copy-editor (English, Hindi, Hinglish, Gujarati, Marathi, Tamil) proofreading a raw speech-to-text audio transcript.
+  const systemPrompt = `You are an expert multilingual copy-editor (English, Hindi, Hinglish, Gujarati, Marathi, Tamil) proofreading a verbatim speech-to-text audio transcript.
 STRICT RULES:
-1. NEVER summarize, shorten, paraphrase, or delete ANY sentence, clause, or detail. Every single sentence from the raw transcript MUST remain in full.
-2. Fix clear speech-to-text phonetic mishearings using surrounding context (e.g., "bypass karte waqt agar dil zyada rehta hai, complications hone ka" -> "bypass karte waqt agar risk zyada rehta hai, complications hone ka"; "straight forward" -> "straightforward").
-3. Fix minor grammar, gender/number agreement, and pluralization errors naturally (e.g., in Hinglish: "ki decision" -> "ka decision", "nase" -> "nasein", "jisme" -> "jinme" for patients, "rehte hai" -> "rehte hain", "poochte hai" -> "poochte hain").
+1. NEVER summarize, shorten, paraphrase, reword, or delete ANY sentence, clause, or spoken filler (keep exact speaker phrasing such as "koi-koi logon ke", "nahi hota hai", "us patient ka", "agar chhote rehte hain").
+2. NEVER invent or add new words that were not in the raw transcript.
+3. Only fix clear spelling, compound-word, and grammar/pluralization slips (e.g., "straight forward" -> "straightforward", "jinhone ... affect ho" -> "jinmein ... affect hon", "ki decision" -> "ka decision", "hume" -> "humein", "nase"/"naso" -> "nasein"/"nason", "rehte hai" -> "rehte hain", "poochte hai" -> "poochte hain") and obvious context-broken ASR typos.
 4. Break the text into clean, logical paragraphs separated by a blank line (double newline) at speaker changes or topic shifts.
 5. Output ONLY the proofread plain text. Do NOT use markdown symbols like **, ###, or \`\`\`.${userTextPrompt && userTextPrompt.trim() ? `\n6. Respect the user's original formatting/language request: "${userTextPrompt.trim()}".` : ''}`;
 
