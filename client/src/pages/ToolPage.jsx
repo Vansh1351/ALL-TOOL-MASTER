@@ -396,27 +396,118 @@ export default function ToolPage({ tool, setView, setActiveTool, addToHistory, n
     else alert('Copied to clipboard!');
   };
 
-  const downloadSrt = () => {
-    const blob = new Blob([aiResult], { type: 'text/plain;charset=utf-8' });
+  const triggerTextDownload = (content, filename, mimeType = 'text/plain;charset=utf-8') => {
+    const blob = new Blob([content], { type: mimeType });
     const u = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = u;
-    a.download = 'subtitles.srt';
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(u);
-    if (addToast) addToast('Downloaded subtitles.srt', 'success');
+    if (addToast) addToast(`Downloaded ${filename}`, 'success');
+  };
+
+  const getBaseExportName = () => {
+    if (file && file.name) {
+      return (file.name.substring(0, file.name.lastIndexOf('.')) || file.name).replace(/[^a-zA-Z0-9_-]/g, '_');
+    }
+    return 'transcript';
+  };
+
+  const buildTimedSegments = (text) => {
+    const clean = (text || '').trim();
+    if (!clean) return [];
+    // Split into sentences or natural ~12-word chunks
+    const rawSentences = clean
+      .split(/(?<=[.!?।])\s+|\n+/)
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    const cues = [];
+    for (const sentence of rawSentences) {
+      const words = sentence.split(/\s+/);
+      if (words.length <= 14) {
+        cues.push(sentence);
+      } else {
+        for (let i = 0; i < words.length; i += 12) {
+          cues.push(words.slice(i, i + 12).join(' '));
+        }
+      }
+    }
+
+    const formatTime = (secs, sep = ',') => {
+      const hrs = Math.floor(secs / 3600);
+      const mins = Math.floor((secs % 3600) / 60);
+      const s = Math.floor(secs % 60);
+      const ms = Math.round((secs - Math.floor(secs)) * 1000);
+      return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(s).padStart(2, '0')}${sep}${String(ms).padStart(3, '0')}`;
+    };
+
+    let currentSec = 0;
+    return cues.map((cueText, idx) => {
+      const wordCount = cueText.split(/\s+/).length;
+      const duration = Math.max(1.8, Math.min(6.5, wordCount / 2.4));
+      const startSec = currentSec;
+      const endSec = currentSec + duration;
+      currentSec = endSec;
+      return {
+        index: idx + 1,
+        startSrt: formatTime(startSec, ','),
+        endSrt: formatTime(endSec, ','),
+        startVtt: formatTime(startSec, '.'),
+        endVtt: formatTime(endSec, '.'),
+        text: cueText
+      };
+    });
+  };
+
+  const downloadSrt = () => {
+    triggerTextDownload(aiResult, 'subtitles.srt');
   };
 
   const downloadVtt = () => {
-    let vtt = "WEBVTT\n\n" + aiResult.replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, '$1.$2');
-    const blob = new Blob([vtt], { type: 'text/vtt;charset=utf-8' });
-    const u = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = u;
-    a.download = 'subtitles.vtt';
-    a.click();
-    URL.revokeObjectURL(u);
-    if (addToast) addToast('Downloaded subtitles.vtt', 'success');
+    const vtt = "WEBVTT\n\n" + aiResult.replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, '$1.$2');
+    triggerTextDownload(vtt, 'subtitles.vtt', 'text/vtt;charset=utf-8');
+  };
+
+  const downloadTranscriptTxt = () => {
+    triggerTextDownload(aiResult, `${getBaseExportName()}.txt`);
+  };
+
+  const downloadTranscriptSrt = () => {
+    const segments = buildTimedSegments(aiResult);
+    const srtContent = segments
+      .map(seg => `${seg.index}\n${seg.startSrt} --> ${seg.endSrt}\n${seg.text}`)
+      .join('\n\n');
+    triggerTextDownload(srtContent || aiResult, `${getBaseExportName()}.srt`);
+  };
+
+  const downloadTranscriptVtt = () => {
+    const segments = buildTimedSegments(aiResult);
+    const vttBody = segments
+      .map(seg => `${seg.startVtt} --> ${seg.endVtt}\n${seg.text}`)
+      .join('\n\n');
+    triggerTextDownload(`WEBVTT\n\n${vttBody}`, `${getBaseExportName()}.vtt`, 'text/vtt;charset=utf-8');
+  };
+
+  const downloadTranscriptJson = () => {
+    const segments = buildTimedSegments(aiResult).map(({ index, startVtt, endVtt, text }) => ({
+      index,
+      start: startVtt,
+      end: endVtt,
+      text
+    }));
+    const payload = {
+      tool: tool.title,
+      sourceFile: file ? file.name : 'text-input',
+      generatedAt: new Date().toISOString(),
+      wordCount: aiResult.trim() ? aiResult.trim().split(/\s+/).length : 0,
+      characterCount: aiResult.length,
+      paragraphs: aiResult.split(/\n\s*\n/).filter(Boolean),
+      transcript: aiResult,
+      segments
+    };
+    triggerTextDownload(JSON.stringify(payload, null, 2), `${getBaseExportName()}.json`, 'application/json;charset=utf-8');
   };
 
   // Validate blob responses — catches 0-byte files and JSON error responses disguised as blobs
@@ -1238,6 +1329,22 @@ Please verify the server status above or try again in a few seconds.`;
                           </button>
                           <button className="btn btn-secondary" onClick={downloadVtt} style={{ padding: '8px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <FiDownload /> .VTT
+                          </button>
+                        </>
+                      )}
+                      {['ai-transcript', 'transcript', 'speech-to-text', 'ai-speech-to-text'].includes(tool.id) && (
+                        <>
+                          <button className="btn btn-secondary" onClick={downloadTranscriptTxt} style={{ padding: '8px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <FiDownload /> .TXT
+                          </button>
+                          <button className="btn btn-secondary" onClick={downloadTranscriptSrt} style={{ padding: '8px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <FiDownload /> .SRT
+                          </button>
+                          <button className="btn btn-secondary" onClick={downloadTranscriptVtt} style={{ padding: '8px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <FiDownload /> .VTT
+                          </button>
+                          <button className="btn btn-secondary" onClick={downloadTranscriptJson} style={{ padding: '8px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <FiDownload /> .JSON
                           </button>
                         </>
                       )}
