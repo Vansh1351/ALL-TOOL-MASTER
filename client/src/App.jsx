@@ -27,6 +27,7 @@ const LogoGenerator = React.lazy(() => import('./pages/LogoGenerator'));
 const QRCodeGenerator = React.lazy(() => import('./pages/QRCodeGenerator'));
 const BusinessCardMaker = React.lazy(() => import('./pages/BusinessCardMaker'));
 const ThumbnailMaker = React.lazy(() => import('./pages/ThumbnailMaker'));
+const PDFSuite = React.lazy(() => import('./pages/PDFSuite'));
 const DealsPage = React.lazy(() => import('./pages/DealsPage'));
 
 // New Page Modules
@@ -1577,6 +1578,8 @@ export default function App() {
               <BusinessCardMaker tool={activeTool} setView={setView} setActiveTool={setActiveTool} navigate={navigate} addToast={addToast} />
             ) : activeTool.id === 'youtube-thumbnail-maker' ? (
               <ThumbnailMaker tool={activeTool} setView={setView} setActiveTool={setActiveTool} navigate={navigate} addToast={addToast} />
+            ) : activeTool.id === 'pdf-suite' ? (
+              <PDFSuite tool={activeTool} setView={setView} setActiveTool={setActiveTool} addToHistory={addToHistory} navigate={navigate} addToast={addToast} incrementConversion={incrementConversion} />
             ) : (
               <ToolPage 
                 tool={activeTool} 

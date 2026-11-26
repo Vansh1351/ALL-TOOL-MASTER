@@ -1,6 +1,6 @@
 FROM node:18-slim
 
-# Install system dependencies (FFmpeg, Python3 for yt-dlp, and curl)
+# Install system dependencies (FFmpeg, Python3 for yt-dlp, qpdf for PDF security/compression/repair, and curl)
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     python3 \
@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     p7zip-full \
     unrar-free \
+    qpdf \
     && rm -rf /var/lib/apt/lists/*
 
 # Install yt-dlp – use pipx-style override to bypass PEP 668 "externally managed environment"

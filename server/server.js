@@ -10,6 +10,7 @@ import { performConversion } from './services/converter.js';
 import { downloadMedia, ensureYtdlp } from './services/downloader.js';
 import { processAiTool, removeWatermark } from './services/aiService.js';
 import { compressFile } from './services/compressor.js';
+import { handlePdfSecurityOrOptimize, handlePdfConversion, handlePdfIntelligence } from './services/pdfService.js';
 import archiver from 'archiver';
 
 dotenv.config();
@@ -431,6 +432,69 @@ app.post('/api/compress', upload.array('files', 20), async (req, res) => {
   }
 });
 
+
+/**
+ * PDF Suite API (Compress, Protect, Unlock, Repair, PDF/A, Conversions)
+ */
+app.post('/api/pdf-suite', upload.single('file'), async (req, res) => {
+  const { action, password, level, textInput } = req.body || {};
+  const filePath = req.file ? req.file.path : null;
+  const mimeType = req.file ? req.file.mimetype : null;
+  const originalName = req.file ? req.file.originalname : 'document';
+
+  if (!action) {
+    if (filePath && fs.existsSync(filePath)) try { fs.unlinkSync(filePath); } catch (e) {}
+    return res.status(400).json({ error: 'PDF action is required.' });
+  }
+
+  try {
+    const securityActions = ['protect', 'unlock', 'repair', 'compress', 'pdf-to-pdfa'];
+    let result;
+    if (securityActions.includes(action)) {
+      if (!filePath) return res.status(400).json({ error: 'Please upload a PDF file.' });
+      result = await handlePdfSecurityOrOptimize({ action, filePath, password, level, uploadsDir });
+    } else {
+      result = await handlePdfConversion({ action, filePath, mimeType, originalName, textInput, uploadsDir });
+    }
+
+    const downloadName = result.filename || `${path.parse(originalName).name}_${action}.${result.ext || 'pdf'}`;
+    res.download(result.outputPath, downloadName, () => {
+      if (filePath && fs.existsSync(filePath)) try { fs.unlinkSync(filePath); } catch (e) {}
+      if (result.outputPath && fs.existsSync(result.outputPath)) try { fs.unlinkSync(result.outputPath); } catch (e) {}
+      if (global.gc) { try { global.gc(); } catch (e) {} }
+    });
+  } catch (error) {
+    console.error(`[PDF Suite] ${action} error:`, error.message);
+    if (filePath && fs.existsSync(filePath)) try { fs.unlinkSync(filePath); } catch (e) {}
+    if (global.gc) { try { global.gc(); } catch (e) {} }
+    res.status(400).json({ error: error.message });
+  }
+});
+
+/**
+ * PDF Intelligence API (AI Summarize, Translate, OCR, Compare 2 PDFs)
+ */
+app.post('/api/pdf-intelligence', upload.array('files', 2), async (req, res) => {
+  const { action, targetLanguage, apiKey } = req.body || {};
+  const files = req.files || [];
+
+  if (!action) {
+    files.forEach(f => { try { fs.unlinkSync(f.path); } catch (e) {} });
+    return res.status(400).json({ error: 'AI PDF action is required.' });
+  }
+
+  try {
+    const result = await handlePdfIntelligence({ action, files, targetLanguage, apiKey, uploadsDir });
+    files.forEach(f => { try { fs.unlinkSync(f.path); } catch (e) {} });
+    if (global.gc) { try { global.gc(); } catch (e) {} }
+    res.json({ result });
+  } catch (error) {
+    console.error(`[PDF Intelligence] ${action} error:`, error.message);
+    files.forEach(f => { try { fs.unlinkSync(f.path); } catch (e) {} });
+    if (global.gc) { try { global.gc(); } catch (e) {} }
+    res.status(400).json({ error: error.message });
+  }
+});
 
 // ─── IMPORTANT: Serve frontend static build AFTER all API routes ───────────
 // (Must be last to avoid shadowing /api/* routes in production)

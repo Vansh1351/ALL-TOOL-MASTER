@@ -251,16 +251,20 @@ export const TOOLS_DATA = [
   },
   {
     id: 'pdf-suite',
-    title: 'PDF Suite (Merge, Split & Optimize)',
-    desc: 'Combine multiple PDFs, rotate pages, and compress large documents safely in your browser.',
+    title: 'PDF Suite (All-in-One Editor & Converter)',
+    desc: 'Merge, split, compress, organize, edit (text, shapes, draw, signatures, forms, layers), convert (Word, Excel, PPT, JPG, HTML, Markdown), protect, unlock, OCR & AI summarize PDFs.',
     icon: FiFileText,
     color: '#ec4899',
     category: 'Utility',
     routes: ['/utility/pdf-suite', '/utility/pdf-merge', '/utility/pdf-split', '/utility/merge-pdf'],
     keywords: [
-      'pdf suite', 'merge pdf free', 'split pdf online', 'compress pdf', 'rotate pdf pages',
-      'ilovepdf alternative', 'combine pdf files', 'pdf tools free online', 'pdf optimizer',
-      'merge multiple pdfs into one', 'free pdf merger no watermark'
+      'pdf suite', 'merge pdf', 'split pdf', 'compress pdf', 'edit pdf', 'organize pdf',
+      'rotate pdf', 'remove pdf pages', 'extract pdf pages', 'repair pdf', 'ocr pdf',
+      'jpg to pdf', 'pdf to jpg', 'word to pdf', 'pdf to word', 'powerpoint to pdf', 'pdf to powerpoint',
+      'excel to pdf', 'pdf to excel', 'html to pdf', 'pdf to pdf/a', 'pdf to markdown',
+      'protect pdf', 'unlock pdf', 'sign pdf', 'redact pdf', 'watermark pdf', 'add page numbers pdf',
+      'crop pdf', 'pdf forms', 'ai pdf summarizer', 'translate pdf', 'compare pdf', 'scan to pdf',
+      'ilovepdf alternative', 'pdf tools free online'
     ]
   },
   {
