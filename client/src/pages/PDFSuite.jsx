@@ -1014,60 +1014,128 @@ export default function PDFSuite({ tool, setView, setActiveTool, addToast, incre
         const viewport = pdfPage.getViewport({ scale: 1 });
         const textContent = await pdfPage.getTextContent();
         const items = (textContent.items || []).filter(it => it.str && it.str.trim());
+        const styles = textContent.styles || {};
 
-        // Group items on the same horizontal line
+        // Prepare offscreen canvas to sample real background & text colors
+        let sampleCtx = null;
+        let sampleScaleX = 1;
+        let sampleScaleY = 1;
+        if (page.bgDataUrl) {
+          await new Promise((res) => {
+            const img = new Image();
+            img.onload = () => {
+              const c = document.createElement('canvas');
+              c.width = img.width;
+              c.height = img.height;
+              sampleCtx = c.getContext('2d', { willReadFrequently: true });
+              sampleCtx.drawImage(img, 0, 0);
+              sampleScaleX = img.width / page.width;
+              sampleScaleY = img.height / page.height;
+              res();
+            };
+            img.onerror = res;
+            img.src = page.bgDataUrl;
+          });
+        }
+
+        const rgbToHex = (r, g, b) => '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+
+        // Transform every item to top-down viewport coordinates and sort top-to-bottom, left-to-right
+        const mapped = items.map(it => {
+          const m = pdfjsLib.Util.transform(viewport.transform, it.transform);
+          const fontSize = Math.max(8, Math.round(Math.hypot(m[0], m[1])));
+          const x = m[4];
+          const yTop = m[5] - fontSize * 0.9;
+          const w = Math.max(8, (it.width || it.str.length * fontSize * 0.5) * viewport.scale);
+          const styleInfo = styles[it.fontName] || {};
+          const fontStr = `${it.fontName || ''} ${styleInfo.fontFamily || ''}`.toLowerCase();
+          return {
+            str: it.str,
+            x,
+            y: yTop,
+            w,
+            fontSize,
+            bold: fontStr.includes('bold') || fontStr.includes('black') || fontStr.includes('heavy') || fontSize >= 15
+          };
+        }).sort((a, b) => Math.abs(a.y - b.y) < 4 ? a.x - b.x : a.y - b.y);
+
+        // Group adjacent spans on the same horizontal line (only if gap < 1.8 * fontSize)
         const lines = [];
-        for (const it of items) {
-          const tx = it.transform; // [scaleX, skewY, skewX, scaleY, x, y]
-          const fontSize = Math.max(8, Math.round(Math.hypot(tx[0], tx[1])));
-          const x = tx[4];
-          const yTop = viewport.height - tx[5] - fontSize;
-          const w = Math.max(20, it.width || it.str.length * fontSize * 0.55);
-
-          const existing = lines.find(l => Math.abs(l.y - yTop) < fontSize * 0.6 && x >= l.x - 15);
-          if (existing) {
-            const gap = x - (existing.x + existing.w);
-            existing.text += (gap > 3 ? ' ' : '') + it.str;
-            existing.w = Math.max(existing.w, x + w - existing.x);
-            existing.fontSize = Math.max(existing.fontSize, fontSize);
-          } else {
-            lines.push({
-              text: it.str,
-              x,
-              y: yTop,
-              w,
-              h: Math.max(18, fontSize * 1.35),
-              fontSize,
-              bold: (it.fontName || '').toLowerCase().includes('bold') || fontSize >= 14,
-              color: '#0f172a',
-              bgColor: '#ffffff'
-            });
+        for (const it of mapped) {
+          const prev = lines[lines.length - 1];
+          if (prev && Math.abs(prev.y - it.y) < Math.max(prev.fontSize, it.fontSize) * 0.55) {
+            const gap = it.x - (prev.x + prev.w);
+            if (gap >= -8 && gap <= Math.max(prev.fontSize, it.fontSize) * 2.0) {
+              prev.text += (gap > 2 ? ' ' : '') + it.str;
+              prev.w = Math.max(prev.w, it.x + it.w - prev.x);
+              prev.fontSize = Math.max(prev.fontSize, it.fontSize);
+              prev.bold = prev.bold || it.bold;
+              continue;
+            }
           }
+          lines.push({
+            text: it.str,
+            x: it.x,
+            y: it.y,
+            w: it.w,
+            h: Math.max(16, it.fontSize * 1.35),
+            fontSize: it.fontSize,
+            bold: it.bold
+          });
         }
 
         if (lines.length > 0) {
-          extractedLayers = lines.map((l, i) => ({
-            id: `magic_${Date.now()}_${i}`,
-            pageIdx: currentPageIdx,
-            type: 'text',
-            x: Math.max(0, l.x - 2),
-            y: Math.max(0, l.y - 2),
-            w: Math.min(page.width - l.x, l.w + 16),
-            h: l.h + 4,
-            text: l.text,
-            fontFamily: 'Helvetica',
-            fontSize: l.fontSize,
-            bold: l.bold,
-            italic: false,
-            underline: false,
-            strike: false,
-            color: l.color,
-            bgColor: l.bgColor,
-            opacity: 1,
-            shadow: false,
-            rotation: 0,
-            visible: true
-          }));
+          extractedLayers = lines.map((l, i) => {
+            let bgColor = '#ffffff';
+            let color = '#0f172a';
+
+            if (sampleCtx) {
+              try {
+                const sx = Math.max(0, Math.min(sampleCtx.canvas.width - 1, Math.round((l.x - 3) * sampleScaleX)));
+                const sy = Math.max(0, Math.min(sampleCtx.canvas.height - 1, Math.round((l.y + l.h * 0.5) * sampleScaleY)));
+                const bgPx = sampleCtx.getImageData(sx, sy, 1, 1).data;
+                bgColor = rgbToHex(bgPx[0], bgPx[1], bgPx[2]);
+
+                // Sample inside box to find highest-contrast text color
+                const bx = Math.max(0, Math.round(l.x * sampleScaleX));
+                const by = Math.max(0, Math.round(l.y * sampleScaleY));
+                const bw = Math.max(1, Math.min(sampleCtx.canvas.width - bx, Math.round(l.w * sampleScaleX)));
+                const bh = Math.max(1, Math.min(sampleCtx.canvas.height - by, Math.round(l.h * sampleScaleY)));
+                const boxData = sampleCtx.getImageData(bx, by, bw, bh).data;
+                let maxDist = 0;
+                for (let p = 0; p < boxData.length; p += 16) {
+                  const dist = Math.abs(boxData[p] - bgPx[0]) + Math.abs(boxData[p + 1] - bgPx[1]) + Math.abs(boxData[p + 2] - bgPx[2]);
+                  if (dist > maxDist) {
+                    maxDist = dist;
+                    color = rgbToHex(boxData[p], boxData[p + 1], boxData[p + 2]);
+                  }
+                }
+              } catch (e) {}
+            }
+
+            return {
+              id: `magic_${Date.now()}_${i}`,
+              pageIdx: currentPageIdx,
+              type: 'text',
+              x: Math.max(0, l.x - 2),
+              y: Math.max(0, l.y - 2),
+              w: Math.min(page.width - Math.max(0, l.x - 2), l.w + 14),
+              h: l.h + 4,
+              text: l.text,
+              fontFamily: 'Helvetica',
+              fontSize: l.fontSize,
+              bold: l.bold,
+              italic: false,
+              underline: false,
+              strike: false,
+              color,
+              bgColor,
+              opacity: 1,
+              shadow: false,
+              rotation: 0,
+              visible: true
+            };
+          });
         }
       }
 
@@ -1107,7 +1175,10 @@ export default function PDFSuite({ tool, setView, setActiveTool, addToast, incre
         }));
       }
 
-      setElements(prev => [...prev, ...extractedLayers]);
+      setElements(prev => [
+        ...prev.filter(e => !(e.pageIdx === currentPageIdx && e.id.startsWith('magic_'))),
+        ...extractedLayers
+      ]);
       setEditorTool('select');
       if (addToast) addToast(`Magic Text extracted ${extractedLayers.length} editable layers! Double-click any text to edit.`, 'success');
     } catch (err) {
