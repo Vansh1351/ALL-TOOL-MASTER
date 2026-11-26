@@ -143,11 +143,13 @@ export default function PDFSuite({ tool, setView, setActiveTool, addToast, incre
   const signCanvasRef = useRef(null);
   const isSigningRef = useRef(false);
 
-  // Canvas drag/draw refs
+  // Canvas drag/draw & Magic Text refs
   const stageRef = useRef(null);
   const dragStateRef = useRef(null);
   const drawPathRef = useRef(null);
   const [liveDrawPoints, setLiveDrawPoints] = useState(null);
+  const [magicLoading, setMagicLoading] = useState(false);
+  const [editingTextId, setEditingTextId] = useState(null);
 
   const fileInputRef = useRef(null);
   const editorUploadRef = useRef(null);
@@ -997,6 +999,125 @@ export default function PDFSuite({ tool, setView, setActiveTool, addToast, incre
     }
   };
 
+  // ─── Canva-Style Magic Text: Extract Editable Text Layers from PDF or Image ─
+  const runMagicText = async () => {
+    const page = docPages[currentPageIdx];
+    if (!page) return;
+    setMagicLoading(true);
+    try {
+      let extractedLayers = [];
+
+      // 1. Try instant vector text extraction if this is a native PDF page
+      if (editorPdfBytes && page.bgType === 'pdf') {
+        const pdf = await pdfjsLib.getDocument({ data: editorPdfBytes.slice(0) }).promise;
+        const pdfPage = await pdf.getPage(currentPageIdx + 1);
+        const viewport = pdfPage.getViewport({ scale: 1 });
+        const textContent = await pdfPage.getTextContent();
+        const items = (textContent.items || []).filter(it => it.str && it.str.trim());
+
+        // Group items on the same horizontal line
+        const lines = [];
+        for (const it of items) {
+          const tx = it.transform; // [scaleX, skewY, skewX, scaleY, x, y]
+          const fontSize = Math.max(8, Math.round(Math.hypot(tx[0], tx[1])));
+          const x = tx[4];
+          const yTop = viewport.height - tx[5] - fontSize;
+          const w = Math.max(20, it.width || it.str.length * fontSize * 0.55);
+
+          const existing = lines.find(l => Math.abs(l.y - yTop) < fontSize * 0.6 && x >= l.x - 15);
+          if (existing) {
+            const gap = x - (existing.x + existing.w);
+            existing.text += (gap > 3 ? ' ' : '') + it.str;
+            existing.w = Math.max(existing.w, x + w - existing.x);
+            existing.fontSize = Math.max(existing.fontSize, fontSize);
+          } else {
+            lines.push({
+              text: it.str,
+              x,
+              y: yTop,
+              w,
+              h: Math.max(18, fontSize * 1.35),
+              fontSize,
+              bold: (it.fontName || '').toLowerCase().includes('bold') || fontSize >= 14,
+              color: '#0f172a',
+              bgColor: '#ffffff'
+            });
+          }
+        }
+
+        if (lines.length > 0) {
+          extractedLayers = lines.map((l, i) => ({
+            id: `magic_${Date.now()}_${i}`,
+            pageIdx: currentPageIdx,
+            type: 'text',
+            x: Math.max(0, l.x - 2),
+            y: Math.max(0, l.y - 2),
+            w: Math.min(page.width - l.x, l.w + 16),
+            h: l.h + 4,
+            text: l.text,
+            fontFamily: 'Helvetica',
+            fontSize: l.fontSize,
+            bold: l.bold,
+            italic: false,
+            underline: false,
+            strike: false,
+            color: l.color,
+            bgColor: l.bgColor,
+            opacity: 1,
+            shadow: false,
+            rotation: 0,
+            visible: true
+          }));
+        }
+      }
+
+      // 2. Fallback / Image Mode: Send current page image to Gemini Vision /api/magic-text
+      if (extractedLayers.length === 0) {
+        if (!page.bgDataUrl) throw new Error('Load a PDF or image first to run Magic Text.');
+        const imgBlob = await fetch(page.bgDataUrl).then(r => r.blob());
+        const fd = new FormData();
+        fd.append('file', imgBlob, 'magic_page.png');
+        const res = await axios.post(`${BACKEND_URL}/api/magic-text`, fd, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        const blocks = res.data?.blocks || [];
+        if (blocks.length === 0) throw new Error('No editable text detected on this page.');
+
+        extractedLayers = blocks.map((b, i) => ({
+          id: `magic_ai_${Date.now()}_${i}`,
+          pageIdx: currentPageIdx,
+          type: 'text',
+          x: ((b.x || 0) / 100) * page.width,
+          y: ((b.y || 0) / 100) * page.height,
+          w: Math.max(60, ((b.w || 25) / 100) * page.width),
+          h: Math.max(20, ((b.h || 5) / 100) * page.height),
+          text: b.text || '',
+          fontFamily: 'Helvetica',
+          fontSize: b.fontSize || 13,
+          bold: !!b.bold,
+          italic: false,
+          underline: false,
+          strike: false,
+          color: b.color || '#0f172a',
+          bgColor: b.bgColor || '#ffffff',
+          opacity: 1,
+          shadow: false,
+          rotation: 0,
+          visible: true
+        }));
+      }
+
+      setElements(prev => [...prev, ...extractedLayers]);
+      setEditorTool('select');
+      if (addToast) addToast(`Magic Text extracted ${extractedLayers.length} editable layers! Double-click any text to edit.`, 'success');
+    } catch (err) {
+      const msg = err.response?.data?.error || err.message || 'Magic Text failed.';
+      if (addToast) addToast(msg, 'error');
+    } finally {
+      setMagicLoading(false);
+    }
+  };
+
   // Export current page as PNG / JPG
   const exportCurrentPageImage = async (fmt = 'png') => {
     const page = docPages[currentPageIdx];
@@ -1149,6 +1270,15 @@ export default function PDFSuite({ tool, setView, setActiveTool, addToast, incre
               <button className="btn btn-secondary" onClick={() => setDocPages(p => [...p, { width: 595, height: 842, bgDataUrl: null, bgType: 'blank' }])} style={{ padding: '7px 10px', fontSize: '12px' }}>
                 + Blank Page
               </button>
+              <button
+                className="btn btn-primary"
+                disabled={magicLoading}
+                onClick={runMagicText}
+                style={{ padding: '7px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(135deg, #8b5cf6, #ec4899)' }}
+                title="Analyze document/image and turn text into live editable Canva-style Magic Layers"
+              >
+                <FiCpu size={14} /> {magicLoading ? 'Analyzing...' : 'Magic Text'}
+              </button>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '6px' }}>
                 <button className="btn btn-secondary" onClick={() => setCurrentPageIdx(i => Math.max(0, i - 1))} style={{ padding: '5px 9px', fontSize: '12px' }}>‹</button>
                 <span style={{ fontSize: '12px', fontWeight: '700' }}>Page {currentPageIdx + 1}/{docPages.length}</span>
@@ -1290,18 +1420,40 @@ export default function PDFSuite({ tool, setView, setActiveTool, addToast, incre
                       }}
                     >
                       {el.type === 'text' && (
-                        <div style={{
-                          width: '100%', height: '100%',
-                          fontFamily: el.fontFamily, fontSize: (el.fontSize || 16) * zoom,
-                          fontWeight: el.bold ? 'bold' : 'normal',
-                          fontStyle: el.italic ? 'italic' : 'normal',
-                          textDecoration: `${el.underline ? 'underline' : ''} ${el.strike ? 'line-through' : ''}`.trim(),
-                          color: el.color, backgroundColor: el.bgColor,
-                          textShadow: el.shadow ? '2px 2px 4px rgba(0,0,0,0.35)' : 'none',
-                          whiteSpace: 'pre-wrap', lineHeight: 1.3, padding: '2px'
-                        }}>
-                          {el.text}
-                        </div>
+                        editingTextId === el.id ? (
+                          <textarea
+                            autoFocus
+                            value={el.text}
+                            onChange={e => setElements(prev => prev.map(x => x.id === el.id ? { ...x, text: e.target.value } : x))}
+                            onBlur={() => setEditingTextId(null)}
+                            onMouseDown={e => e.stopPropagation()}
+                            style={{
+                              width: '100%', height: '100%', resize: 'none', border: '1px solid #06b6d4', outline: 'none',
+                              fontFamily: el.fontFamily, fontSize: (el.fontSize || 16) * zoom,
+                              fontWeight: el.bold ? 'bold' : 'normal',
+                              fontStyle: el.italic ? 'italic' : 'normal',
+                              color: el.color, backgroundColor: el.bgColor === 'transparent' ? '#ffffff' : el.bgColor,
+                              lineHeight: 1.3, padding: '2px'
+                            }}
+                          />
+                        ) : (
+                          <div
+                            onDoubleClick={(e) => { e.stopPropagation(); setSelectedId(el.id); setEditingTextId(el.id); }}
+                            title="Double-click to edit text inline"
+                            style={{
+                              width: '100%', height: '100%',
+                              fontFamily: el.fontFamily, fontSize: (el.fontSize || 16) * zoom,
+                              fontWeight: el.bold ? 'bold' : 'normal',
+                              fontStyle: el.italic ? 'italic' : 'normal',
+                              textDecoration: `${el.underline ? 'underline' : ''} ${el.strike ? 'line-through' : ''}`.trim(),
+                              color: el.color, backgroundColor: el.bgColor,
+                              textShadow: el.shadow ? '2px 2px 4px rgba(0,0,0,0.35)' : 'none',
+                              whiteSpace: 'pre-wrap', lineHeight: 1.3, padding: '2px'
+                            }}
+                          >
+                            {el.text}
+                          </div>
+                        )
                       )}
 
                       {el.type === 'rect' && (

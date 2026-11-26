@@ -9,6 +9,7 @@ import XLSX from 'xlsx';
 import archiver from 'archiver';
 import { performConversion } from './converter.js';
 import { processAiTool } from './aiService.js';
+import { GoogleGenAI } from '@google/genai';
 
 const execFileAsync = promisify(execFile);
 
@@ -343,4 +344,55 @@ export async function handlePdfIntelligence({ action, files, targetLanguage = 'E
   }
 
   throw new Error(`Unsupported AI PDF action: ${action}`);
+}
+
+/**
+ * Canva-style Magic Text: Uses Gemini Vision to detect all text blocks on an image/scanned page
+ * with percentage bounding boxes (0-100), font size, bold, text color, and background color.
+ */
+export async function extractMagicTextFromImage({ filePath, mimeType, apiKey }) {
+  const key = apiKey || process.env.GEMINI_API_KEY;
+  if (!key) throw new Error('Gemini API key is required for Magic Text image analysis.');
+  const ai = new GoogleGenAI({ apiKey: key });
+  const imgBuf = fs.readFileSync(filePath);
+
+  const prompt = `Analyze this document/image carefully and extract EVERY visible text line or paragraph block so the user can edit them as independent Magic Text layers (like Canva Magic Grab).
+For each text block, return a JSON object with:
+- "text": exact visible text string
+- "x": left edge percentage (0 to 100)
+- "y": top edge percentage (0 to 100)
+- "w": width percentage (0 to 100)
+- "h": height percentage (0 to 100)
+- "fontSize": estimated font size in points (e.g. 10 to 42)
+- "bold": boolean (true if heading/bold)
+- "color": hex color of the text (e.g. "#0f172a" or "#0284c7")
+- "bgColor": hex color of the background behind this text (usually "#ffffff")
+
+Return ONLY a valid JSON array. No markdown, no code fences, no extra text.`;
+
+  const contents = [
+    { inlineData: { mimeType: mimeType || 'image/png', data: imgBuf.toString('base64') } },
+    { text: prompt }
+  ];
+
+  const models = ['gemini-3-flash-preview', 'gemini-3.1-flash-lite', 'gemini-3.5-flash-lite'];
+  let lastErr = null;
+  for (const m of models) {
+    try {
+      const res = await Promise.race([
+        ai.models.generateContent({
+          model: m,
+          contents,
+          config: { responseMimeType: 'application/json', temperature: 0 }
+        }),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('Magic Text timeout')), 25000))
+      ]);
+      const raw = (res.text || '').trim().replace(/^```json\s*/i, '').replace(/```$/, '').trim();
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error('Magic Text extraction failed.');
 }

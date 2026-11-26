@@ -10,7 +10,7 @@ import { performConversion } from './services/converter.js';
 import { downloadMedia, ensureYtdlp } from './services/downloader.js';
 import { processAiTool, removeWatermark } from './services/aiService.js';
 import { compressFile } from './services/compressor.js';
-import { handlePdfSecurityOrOptimize, handlePdfConversion, handlePdfIntelligence } from './services/pdfService.js';
+import { handlePdfSecurityOrOptimize, handlePdfConversion, handlePdfIntelligence, extractMagicTextFromImage } from './services/pdfService.js';
 import archiver from 'archiver';
 
 dotenv.config();
@@ -492,6 +492,25 @@ app.post('/api/pdf-intelligence', upload.array('files', 2), async (req, res) => 
     console.error(`[PDF Intelligence] ${action} error:`, error.message);
     files.forEach(f => { try { fs.unlinkSync(f.path); } catch (e) {} });
     if (global.gc) { try { global.gc(); } catch (e) {} }
+    res.status(400).json({ error: error.message });
+  }
+});
+
+/**
+ * Canva-style Magic Text API: detects editable text layers on images/scanned pages
+ */
+app.post('/api/magic-text', upload.single('file'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Image file is required.' });
+  try {
+    const blocks = await extractMagicTextFromImage({
+      filePath: req.file.path,
+      mimeType: req.file.mimetype,
+      apiKey: req.body?.apiKey || null
+    });
+    try { fs.unlinkSync(req.file.path); } catch (e) {}
+    res.json({ blocks });
+  } catch (error) {
+    try { fs.unlinkSync(req.file.path); } catch (e) {}
     res.status(400).json({ error: error.message });
   }
 });
