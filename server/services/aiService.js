@@ -99,6 +99,7 @@ async function transcribeWithGroq(filePath, mimeType, key) {
       const audioBlob = new Blob([fileBuf], { type: mimeType || 'audio/mpeg' });
       whisperForm.append('file', audioBlob, path.basename(filePath));
       whisperForm.append('model', model);
+      whisperForm.append('temperature', '0');
 
       const whisperRes = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
         method: "POST",
@@ -203,7 +204,11 @@ ${contextText ? `Context Content:\n${contextText}\n\n` : ''}${textContent ? `Tex
         body: JSON.stringify({
           model: model,
           max_tokens: maxTokens,
-          messages: [{ role: "user", content: fullPrompt }]
+          temperature: isTranscript ? 0.1 : 0.7,
+          messages: [
+            { role: "system", content: `${prompt}\n\n${formatInstruction}` },
+            { role: "user", content: `${contextText ? `Transcript / Source Content:\n${contextText}\n\n` : ''}${textContent ? `User Instructions:\n${textContent}\n\n` : ''}Start directly with the output.` }
+          ]
         })
       });
 
@@ -346,7 +351,11 @@ ${contextText ? `Context Content:\n${contextText}\n\n` : ''}${textContent ? `Tex
         body: JSON.stringify({
           model: model,
           max_tokens: maxTokens,
-          messages: [{ role: "user", content: fullPrompt }]
+          temperature: isTranscript ? 0.1 : 0.7,
+          messages: [
+            { role: "system", content: `${prompt}\n\n${formatInstruction}` },
+            { role: "user", content: `${contextText ? `Transcript / Source Content:\n${contextText}\n\n` : ''}${textContent ? `User Instructions:\n${textContent}\n\n` : ''}Start directly with the output.` }
+          ]
         })
       });
 
@@ -509,11 +518,10 @@ export async function processAiTool({ tool, filePath, mimeType, textContent, api
       if (textContent && textContent.trim()) {
         prompt = `You are a professional verbatim transcription and multilingual language specialist. The user provided an audio/video recording (or text) and gave specific formatting, language, or translation instructions in Text Content: "${textContent.trim()}".
 CRITICAL ACCURACY & ANTI-SUMMARIZATION RULES (MUST FOLLOW):
-- NEVER summarize, condense, shorten, paraphrase, or skip ANY part of the speech/context.
-- Output the COMPLETE, FULL, WORD-FOR-WORD transcript of EVERY single sentence from beginning to end.
-- Format dialogue cleanly: ALWAYS insert a blank line (double newline) between every speaker change or dialogue reply (never output one giant wall of text).
+- NEVER summarize, condense, shorten, paraphrase, or skip ANY sentence from the Source Content. Every single sentence and dialogue line MUST be included from start to finish.
+- Format dialogue cleanly: ALWAYS insert a blank line (double newline) between every speaker change, reply, or conversational turn so each speaker's lines are clearly separated into readable paragraphs. NEVER output one giant wall of text.
 - Do NOT use markdown symbols like **, ###, or \`\`\` anywhere in the output.
-- Fix obvious ASR phonetic misspellings using surrounding context (e.g., "Bahaiya" -> "Bhaiya", "Kana" -> "Kanha", "bhad" -> "bheed", "Maya" -> "Maiya") while keeping every spoken word faithful.
+- Fix obvious ASR phonetic misspellings using surrounding context (e.g., "Maayaa"/"Maya" -> "Maiya", "Kanhai"/"Kana" -> "Kanha", "Bahaiya"/"Bhaya" -> "Bhaiya", "bhad" -> "bheed", "laala" -> "lala") while keeping every spoken word faithful.
 - Follow the user's language/formatting instructions strictly:
   * If they requested Hinglish, write the ENTIRE transcript word-for-word in natural, accurate Hinglish (Hindi/Urdu words in Roman/Latin script, e.g., "Maiya, main Prithvi par ja raha hoon").
   * If they requested English or translation, provide the ENTIRE full transcript translated sentence-by-sentence into natural, clear English.
@@ -843,6 +851,14 @@ CRITICAL: Return ONLY valid, parser-friendly JSON. Do not wrap in markdown \`\`\
         // Clean up extracted temp audio file if created
         if (processedFilePath !== filePath && fs.existsSync(processedFilePath)) {
           try { fs.unlinkSync(processedFilePath); } catch (e) {}
+        }
+        if (['transcript', 'ai-transcript', 'speech-to-text', 'ai-speech-to-text'].includes(tool)) {
+          resultText = resultText
+            .replace(/```[a-z]*\r?\n?/gi, '')
+            .replace(/```/g, '')
+            .replace(/^#{1,6}\s+/gm, '')
+            .replace(/\*\*/g, '')
+            .trim();
         }
         return resultText;
       }
